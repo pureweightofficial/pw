@@ -39,7 +39,7 @@ export function Testimonials() {
       className="py-24 lg:py-36"
     >
       <div className="shell-narrow text-center">
-        <Eyebrow className="mb-8 will-reveal">In Their Words</Eyebrow>
+        <Eyebrow align="center" className="mb-8 will-reveal">In Their Words</Eyebrow>
 
         <h2 id="testimonials-heading" className="sr-only">
           Customer testimonials

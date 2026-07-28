@@ -1,4 +1,6 @@
+import Image from 'next/image';
 import Link from 'next/link';
+import { assetPath } from '@/lib/asset';
 import { BeamDivider, Eyebrow, Section } from '@/components/ui/primitives';
 import { services } from '@/lib/site';
 
@@ -9,12 +11,15 @@ import { services } from '@/lib/site';
  * A grid flattens four quite different propositions into one visual weight; the
  * alternating layout lets each one have a full spread and its own rhythm.
  *
- * ON THE IMAGERY: the brief called for macro photography here, and photography
- * is genuinely the right answer. None exists yet, so each panel carries an
- * engraved ornamental plate drawn from the emblem's vocabulary — distinct per
- * service, on-brand, and honest about being artwork rather than a stock photo
- * of somebody else's premises. Swap in real photography when it is shot; the
- * layout is built to take a 4:5 image with no other changes.
+ * ON THE IMAGERY: the first three panels now carry licensed photography
+ * (Unsplash License — commercial use, no attribution required; provenance and
+ * selection rules in public/img/CREDITS.md). Each is desaturated and warmed by
+ * a gold overlay so stock photography sits inside the brand's light rather than
+ * next to it — untreated stock is the fastest way to break a bespoke palette.
+ *
+ * The fourth panel keeps its engraved plate on purpose. Every stock image of a
+ * "private consultation" reads as generic corporate office and would cheapen
+ * the section; only photography of the real premises will serve it.
  *
  * Every service is marked `confirmed: false` in `site.ts` until the client
  * confirms the offering, and renders with a visible pending marker until then.
@@ -59,7 +64,31 @@ export function Services() {
                     className="relative aspect-4/5 w-full overflow-hidden border border-gold-antique/18 bg-void will-reveal"
                     data-parallax="30"
                   >
-                    <ServicePlate index={index} />
+                    {service.image ? (
+                      <>
+                        <Image
+                          src={assetPath(service.image)}
+                          alt=""
+                          fill
+                          sizes="(max-width: 1024px) 100vw, 40vw"
+                          className="object-cover"
+                          style={{ filter: 'saturate(0.55) contrast(1.08) brightness(0.72)' }}
+                        />
+                        {/* Warm the image into the palette and sink its edges
+                            into the section, so it reads as lit by the same
+                            key light as everything else. */}
+                        <span
+                          aria-hidden="true"
+                          className="absolute inset-0 bg-[linear-gradient(150deg,rgba(184,121,20,0.30),transparent_55%)] mix-blend-overlay"
+                        />
+                        <span
+                          aria-hidden="true"
+                          className="absolute inset-0 bg-[radial-gradient(ellipse_75%_65%_at_50%_45%,transparent_10%,rgba(5,4,6,0.55)_75%,rgba(5,4,6,0.9)_100%)]"
+                        />
+                      </>
+                    ) : (
+                      <ServicePlate index={index} />
+                    )}
                     <span className="absolute left-5 top-5 font-display text-6xl font-normal text-gold-antique/75">
                       {service.index}
                     </span>

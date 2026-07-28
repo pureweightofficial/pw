@@ -59,11 +59,17 @@ export function Hero() {
         aria-hidden="true"
         className="absolute inset-x-0 bottom-0 -z-10 h-48 bg-linear-to-t from-void to-transparent"
       />
+      {/* Aurora's elliptical falloff — closes the frame edges around the
+          instrument so it sits in a pool of light rather than on a flat field. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_70%_at_50%_50%,transparent_0%,rgba(5,4,6,0.72)_70%,var(--color-void)_100%)]"
+      />
 
       {/* --- The copy -------------------------------------------------- */}
       <div className="shell relative w-full" data-cursor-normal>
         <div className="max-w-2xl">
-          <p className="label mb-7 will-reveal">Precision in Every Gram</p>
+          <p className="label mb-9 will-reveal">Precision in Every Gram</p>
 
           <h1
             id="hero-heading"

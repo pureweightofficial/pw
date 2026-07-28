@@ -20,7 +20,7 @@ export function WhyPureweight() {
     <Section id="pillars" material="stone" labelledBy="pillars-heading" className="py-24 lg:py-40">
       <div className="shell">
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow className="mb-8 will-reveal">Chapter 05 — Built on Trust</Eyebrow>
+          <Eyebrow align="center" className="mb-8 will-reveal">Chapter 05 — Built on Trust</Eyebrow>
           <h2
             id="pillars-heading"
             className="font-display text-chapter font-normal text-ivory will-reveal"

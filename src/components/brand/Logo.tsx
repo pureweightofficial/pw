@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { assetPath } from '@/lib/asset';
 
 /**
  * THE REAL PUREWEIGHT LOGO
@@ -27,14 +28,7 @@ import Image from 'next/image';
  * SVG would fix both and is the correct long-term asset.
  */
 
-/**
- * `next/image` applies basePath to its optimiser URL, but with
- * `unoptimized: true` — which every static host requires — it emits the raw
- * src untouched. On a project Pages site served from /pw that resolves to the
- * domain root and 404s, so the prefix is applied explicitly here.
- */
-const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
-const SRC = `${BASE}/brand/pureweight-logo.png`;
+const SRC = assetPath('/brand/pureweight-logo.png');
 const NATURAL = { w: 1200, h: 1239 };
 
 /** Windows into the supplied file, as fractions of its natural size. */

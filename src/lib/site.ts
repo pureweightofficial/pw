@@ -221,6 +221,12 @@ export type Service = {
    * step one arrives already answered.
    */
   enquiryHref: string;
+  /**
+   * Panel photograph. Omitted where no honest image exists — the panel then
+   * falls back to its engraved plate rather than to generic stock.
+   * Provenance: public/img/CREDITS.md
+   */
+  image?: string;
   /** false => rendered with a visible "pending confirmation" marker. */
   confirmed: boolean;
 };
@@ -233,6 +239,7 @@ export const services: readonly Service[] = [
     body: 'Each piece is weighed, examined and recorded individually rather than assessed as a single lot. You see the figures the valuation is built from, not only the result.',
     points: ['Individually weighed', 'Hallmark examination', 'Itemised written summary'],
     cta: 'Enquire About Gold Valuation',
+    image: '/img/valuation.jpg',
     enquiryHref: '/request-a-valuation?item=unsure',
     confirmed: false,
   },
@@ -243,6 +250,7 @@ export const services: readonly Service[] = [
     body: 'Refiner marks, serial numbers and stated fineness are checked against the physical weight of the piece. Recognised bullion is handled on its own terms and is not treated as scrap.',
     points: ['Refiner mark check', 'Serial recorded where present', 'Bars and coin'],
     cta: 'Enquire About Bullion Exchange',
+    image: '/img/bullion.jpg',
     enquiryHref: '/request-a-valuation?item=bullion',
     confirmed: false,
   },
@@ -253,6 +261,7 @@ export const services: readonly Service[] = [
     body: 'Settings, solder, clasps and stones all affect the recoverable metal in a piece. These are identified and explained rather than quietly discounted.',
     points: ['Stone and setting allowance', 'Mixed-carat sorting', 'Antique pieces considered'],
     cta: 'Enquire About Jewellery Evaluation',
+    image: '/img/jewellery.jpg',
     enquiryHref: '/request-a-valuation?item=jewellery',
     confirmed: false,
   },

@@ -62,14 +62,17 @@ export function Eyebrow({
   children,
   className = '',
   tone = 'gold',
+  align = 'left',
 }: {
   children: ReactNode;
   className?: string;
   tone?: 'gold' | 'ash';
+  /** Centred labels carry a struck rule on both sides, so they stay symmetrical. */
+  align?: 'left' | 'center';
 }) {
-  return (
-    <p className={`${tone === 'gold' ? 'label' : 'label-ash'} ${className}`}>{children}</p>
-  );
+  const base = tone === 'gold' ? 'label' : 'label-ash';
+  const centered = tone === 'gold' && align === 'center' ? 'label-center' : '';
+  return <p className={`${base} ${centered} ${className}`}>{children}</p>;
 }
 
 /**

@@ -46,12 +46,13 @@
   /* --- Type ------------------------------------------------------------- */
   --font-display: var(--font-playfair), 'Playfair Display', Georgia, 'Times New Roman', serif;
   --font-sans: var(--font-manrope), 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-label), ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
   /* --- Editorial scale (fluid, cinematic) ------------------------------- */
   --text-hero: clamp(2.9rem, 8.2vw, 8.5rem);
-  --text-hero--line-height: 0.94;
+  --text-hero--line-height: 0.92;
   --text-chapter: clamp(2.1rem, 5.2vw, 4.75rem);
-  --text-chapter--line-height: 1.02;
+  --text-chapter--line-height: 0.98;
   --text-statement: clamp(1.65rem, 3.4vw, 3.1rem);
   --text-statement--line-height: 1.16;
   --text-lead: clamp(1.0rem, 1.25vw, 1.2rem);
@@ -161,7 +162,7 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    opacity: 0.035;
+    opacity: 0.06;
     mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size: 160px 160px;
@@ -230,26 +231,17 @@
   /* what sell it — polished metal is mostly reflected *darkness*.        */
   /* ------------------------------------------------------------------ */
 
+  /* Aurora's gold ink — a clean three-stop diagonal. Deliberately simpler than
+     the nine-stop metal ramp this carried before: at display size the extra
+     stops read as banding rather than as reflection, and the physically-modelled
+     gold now lives where it belongs, on the 3D instrument. */
   .gold-leaf {
-    background-image: linear-gradient(
-      100deg,
-      #6b4a12 0%,
-      #b98220 16%,
-      #f2ce72 32%,
-      #ffe9a8 39%,
-      #d7a83d 50%,
-      #8a5f18 64%,
-      #e6bb52 80%,
-      #b98220 92%,
-      #5c3f10 100%
-    );
-    background-size: 220% 100%;
-    background-position: 30% 0;
+    background-image: linear-gradient(135deg, #fef3c7 0%, #fcc933 45%, #b87914 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    /* Keeps thin serif strokes from disappearing on near-black. */
-    filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.9));
+    /* Keeps thin Playfair strokes from vanishing on near-black. */
+    filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.85));
   }
 
   /* Struck-in-metal lettering: light catches the top edge, shadow pools below. */
@@ -273,18 +265,49 @@
   }
 
   /* Small uppercase label with wide tracking — the site's connective tissue. */
+  /* Micro-label, Aurora's signature: monospace, tiny, very widely tracked, and
+     preceded by a short struck rule. The rule is what turns a line of small
+     caps into something that reads as an instrument marking. */
   .label {
-    font-family: var(--font-sans);
-    font-size: 0.6875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
     font-weight: 500;
-    letter-spacing: 0.34em;
+    letter-spacing: 0.42em;
     text-transform: uppercase;
     color: var(--color-gold-antique);
   }
 
+  .label::before {
+    content: '';
+    display: block;
+    width: 2.5rem;
+    height: 1px;
+    flex: none;
+    background: var(--color-gold-rich);
+    opacity: 0.6;
+  }
+
+  /* Centred variants get a rule on both sides so they stay symmetrical. */
+  .label-center {
+    justify-content: center;
+  }
+
+  .label-center::after {
+    content: '';
+    display: block;
+    width: 2.5rem;
+    height: 1px;
+    flex: none;
+    background: var(--color-gold-rich);
+    opacity: 0.6;
+  }
+
   .label-ash {
-    font-family: var(--font-sans);
-    font-size: 0.6875rem;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
     font-weight: 500;
     letter-spacing: 0.34em;
     text-transform: uppercase;
@@ -627,9 +650,11 @@
 @layer utilities {
   .shell {
     width: 100%;
-    max-width: 82rem;
+    /* Aurora runs a 1600px measure. The extra width is what lets an editorial
+       layout breathe instead of feeling like a centred column on a big screen. */
+    max-width: 100rem;
     margin-inline: auto;
-    padding-inline: clamp(1.25rem, 5vw, 4.5rem);
+    padding-inline: clamp(1.5rem, 4vw, 3rem);
   }
 
   .shell-narrow {
@@ -673,6 +698,23 @@
   .js-ready .will-reveal.reveal-done {
     opacity: 1;
     transform: none;
+  }
+
+  /* Aurora's vertical rule text, for section edge markings. */
+  .writing-vertical {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+
+  .hairline-gold {
+    border-color: color-mix(in srgb, var(--color-gold-rich) 22%, transparent);
+  }
+
+  /* Line-masking wrapper: pairs with .reveal-line for the staggered rise that
+     Aurora uses on its headlines. */
+  .line-mask {
+    display: block;
+    overflow: hidden;
   }
 
   .text-balance {

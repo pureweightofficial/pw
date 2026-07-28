@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Manrope, Playfair_Display } from 'next/font/google';
+import { Geist_Mono, Manrope, Playfair_Display } from 'next/font/google';
 import { Footer } from '@/components/chrome/Footer';
 import { Loader } from '@/components/chrome/Loader';
 import { Nav } from '@/components/chrome/Nav';
@@ -39,6 +39,20 @@ const manrope = Manrope({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-manrope',
+  display: 'swap',
+});
+
+/**
+ * The third face, and the one that carries Aurora's signature: micro-labels set
+ * in monospace at 9-10px with 0.4em+ tracking. A proportional face cannot do
+ * this — at that size and tracking the uneven sidebearings of a humanist sans
+ * make the letters drift, whereas a mono's fixed advance keeps the rhythm
+ * mechanical, which is exactly the instrument-panel quality wanted here.
+ */
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-mono-label',
   display: 'swap',
 });
 
@@ -120,7 +134,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const jsonLd = buildLocalBusinessJsonLd();
 
   return (
-    <html lang="en-GB" className={`${playfair.variable} ${manrope.variable}`}>
+    <html lang="en-GB" className={`${playfair.variable} ${manrope.variable} ${geistMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: REVEAL_BOOTSTRAP }} />
 
