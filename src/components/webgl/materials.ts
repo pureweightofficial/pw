@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { sceneQuality, advancedMaterialsEnabled } from './quality';
 import {
+  craquelureNormalMap,
   engravingNormalMap,
   goldRoughnessMap,
   graduationMap,
@@ -95,6 +96,9 @@ export function antiqueGold(): THREE.MeshStandardMaterial {
         metalness: 1,
         roughness: 0.34,
         roughnessMap: goldRoughnessMap(),
+        // The logo's crazed lacquer, at ornament scale.
+        normalMap: craquelureNormalMap(),
+        normalScale: new THREE.Vector2(0.55, 0.55),
         envMapIntensity: 1.15,
         // A whisper of anisotropy so highlights stretch along the polish
         // direction rather than sitting as round blobs.
@@ -114,6 +118,8 @@ export function polishedGold(): THREE.MeshStandardMaterial {
         metalness: 1,
         roughness: 0.19,
         roughnessMap: goldRoughnessMap(),
+        normalMap: craquelureNormalMap(),
+        normalScale: new THREE.Vector2(0.28, 0.28),
         envMapIntensity: 1.45,
         anisotropy: 0.34,
         anisotropyRotation: 0,

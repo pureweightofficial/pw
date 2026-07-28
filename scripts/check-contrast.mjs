@@ -24,33 +24,33 @@ const ratio = (a, b) => {
 };
 
 const SURFACES = {
-  'void': '#030303',
-  'char': '#090908',
-  'stone': '#151412',
-  'gunmetal': '#12110F',
-  'walnut': '#100D0A',
-  'bronze': '#14100B',
+  'void': '#050406',
+  'char': '#0a0809',
+  'stone': '#171310',
+  'gunmetal': '#13100E',
+  'walnut': '#120E09',
+  'bronze': '#16110A',
 };
 
 // [label, hex, alpha, isLargeText, where]
 const USES = [
-  ['ivory', '#E8E0D2', 1, false, 'headings'],
-  ['ivory/88', '#E8E0D2', 0.88, false, 'pillar titles'],
-  ['ivory/85', '#E8E0D2', 0.85, false, 'review values'],
-  ['ivory/80', '#E8E0D2', 0.8, false, 'consent label'],
-  ['ivory/78', '#E8E0D2', 0.78, false, 'evidence values (css option-tile too)'],
-  ['ivory/72', '#E8E0D2', 0.72, false, 'MAIN BODY COPY'],
-  ['ivory/70', '#E8E0D2', 0.7, false, 'assay factor body'],
-  ['ivory/62 (css .nav-link)', '#E8E0D2', 0.62, false, 'nav links'],
-  ['ash', '#918D84', 1, false, 'all secondary + fine print'],
-  ['gold-antique', '#B98220', 1, false, 'labels, eyebrows, CTAs, chips'],
-  ['gold-antique/75', '#B98220', 0.75, true, 'LARGE display numerals only'],
-  ['gold-high/90', '#F2CE72', 0.9, true, 'italic display accents'],
-  ['gold-high/75', '#F2CE72', 0.75, false, 'service summary italic (body size)'],
-  ['gold-high', '#F2CE72', 1, false, 'hover / in-balance'],
-  ['gold-pale', '#FFE9A8', 1, false, 'CTA label, reference'],
+  ['ivory', '#FEF3C7', 1, false, 'headings'],
+  ['ivory/88', '#FEF3C7', 0.88, false, 'pillar titles'],
+  ['ivory/85', '#FEF3C7', 0.85, false, 'review values'],
+  ['ivory/80', '#FEF3C7', 0.8, false, 'consent label'],
+  ['ivory/78', '#FEF3C7', 0.78, false, 'evidence values (css option-tile too)'],
+  ['ivory/72', '#FEF3C7', 0.72, false, 'MAIN BODY COPY'],
+  ['ivory/70', '#FEF3C7', 0.7, false, 'assay factor body'],
+  ['ivory/62 (css .nav-link)', '#FEF3C7', 0.62, false, 'nav links'],
+  ['ash', '#A2977F', 1, false, 'all secondary + fine print'],
+  ['gold-antique', '#C08A18', 1, false, 'labels, eyebrows, CTAs, chips'],
+  ['gold-antique/75', '#C08A18', 0.75, true, 'LARGE display numerals only'],
+  ['gold-high/90', '#F5C542', 0.9, true, 'italic display accents'],
+  ['gold-high/75', '#F5C542', 0.75, false, 'service summary italic (body size)'],
+  ['gold-high', '#F5C542', 1, false, 'hover / in-balance'],
+  ['gold-pale', '#FDE68A', 1, false, 'CTA label, reference'],
   ['error', '#E5A68C', 1, false, 'form error messages'],
-  ['ash (css ::placeholder)', '#918D84', 1, false, 'field placeholder text'],
+  ['ash (css ::placeholder)', '#A2977F', 1, false, 'field placeholder text'],
 ];
 
 let failures = 0;

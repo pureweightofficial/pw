@@ -9,23 +9,39 @@
    ========================================================================== */
 
 @theme {
-  /* --- Ground: near-black through deep gunmetal ------------------------- */
-  --color-void: #030303;
-  --color-char: #090908;
-  --color-gunmetal: #12110f;
-  --color-iron: #1a1714;
-  --color-stone: #151412;
+  /* ----------------------------------------------------------------------
+     PALETTE — sampled from the supplied Pureweight logo.
 
-  /* --- Metal: antique through pale reflection --------------------------- */
-  --color-gold-antique: #b98220;
-  --color-gold-rich: #d7a83d;
-  --color-gold-high: #f2ce72;
-  --color-gold-pale: #ffe9a8;
-  --color-bronze: #4d3515;
+     The logo's gold is markedly warmer and more amber than the neutral yellow
+     this palette originally carried: a #d4a017-class body with near-white
+     champagne highlights and deep bronze in the cracks. The Aurora reference
+     lands in almost exactly the same place (its --aurora-gold is #d4a017 and
+     its --aurora-gold-bright is #f5c542), so the two agree and the palette
+     follows both rather than splitting the difference.
+
+     Ground is pure black in the logo. It is carried here with a fractional
+     warm cast so large flat areas do not read as dead #000 on OLED.
+     ---------------------------------------------------------------------- */
+
+  /* --- Ground ----------------------------------------------------------- */
+  --color-void: #050406;
+  --color-char: #0a0809;
+  --color-gunmetal: #13100e;
+  --color-iron: #1c1813;
+  --color-stone: #171310;
+
+  /* --- Metal: sampled from the logo's letterforms and frame ------------- */
+  --color-gold-antique: #c08a18; /* mid body of the engraved lettering */
+  --color-gold-rich: #d4a017; /* main gold — matches Aurora exactly */
+  --color-gold-high: #f5c542; /* struck highlight on the bevels */
+  --color-gold-pale: #fde68a; /* champagne, the brightest catch */
+  --color-bronze: #5a3a0c; /* inside the craquelure cracks */
 
   /* --- Support ---------------------------------------------------------- */
-  --color-ivory: #e8e0d2;
-  --color-ash: #918d84;
+  /* Warm cream rather than the previous cool ivory — the logo has no cool
+     tones anywhere, and neutral text against amber gold reads as a mismatch. */
+  --color-ivory: #fef3c7;
+  --color-ash: #a2977f;
 
   /* --- Type ------------------------------------------------------------- */
   --font-display: var(--font-playfair), 'Playfair Display', Georgia, 'Times New Roman', serif;

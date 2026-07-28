@@ -336,6 +336,82 @@ export function engravingNormalMap(): THREE.Texture {
 }
 
 /**
+ * CRAQUELURE — the cracked-lacquer texture from the supplied logo.
+ *
+ * The logo's most identifying material feature is not its colour, it is the
+ * fine crazed network running through every gold surface — the letterforms, the
+ * column, the frame. Putting it on the 3D instrument is what makes the scale
+ * read as the *same object* as the mark rather than a gold thing standing next
+ * to it.
+ *
+ * Built as a Voronoi edge field: scatter seed points, then for each pixel take
+ * the difference between the nearest and second-nearest seed distance. That
+ * difference approaches zero exactly along cell boundaries — which is precisely
+ * where lacquer cracks — so the result is organic and closed-celled rather than
+ * the random scratches a noise function gives.
+ */
+export function craquelureNormalMap(): THREE.Texture {
+  return memo('craquelure-normal', () => {
+    const size = mapSize();
+    const [canvas, ctx] = makeCanvas(size);
+
+    // Seeds on a jittered grid. Pure randomness clumps, and clumping reads as
+    // damage rather than as an evenly crazed finish.
+    const cells = 14;
+    const seeds: [number, number][] = [];
+    for (let gy = 0; gy < cells; gy += 1) {
+      for (let gx = 0; gx < cells; gx += 1) {
+        seeds.push([
+          ((gx + hash2(gx, gy, 71)) / cells) * size,
+          ((gy + hash2(gx, gy, 137)) / cells) * size,
+        ]);
+      }
+    }
+
+    const img = ctx.createImageData(size, size);
+    const cell = size / cells;
+
+    for (let y = 0; y < size; y += 1) {
+      for (let x = 0; x < size; x += 1) {
+        let d1 = Infinity;
+        let d2 = Infinity;
+
+        for (const [sx, sy] of seeds) {
+          // Toroidal distance keeps the map seamless when tiled.
+          let dx = Math.abs(sx - x);
+          let dy = Math.abs(sy - y);
+          if (dx > size / 2) dx = size - dx;
+          if (dy > size / 2) dy = size - dy;
+          const d = dx * dx + dy * dy;
+
+          if (d < d1) {
+            d2 = d1;
+            d1 = d;
+          } else if (d < d2) {
+            d2 = d;
+          }
+        }
+
+        // 0 at a cell boundary, rising toward the cell centre.
+        const edge = (Math.sqrt(d2) - Math.sqrt(d1)) / cell;
+        // Narrow cracks with a soft shoulder either side.
+        const crack = Math.exp(-edge * edge * 26);
+        // Tooth inside each plate, so cells are not glassy-flat.
+        const tooth = fbm(x / 24, y / 24, 2, 907) * 0.12;
+
+        const v = (1 - crack) * 0.82 + tooth;
+        const i = (y * size + x) * 4;
+        img.data[i] = img.data[i + 1] = img.data[i + 2] = Math.max(0, Math.min(255, v * 255));
+        img.data[i + 3] = 255;
+      }
+    }
+
+    ctx.putImageData(img, 0, 0);
+    return toTexture(heightToNormal(canvas, 2.1), { repeat: 2 });
+  });
+}
+
+/**
  * A soft round sprite for ambient dust. Additive, so the centre is bright and
  * the falloff must reach true zero or the particles show as squares.
  */
