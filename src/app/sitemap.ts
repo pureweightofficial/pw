@@ -1,6 +1,11 @@
 import type { MetadataRoute } from 'next';
 import { brand } from '@/lib/site';
 
+// Required by `output: 'export'`, harmless on a server build — this route has
+// no request-time dependencies, so it is generated once at build.
+export const dynamic = 'force-static';
+
+
 /**
  * SITEMAP
  *

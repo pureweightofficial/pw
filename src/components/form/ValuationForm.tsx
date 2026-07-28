@@ -44,6 +44,18 @@ import {
  * indicator marked decorative because the same information is in the legend.
  */
 
+/**
+ * Where enquiries are sent.
+ *
+ * Empty string = there is no endpoint, which is the case on the static GitHub
+ * Pages export. The form still fills in and validates end to end — it simply
+ * refuses to pretend it can send, and says so. Silently posting to a 404 and
+ * showing a spinner forever would be the worst possible failure for someone
+ * about to bring in inherited gold.
+ */
+const ENQUIRY_ENDPOINT = process.env.NEXT_PUBLIC_ENQUIRY_ENDPOINT ?? '/api/valuation';
+const SUBMISSIONS_ENABLED = ENQUIRY_ENDPOINT.length > 0;
+
 type FormState = Partial<ValuationInput>;
 type Errors = Partial<Record<keyof ValuationInput, string>>;
 
@@ -251,6 +263,16 @@ function ValuationFormInner() {
       return;
     }
 
+    // Static preview build: no endpoint exists. Say so rather than spin.
+    if (!SUBMISSIONS_ENABLED) {
+      setServerError(
+        'This is a preview build and cannot send enquiries. Please contact Pureweight by telephone, and everything you have entered here can be taken down directly.',
+      );
+      setStatus('error');
+      requestAnimationFrame(() => summaryRef.current?.focus());
+      return;
+    }
+
     setStatus('sending');
     setServerError(null);
     setUploadPercent(0);
@@ -267,7 +289,7 @@ function ValuationFormInner() {
     // visitor attaching several photographs on a phone connection deserves to
     // see that something is happening.
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/api/valuation');
+    xhr.open('POST', ENQUIRY_ENDPOINT);
     xhr.responseType = 'json';
     xhr.timeout = 60_000;
 
@@ -775,6 +797,19 @@ function ValuationFormInner() {
                 </p>
               ) : null}
             </div>
+
+            {!SUBMISSIONS_ENABLED ? (
+              <div className="border border-dashed border-gold-antique/45 bg-gold-antique/6 p-6">
+                <p className="mb-2 text-[0.66rem] tracking-[0.16em] text-gold-antique uppercase">
+                  Preview build — sending is disabled
+                </p>
+                <p className="text-sm leading-relaxed text-ivory/78">
+                  This deployment is a static preview and has no enquiry endpoint, so nothing can be
+                  submitted from here. Everything else on the form works exactly as it will in
+                  production. Please contact Pureweight by telephone to give these details directly.
+                </p>
+              </div>
+            ) : null}
 
             <div className="border border-gold-antique/22 bg-gold-antique/5 p-6">
               <p className="text-sm leading-relaxed text-ivory/78">

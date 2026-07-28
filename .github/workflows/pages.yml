@@ -1,0 +1,78 @@
+name: Deploy preview to GitHub Pages
+
+# A STATIC PREVIEW, not the production site.
+#
+# GitHub Pages serves files, not functions, so the valuation enquiry endpoint
+# (`/api/valuation`) cannot exist here. The build moves that route aside and the
+# form switches into a read-only state that says so plainly — see
+# NEXT_PUBLIC_ENQUIRY_ENDPOINT below. For a deployment where the form actually
+# works, use a host that runs Node: Vercel, Cloudflare, or a VPS.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never run two deploys at once; never cancel one midway through publishing.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # Quality gates run before anything is published: types, lint, the 3D
+      # geometry audit and the WCAG contrast audit.
+      - name: Verify
+        run: npm run verify
+
+      # `output: 'export'` refuses to build a POST route handler. Removing it is
+      # what makes the static export possible at all.
+      - name: Remove the server-only API route
+        run: rm -rf src/app/api
+
+      - name: Build static export
+        env:
+          GITHUB_PAGES: 'true'
+          # Empty endpoint => the form validates fully but refuses to pretend it
+          # can send. See ValuationForm's SUBMISSIONS_ENABLED.
+          NEXT_PUBLIC_ENQUIRY_ENDPOINT: ''
+          # Canonical URLs and OG tags point at the Pages origin.
+          NEXT_PUBLIC_SITE_URL: 'https://pureweightofficial.github.io/pw'
+          # Indexing stays off. This is an unfinished preview carrying a real
+          # business's name, and it must not be indexed under any circumstances.
+          NEXT_PUBLIC_ALLOW_INDEXING: 'false'
+        run: npm run build
+
+      # Stops Pages' Jekyll pipeline from eating the _next directory.
+      - name: Add .nojekyll
+        run: touch out/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

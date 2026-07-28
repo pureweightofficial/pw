@@ -1,5 +1,10 @@
 import { ImageResponse } from 'next/og';
 
+// Required by `output: 'export'`, harmless on a server build — this route has
+// no request-time dependencies, so it is generated once at build.
+export const dynamic = 'force-static';
+
+
 /**
  * OPEN GRAPH IMAGE
  *
