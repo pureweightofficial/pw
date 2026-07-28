@@ -54,9 +54,6 @@ jobs:
           NEXT_PUBLIC_ENQUIRY_ENDPOINT: ''
           # Canonical URLs and OG tags point at the Pages origin.
           NEXT_PUBLIC_SITE_URL: 'https://pureweightofficial.github.io/pw'
-          # next/image does NOT prefix basePath when unoptimized, so any raw
-          # asset src must be prefixed by hand. See brand/Logo.tsx.
-          NEXT_PUBLIC_BASE_PATH: '/pw'
           # Indexing stays off. This is an unfinished preview carrying a real
           # business's name, and it must not be indexed under any circumstances.
           NEXT_PUBLIC_ALLOW_INDEXING: 'false'

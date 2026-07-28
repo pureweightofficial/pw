@@ -265,13 +265,15 @@
   }
 
   /* Small uppercase label with wide tracking — the site's connective tissue. */
-  /* Micro-label, Aurora's signature: monospace, tiny, very widely tracked, and
-     preceded by a short struck rule. The rule is what turns a line of small
-     caps into something that reads as an instrument marking. */
+  /* Micro-label: monospace, tiny, very widely tracked. Aurora's
+     instrument-panel micro-type.
+
+     DELIBERATELY NOT display:flex. This class is used at ~20 sites as plain
+     typography — inside baseline-aligned flex rows in the valuation form, in
+     footer headings, in legal pages. Giving it a layout mode would export its
+     baseline from a decorative pseudo-element instead of from its text, and
+     silently shift alignment at every one of those call sites. */
   .label {
-    display: flex;
-    align-items: center;
-    gap: 0.9rem;
     font-family: var(--font-mono);
     font-size: 0.625rem;
     font-weight: 500;
@@ -280,21 +282,15 @@
     color: var(--color-gold-antique);
   }
 
-  .label::before {
-    content: '';
-    display: block;
-    width: 2.5rem;
-    height: 1px;
-    flex: none;
-    background: var(--color-gold-rich);
-    opacity: 0.6;
+  /* Opt-in: the struck rule that turns a label into a section marking. Applied
+     by <Eyebrow>, never inherited by bare .label usages. */
+  .label-rule {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
   }
 
-  /* Centred variants get a rule on both sides so they stay symmetrical. */
-  .label-center {
-    justify-content: center;
-  }
-
+  .label-rule::before,
   .label-center::after {
     content: '';
     display: block;
@@ -303,6 +299,11 @@
     flex: none;
     background: var(--color-gold-rich);
     opacity: 0.6;
+  }
+
+  /* Centred markings carry a rule on both sides so they stay symmetrical. */
+  .label-center {
+    justify-content: center;
   }
 
   .label-ash {
@@ -673,8 +674,8 @@
     background: radial-gradient(
       118% 92% at 50% 44%,
       transparent 38%,
-      rgba(3, 3, 3, 0.42) 74%,
-      rgba(3, 3, 3, 0.88) 100%
+      rgba(5, 4, 6, 0.42) 74%,
+      rgba(5, 4, 6, 0.88) 100%
     );
   }
 
@@ -698,23 +699,6 @@
   .js-ready .will-reveal.reveal-done {
     opacity: 1;
     transform: none;
-  }
-
-  /* Aurora's vertical rule text, for section edge markings. */
-  .writing-vertical {
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-  }
-
-  .hairline-gold {
-    border-color: color-mix(in srgb, var(--color-gold-rich) 22%, transparent);
-  }
-
-  /* Line-masking wrapper: pairs with .reveal-line for the staggered rise that
-     Aurora uses on its headlines. */
-  .line-mask {
-    display: block;
-    overflow: hidden;
   }
 
   .text-balance {

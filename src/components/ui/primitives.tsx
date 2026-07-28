@@ -70,7 +70,9 @@ export function Eyebrow({
   /** Centred labels carry a struck rule on both sides, so they stay symmetrical. */
   align?: 'left' | 'center';
 }) {
-  const base = tone === 'gold' ? 'label' : 'label-ash';
+  // The struck rule is opt-in (.label-rule), so bare .label usages elsewhere
+  // keep plain typography and their existing baseline alignment.
+  const base = tone === 'gold' ? 'label label-rule' : 'label-ash';
   const centered = tone === 'gold' && align === 'center' ? 'label-center' : '';
   return <p className={`${base} ${centered} ${className}`}>{children}</p>;
 }

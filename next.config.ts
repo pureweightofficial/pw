@@ -17,6 +17,18 @@ const isPages = process.env.GITHUB_PAGES === 'true';
 /** Repo name, because Pages serves project sites from a sub-path. */
 const basePath = isPages ? '/pw' : undefined;
 
+/**
+ * SINGLE SOURCE OF TRUTH for the base path.
+ *
+ * Next applies `basePath` to its own routing, but `next/image` with
+ * `unoptimized: true` emits raw `src` values untouched — so client code needs
+ * the prefix too (see src/lib/asset.ts). Deriving the public env var from the
+ * same constant here means the two cannot drift; previously the CI workflow
+ * hardcoded '/pw' a second time, and changing one without the other would have
+ * silently reintroduced the 404 class asset.ts exists to prevent.
+ */
+process.env.NEXT_PUBLIC_BASE_PATH = basePath ?? '';
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 

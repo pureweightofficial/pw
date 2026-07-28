@@ -51,7 +51,9 @@ const manrope = Manrope({
  */
 const geistMono = Geist_Mono({
   subsets: ['latin'],
-  weight: ['400', '500'],
+  // 500 only — both consumers (.label, .label-ash) hardcode it, and declaring
+  // an unused weight doubles the emitted @font-face rules for nothing.
+  weight: ['500'],
   variable: '--font-mono-label',
   display: 'swap',
 });

@@ -357,38 +357,55 @@ export function craquelureNormalMap(): THREE.Texture {
 
     // Seeds on a jittered grid. Pure randomness clumps, and clumping reads as
     // damage rather than as an evenly crazed finish.
+    //
+    // The grid is also what makes this affordable. Because jitter is confined
+    // to [0,1) of a cell, every seed stays inside its own cell — so the nearest
+    // and second-nearest seed to any pixel must lie within two cells of it.
+    // Testing that 5x5 neighbourhood instead of all 196 seeds is the difference
+    // between ~390ms of blocking work at scene mount and a few tens of ms.
     const cells = 14;
-    const seeds: [number, number][] = [];
+    const seeds = new Float32Array(cells * cells * 2);
     for (let gy = 0; gy < cells; gy += 1) {
       for (let gx = 0; gx < cells; gx += 1) {
-        seeds.push([
-          ((gx + hash2(gx, gy, 71)) / cells) * size,
-          ((gy + hash2(gx, gy, 137)) / cells) * size,
-        ]);
+        const k = (gy * cells + gx) * 2;
+        seeds[k] = ((gx + hash2(gx, gy, 71)) / cells) * size;
+        seeds[k + 1] = ((gy + hash2(gx, gy, 137)) / cells) * size;
       }
     }
 
     const img = ctx.createImageData(size, size);
     const cell = size / cells;
+    const RADIUS = 2; // cells; covers nearest and second-nearest with margin
 
     for (let y = 0; y < size; y += 1) {
+      const cy = Math.floor(y / cell);
+
       for (let x = 0; x < size; x += 1) {
+        const cx = Math.floor(x / cell);
         let d1 = Infinity;
         let d2 = Infinity;
 
-        for (const [sx, sy] of seeds) {
-          // Toroidal distance keeps the map seamless when tiled.
-          let dx = Math.abs(sx - x);
-          let dy = Math.abs(sy - y);
-          if (dx > size / 2) dx = size - dx;
-          if (dy > size / 2) dy = size - dy;
-          const d = dx * dx + dy * dy;
+        for (let oy = -RADIUS; oy <= RADIUS; oy += 1) {
+          // Wrap the cell index, keeping the map seamless when tiled.
+          const gy = (((cy + oy) % cells) + cells) % cells;
 
-          if (d < d1) {
-            d2 = d1;
-            d1 = d;
-          } else if (d < d2) {
-            d2 = d;
+          for (let ox = -RADIUS; ox <= RADIUS; ox += 1) {
+            const gx = (((cx + ox) % cells) + cells) % cells;
+            const k = (gy * cells + gx) * 2;
+
+            // Toroidal distance, so seeds across the seam still compete.
+            let dx = Math.abs(seeds[k] - x);
+            let dy = Math.abs(seeds[k + 1] - y);
+            if (dx > size / 2) dx = size - dx;
+            if (dy > size / 2) dy = size - dy;
+            const d = dx * dx + dy * dy;
+
+            if (d < d1) {
+              d2 = d1;
+              d1 = d;
+            } else if (d < d2) {
+              d2 = d;
+            }
           }
         }
 

@@ -11,6 +11,12 @@ so the client can verify provenance independently.
 | `bullion.jpg` | https://unsplash.com/photos/XHikIfxVZdY | Bullion Exchange panel |
 | `jewellery.jpg` | https://unsplash.com/photos/LQdSOAw13KE | Jewellery Evaluation panel |
 
+All three are served **pre-cropped to 900x1125 (4:5)** — the exact aspect the
+service panels render. Cropping at source rather than with `object-cover` matters
+here because the GitHub Pages build sets `images.unoptimized`, which disables
+Next's responsive `srcSet` entirely: every visitor downloads one fixed file, so
+any pixel outside the visible crop is pure waste on every load.
+
 ## Selection constraints
 
 Chosen against three rules, because a stock licence does not cover everything a
