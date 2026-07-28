@@ -1,0 +1,699 @@
+@import 'tailwindcss';
+
+/* ==========================================================================
+   PUREWEIGHT GOLD EXCHANGE — DESIGN TOKENS
+   A dark goldsmith's workshop: blackened steel, charcoal stone, smoked glass,
+   aged bronze and antique gold. Gold is treated as a *material*, never a flat
+   fill: every gold surface carries a light path (shadow -> body -> highlight ->
+   pale reflection -> shadow) so it reads as metal under a single warm key light.
+   ========================================================================== */
+
+@theme {
+  /* --- Ground: near-black through deep gunmetal ------------------------- */
+  --color-void: #030303;
+  --color-char: #090908;
+  --color-gunmetal: #12110f;
+  --color-iron: #1a1714;
+  --color-stone: #151412;
+
+  /* --- Metal: antique through pale reflection --------------------------- */
+  --color-gold-antique: #b98220;
+  --color-gold-rich: #d7a83d;
+  --color-gold-high: #f2ce72;
+  --color-gold-pale: #ffe9a8;
+  --color-bronze: #4d3515;
+
+  /* --- Support ---------------------------------------------------------- */
+  --color-ivory: #e8e0d2;
+  --color-ash: #918d84;
+
+  /* --- Type ------------------------------------------------------------- */
+  --font-display: var(--font-playfair), 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-sans: var(--font-manrope), 'Manrope', ui-sans-serif, system-ui, sans-serif;
+
+  /* --- Editorial scale (fluid, cinematic) ------------------------------- */
+  --text-hero: clamp(2.9rem, 8.2vw, 8.5rem);
+  --text-hero--line-height: 0.94;
+  --text-chapter: clamp(2.1rem, 5.2vw, 4.75rem);
+  --text-chapter--line-height: 1.02;
+  --text-statement: clamp(1.65rem, 3.4vw, 3.1rem);
+  --text-statement--line-height: 1.16;
+  --text-lead: clamp(1.0rem, 1.25vw, 1.2rem);
+  --text-lead--line-height: 1.7;
+
+  /* --- Motion: slow, deliberate, physically grounded -------------------- */
+  --ease-vault: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-settle: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-slow: 1400ms;
+  --dur-mid: 780ms;
+  --dur-quick: 340ms;
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: auto; /* Lenis owns smooth scroll; native would fight it */
+
+    /* The site's spine. Written once per scroll frame by MotionProvider and
+       read by every hairline rule on the page, so the layout comes level in
+       step with the 3D instrument. Opens at the same tilt the scale does. */
+    --beam-tilt: -2.6deg;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-void);
+    color: var(--color-ivory);
+    font-family: var(--font-sans);
+    font-feature-settings: 'kern', 'liga', 'calt';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    /* Ambient warmth from a single off-canvas key light, plus the cold floor
+       of the room. Keeps large flat areas from reading as dead #000. */
+    background-image:
+      radial-gradient(120% 70% at 78% -8%, rgba(185, 130, 32, 0.09), transparent 58%),
+      radial-gradient(90% 55% at 8% 104%, rgba(77, 53, 21, 0.11), transparent 62%);
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  p {
+    text-wrap: pretty;
+    margin: 0;
+  }
+
+  ::selection {
+    background: rgba(185, 130, 32, 0.32);
+    color: var(--color-gold-pale);
+  }
+
+  /* Focus: a struck gold edge, never a browser blue ring. */
+  :focus-visible {
+    outline: 1px solid var(--color-gold-rich);
+    outline-offset: 3px;
+    border-radius: 1px;
+  }
+
+  /* Hide focus ring for pointer users who click, keep it for keyboard. */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  canvas {
+    display: block;
+    touch-action: pan-y;
+  }
+
+  img,
+  svg {
+    max-width: 100%;
+  }
+}
+
+/* ==========================================================================
+   MATERIALS — the surfaces of the room
+   Each section sits on a *different* material, so the page reads as a sequence
+   of rooms rather than one flat black page. All are within 6% luminance of each
+   other; the difference is texture and light direction, not brightness.
+   ========================================================================== */
+
+@layer components {
+  /* Fine ground-metal grain. One shared texture, several strengths. */
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
+  }
+
+  /* Blackened steel — brushed, directional, faint horizontal tooling marks. */
+  .mat-steel {
+    position: relative;
+    background-color: var(--color-char);
+    background-image:
+      repeating-linear-gradient(
+        92deg,
+        rgba(255, 255, 255, 0.014) 0px,
+        rgba(255, 255, 255, 0.014) 1px,
+        transparent 1px,
+        transparent 3px
+      ),
+      radial-gradient(140% 100% at 20% 0%, rgba(185, 130, 32, 0.055), transparent 55%);
+  }
+
+  /* Charcoal stone — matte, non-directional, lit from one side. */
+  .mat-stone {
+    position: relative;
+    background-color: var(--color-stone);
+    background-image:
+      radial-gradient(100% 80% at 85% 15%, rgba(232, 224, 210, 0.035), transparent 60%),
+      radial-gradient(80% 90% at 5% 90%, rgba(0, 0, 0, 0.55), transparent 55%);
+  }
+
+  /* Smoked glass over a low-lit metallic surface. */
+  .mat-glass {
+    position: relative;
+    background-color: var(--color-gunmetal);
+    background-image:
+      linear-gradient(178deg, rgba(255, 233, 168, 0.045) 0%, transparent 22%, transparent 78%, rgba(0, 0, 0, 0.5) 100%),
+      radial-gradient(120% 60% at 50% 0%, rgba(215, 168, 61, 0.05), transparent 60%);
+  }
+
+  /* Dark walnut — visible only in warm reflected light. */
+  .mat-walnut {
+    position: relative;
+    background-color: #100d0a;
+    background-image:
+      repeating-linear-gradient(
+        88deg,
+        rgba(77, 53, 21, 0.09) 0px,
+        rgba(77, 53, 21, 0.09) 2px,
+        transparent 2px,
+        transparent 9px
+      ),
+      radial-gradient(120% 90% at 70% 10%, rgba(185, 130, 32, 0.07), transparent 58%);
+  }
+
+  /* Aged bronze plate — for inset panels and certificates. */
+  .mat-bronze {
+    position: relative;
+    background-color: #14100b;
+    background-image:
+      linear-gradient(160deg, rgba(185, 130, 32, 0.11), transparent 42%),
+      radial-gradient(90% 90% at 12% 8%, rgba(255, 233, 168, 0.06), transparent 52%);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* GOLD AS METAL                                                       */
+  /* A five-stop light path, not a two-stop gradient. The dark stops are  */
+  /* what sell it — polished metal is mostly reflected *darkness*.        */
+  /* ------------------------------------------------------------------ */
+
+  .gold-leaf {
+    background-image: linear-gradient(
+      100deg,
+      #6b4a12 0%,
+      #b98220 16%,
+      #f2ce72 32%,
+      #ffe9a8 39%,
+      #d7a83d 50%,
+      #8a5f18 64%,
+      #e6bb52 80%,
+      #b98220 92%,
+      #5c3f10 100%
+    );
+    background-size: 220% 100%;
+    background-position: 30% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    /* Keeps thin serif strokes from disappearing on near-black. */
+    filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.9));
+  }
+
+  /* Struck-in-metal lettering: light catches the top edge, shadow pools below. */
+  .engraved {
+    color: #d9d0c0;
+    text-shadow:
+      0 -1px 0 rgba(0, 0, 0, 0.85),
+      0 1px 0 rgba(255, 233, 168, 0.13),
+      0 2px 3px rgba(0, 0, 0, 0.55);
+  }
+
+  /* Deeply-struck lettering: reads as metal cut away rather than as ink.
+     At 1.6:1 it is far below AA, so it is ORNAMENT ONLY — never apply it to
+     text a visitor needs to read. Currently unused; kept for oversized
+     decorative numerals that are duplicated in accessible markup nearby. */
+  .engraved-deep {
+    color: #4b453c;
+    text-shadow:
+      0 1px 0 rgba(232, 224, 210, 0.09),
+      0 -1px 1px rgba(0, 0, 0, 0.95);
+  }
+
+  /* Small uppercase label with wide tracking — the site's connective tissue. */
+  .label {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--color-gold-antique);
+  }
+
+  .label-ash {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--color-ash);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* THE BEAM — the site's structural motif                              */
+  /* A hairline that carries a fulcrum notch and can tilt. Used as every  */
+  /* major divider; its tilt is driven by scroll progress so the page     */
+  /* itself comes into balance as you read it.                           */
+  /* ------------------------------------------------------------------ */
+
+  .beam {
+    position: relative;
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(185, 130, 32, 0.18) 12%,
+      rgba(215, 168, 61, 0.62) 50%,
+      rgba(185, 130, 32, 0.18) 88%,
+      transparent 100%
+    );
+    transform: rotate(var(--beam-tilt));
+    transform-origin: 50% 50%;
+    will-change: transform;
+  }
+
+  /* Scroll cue: a suspension link travelling down its chain. Two-and-a-half
+     seconds per pass — slow enough to read as an invitation rather than a nag.
+     Stilled entirely under reduced motion by the global rule below. */
+  .pw-scroll-dot {
+    animation: pw-drop 2.8s var(--ease-settle) infinite;
+  }
+
+  @keyframes pw-drop {
+    0% {
+      transform: translate(-50%, 0);
+      opacity: 0;
+    }
+    22% {
+      opacity: 1;
+    }
+    76% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate(-50%, 36px);
+      opacity: 0;
+    }
+  }
+
+  /* A rule that stays level regardless — for places where a tilt would read as
+     a mistake rather than as the motif (inside cards, forms and the footer). */
+  .beam-fixed {
+    transform: none;
+  }
+
+  .beam::before {
+    /* Fulcrum: a small struck triangle sitting under the beam's centre. */
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 1px;
+    width: 0;
+    height: 0;
+    transform: translateX(-50%);
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 6px solid rgba(185, 130, 32, 0.5);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* SURFACES                                                            */
+  /* ------------------------------------------------------------------ */
+
+  /* An inset panel that reads as metal recessed into the wall. */
+  .inset-panel {
+    position: relative;
+    background:
+      linear-gradient(168deg, rgba(255, 255, 255, 0.022), transparent 45%),
+      rgba(9, 9, 8, 0.72);
+    border: 1px solid rgba(185, 130, 32, 0.13);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 233, 168, 0.055),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.75),
+      0 22px 60px -32px rgba(0, 0, 0, 0.95);
+  }
+
+  /* Hairline gold rule with oxidation in the recess. */
+  .rule-gold {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(185, 130, 32, 0.42), transparent);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* INTERACTIVE                                                         */
+  /* ------------------------------------------------------------------ */
+
+  /* Primary CTA: struck bronze plate, gold rule draws across on hover. */
+  .btn-primary {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.05rem 2.1rem;
+    min-height: 44px;
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--color-gold-pale);
+    background:
+      linear-gradient(180deg, rgba(185, 130, 32, 0.19), rgba(77, 53, 21, 0.1));
+    border: 1px solid rgba(185, 130, 32, 0.55);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 233, 168, 0.16),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+    cursor: pointer;
+    transition:
+      color var(--dur-quick) var(--ease-settle),
+      border-color var(--dur-quick) var(--ease-settle),
+      box-shadow var(--dur-quick) var(--ease-settle);
+  }
+
+  .btn-primary::before {
+    /* Slow metallic sheen — travels once on hover, never loops. */
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      100deg,
+      transparent 34%,
+      rgba(255, 233, 168, 0.24) 50%,
+      transparent 66%
+    );
+    transform: translateX(-115%);
+    transition: transform 900ms var(--ease-vault);
+  }
+
+  .btn-primary:hover {
+    color: #fff6df;
+    border-color: rgba(215, 168, 61, 0.85);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 233, 168, 0.26),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.6),
+      0 0 30px -8px rgba(185, 130, 32, 0.4);
+  }
+
+  .btn-primary:hover::before {
+    transform: translateX(115%);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+  }
+
+  .btn-primary:disabled::before {
+    display: none;
+  }
+
+  /* Secondary: text with a gold rule that draws in from the left. */
+  .btn-ghost {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 1.05rem 0.25rem;
+    min-height: 44px;
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--color-ash);
+    background: none;
+    border: 0;
+    cursor: pointer;
+    transition: color var(--dur-quick) var(--ease-settle);
+  }
+
+  .btn-ghost::after {
+    content: '';
+    position: absolute;
+    left: 0.25rem;
+    right: 0.25rem;
+    bottom: 0.7rem;
+    height: 1px;
+    background: linear-gradient(90deg, var(--color-gold-antique), rgba(185, 130, 32, 0.1));
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 620ms var(--ease-vault);
+  }
+
+  .btn-ghost:hover {
+    color: var(--color-gold-high);
+  }
+
+  .btn-ghost:hover::after {
+    transform: scaleX(1);
+  }
+
+  /* Nav link: hairline draws from the left on hover. */
+  .nav-link {
+    position: relative;
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(232, 224, 210, 0.62);
+    padding: 0.5rem 0;
+    transition: color var(--dur-quick) var(--ease-settle);
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0.1rem;
+    width: 100%;
+    height: 1px;
+    background: var(--color-gold-antique);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 500ms var(--ease-vault);
+  }
+
+  .nav-link:hover,
+  .nav-link[aria-current='page'] {
+    color: var(--color-gold-high);
+  }
+
+  .nav-link:hover::after,
+  .nav-link[aria-current='page']::after {
+    transform: scaleX(1);
+  }
+
+  /* Form controls — smoked glass inset into blackened steel. */
+  .field {
+    width: 100%;
+    min-height: 48px;
+    padding: 0.85rem 1rem;
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    color: var(--color-ivory);
+    background: rgba(3, 3, 3, 0.6);
+    border: 1px solid rgba(145, 141, 132, 0.22);
+    border-radius: 2px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
+    transition:
+      border-color var(--dur-quick) var(--ease-settle),
+      box-shadow var(--dur-quick) var(--ease-settle);
+  }
+
+  /* Placeholders carry real guidance here ("Grams or troy ounces, if known"),
+     so they must clear AA like any other text. The half-opacity grey this
+     started as measured 2.26:1 — invisible to anyone with reduced contrast
+     sensitivity, which on a service handling inherited jewellery is a
+     meaningful share of the audience. Solid ash measures 5.5:1 and stays
+     clearly distinct from entered copy, which is ivory. */
+  .field::placeholder {
+    color: var(--color-ash);
+    opacity: 1; /* Firefox dims placeholders by default */
+  }
+
+  .field:hover {
+    border-color: rgba(145, 141, 132, 0.38);
+  }
+
+  .field:focus {
+    outline: none;
+    border-color: rgba(215, 168, 61, 0.7);
+    box-shadow:
+      inset 0 1px 3px rgba(0, 0, 0, 0.7),
+      0 0 0 1px rgba(215, 168, 61, 0.3);
+  }
+
+  .field[aria-invalid='true'] {
+    border-color: rgba(196, 92, 62, 0.75);
+  }
+
+  /* Selectable option tile — a balance pan holding one choice. */
+  .option-tile {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    width: 100%;
+    min-height: 56px;
+    padding: 1rem 1.15rem;
+    text-align: left;
+    color: rgba(232, 224, 210, 0.78);
+    background: rgba(9, 9, 8, 0.62);
+    border: 1px solid rgba(145, 141, 132, 0.16);
+    border-radius: 2px;
+    cursor: pointer;
+    transition:
+      border-color var(--dur-quick) var(--ease-settle),
+      background-color var(--dur-quick) var(--ease-settle),
+      color var(--dur-quick) var(--ease-settle);
+  }
+
+  .option-tile:hover {
+    border-color: rgba(185, 130, 32, 0.42);
+    color: var(--color-ivory);
+  }
+
+  .option-tile[aria-pressed='true'],
+  .option-tile[data-selected='true'] {
+    border-color: rgba(215, 168, 61, 0.72);
+    background: rgba(185, 130, 32, 0.09);
+    color: var(--color-gold-pale);
+    box-shadow: inset 0 1px 0 rgba(255, 233, 168, 0.1);
+  }
+}
+
+/* ==========================================================================
+   UTILITIES
+   ========================================================================== */
+
+@layer utilities {
+  .shell {
+    width: 100%;
+    max-width: 82rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 4.5rem);
+  }
+
+  .shell-narrow {
+    width: 100%;
+    max-width: 56rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 4.5rem);
+  }
+
+  /* Vignette over WebGL — cheaper and calmer than a post-processing pass. */
+  .vignette::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      118% 92% at 50% 44%,
+      transparent 38%,
+      rgba(3, 3, 3, 0.42) 74%,
+      rgba(3, 3, 3, 0.88) 100%
+    );
+  }
+
+  /* Reveal primitives.
+     The DEFAULT state is revealed. Elements are only hidden once a blocking
+     inline script in <head> has confirmed that JS is running and that motion is
+     wanted (`html.js-ready`) — and a watchdog in that same script removes the
+     class if the reveal system has not armed itself within three seconds.
+     Net effect: no-JS, failed-hydration and reduced-motion visitors all see
+     every word, and there is no flash of hidden content for anyone else. */
+  .will-reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  .js-ready .will-reveal {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  .js-ready .will-reveal.reveal-done {
+    opacity: 1;
+    transform: none;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .hyphen-none {
+    hyphens: none;
+  }
+}
+
+/* ==========================================================================
+   REDUCED MOTION
+   Everything meaningful survives; only movement is removed. The scale is
+   presented already balanced, which is the resting state of the story anyway.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .js-ready .will-reveal,
+  .will-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .btn-primary::before {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   PRINT — a valuation enquiry should print cleanly
+   ========================================================================== */
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  canvas,
+  .no-print {
+    display: none !important;
+  }
+}

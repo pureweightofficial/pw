@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!--
+    Favicon: the PW monogram, reduced until it survives 16px.
+    The emblem's beading and filigree are dropped entirely at this size — they
+    turn to mud. What remains is the ring, the monogram and the beam, which is
+    the smallest set of marks still recognisable as Pureweight.
+    A system serif is used deliberately: a favicon renders before any webfont.
+  -->
+  <defs>
+    <linearGradient id="g" x1="8%" y1="0%" x2="92%" y2="100%">
+      <stop offset="0%" stop-color="#8a5f18"/>
+      <stop offset="34%" stop-color="#f2ce72"/>
+      <stop offset="62%" stop-color="#d7a83d"/>
+      <stop offset="100%" stop-color="#6b4a12"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="64" height="64" rx="8" fill="#030303"/>
+  <circle cx="32" cy="32" r="26" fill="none" stroke="url(#g)" stroke-width="2"/>
+  <text x="32" y="41" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+        font-size="26" font-weight="600" fill="url(#g)">PW</text>
+  <path d="M 18 47 L 46 47" stroke="url(#g)" stroke-width="1.8" opacity="0.85"/>
+</svg>
