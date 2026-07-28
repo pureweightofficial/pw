@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { PWMonogram, PWWordmark } from '@/components/brand/Marks';
+import { Logo } from '@/components/brand/Logo';
 import { useMotion } from '@/components/motion/MotionProvider';
 import { useFocusTrap, useScrollLock } from '@/lib/hooks';
 import { brand, navCta, primaryNav } from '@/lib/site';
@@ -106,8 +106,10 @@ export function Nav() {
             aria-label={`${brand.name} — home`}
             className="flex shrink-0 items-center transition-opacity duration-300 hover:opacity-85"
           >
-            <PWWordmark uid="nav-wordmark" className="hidden h-9 w-auto lg:block" />
-            <PWMonogram uid="nav-monogram" className="h-9 w-9 lg:hidden" />
+            {/* The supplied artwork, windowed per breakpoint — see Logo.tsx.
+                Colours are untouched. */}
+            <Logo variant="wordmark" priority className="hidden h-10 lg:block" />
+            <Logo variant="monogram" className="h-10 lg:hidden" />
           </Link>
 
           <ul className="hidden items-center gap-8 lg:flex">
@@ -208,7 +210,7 @@ export function Nav() {
               <span className="relative z-10">{navCta.label}</span>
             </Link>
             <div className="flex items-center gap-4">
-              <PWMonogram uid="menu-monogram" className="h-10 w-10 shrink-0" />
+              <Logo variant="monogram" className="h-11 shrink-0" />
               <p className="text-[0.72rem] leading-relaxed text-ash">{brand.positioning}</p>
             </div>
           </div>

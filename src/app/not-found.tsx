@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { PWEmblem } from '@/components/brand/Marks';
+import { Logo } from '@/components/brand/Logo';
 import { Eyebrow } from '@/components/ui/primitives';
 
 /**
@@ -12,7 +12,7 @@ export default function NotFound() {
   return (
     <section className="mat-stone grain relative flex min-h-[80svh] items-center py-32">
       <div className="shell-narrow text-center">
-        <PWEmblem uid="notfound-emblem" className="mx-auto h-28 w-28 opacity-45" />
+        <Logo variant="full" className="mx-auto w-32 opacity-50" />
 
         <Eyebrow className="mt-10 mb-6">Error 404</Eyebrow>
 

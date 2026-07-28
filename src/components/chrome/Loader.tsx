@@ -2,7 +2,7 @@
 
 import gsap from 'gsap';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { PWEmblem } from '@/components/brand/Marks';
+import { Logo } from '@/components/brand/Logo';
 
 /**
  * THE OPENING
@@ -80,45 +80,29 @@ export function Loader() {
     skipRef.current?.focus();
 
     const ctx = gsap.context(() => {
-      // Measure every stroke so the trace draws at a consistent rate rather
-      // than each path taking the same time regardless of its length.
-      const strokes = gsap.utils.toArray<SVGPathElement | SVGCircleElement>(
-        '.pw-trace, .pw-glyph path, .pw-glyph circle',
-      );
-
-      strokes.forEach((el) => {
-        const length = typeof el.getTotalLength === 'function' ? el.getTotalLength() : 100;
-        gsap.set(el, { strokeDasharray: length, strokeDashoffset: length, opacity: 1 });
-      });
-
-      gsap.set('.pw-glyph [fill]:not([fill="none"])', { fillOpacity: 0 });
+      gsap.set('.pw-loader-mark', { clipPath: 'inset(0% 0% 100% 0%)', opacity: 0 });
+      gsap.set('.pw-loader-sheen', { xPercent: -130, opacity: 0 });
       gsap.set('.pw-loader-text', { opacity: 0, y: 14, filter: 'blur(6px)' });
 
       const tl = gsap.timeline();
       timelineRef.current = tl;
 
-      tl.to('.pw-trace-outer', { strokeDashoffset: 0, duration: 1.35, ease: 'power2.inOut' })
+      // The mark rises out of black rather than fading uniformly — a struck
+      // object catching the light from below.
+      tl.to('.pw-loader-mark', { opacity: 1, duration: 0.5, ease: 'power2.out' })
         .to(
-          '.pw-trace-inner',
-          { strokeDashoffset: 0, duration: 1.0, ease: 'power2.inOut' },
-          '-=1.05',
+          '.pw-loader-mark',
+          { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'power3.inOut' },
+          '-=0.4',
         )
-        // The instrument emerges from the darkness, stroke by stroke.
-        .to(
-          '.pw-glyph path, .pw-glyph circle',
-          { strokeDashoffset: 0, duration: 0.9, ease: 'power2.out', stagger: 0.045 },
-          '-=0.9',
-        )
-        // Then the metal fills in behind the lines.
-        .to(
-          '.pw-glyph [fill]:not([fill="none"])',
-          { fillOpacity: 1, duration: 0.7, ease: 'power2.out', stagger: 0.02 },
-          '-=0.35',
-        )
+        // One highlight travels across the gold, then never again.
+        .to('.pw-loader-sheen', { opacity: 1, duration: 0.2 }, '-=0.9')
+        .to('.pw-loader-sheen', { xPercent: 130, duration: 1.1, ease: 'power2.inOut' }, '<')
+        .to('.pw-loader-sheen', { opacity: 0, duration: 0.3 }, '-=0.3')
         .to(
           '.pw-loader-text',
           { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.85, ease: 'power3.out' },
-          '-=0.5',
+          '-=0.8',
         );
     }, root);
 
@@ -194,7 +178,13 @@ export function Loader() {
       onClick={dismiss}
     >
       <div ref={emblemRef} className="flex flex-col items-center px-6">
-        <PWEmblem uid="pw-loader" traceable className="w-[clamp(140px,26vw,220px)]" />
+        {/* The supplied mark. A raster cannot be stroke-traced the way an SVG
+            can, so it is revealed by a wipe and a travelling highlight instead
+            — which suits struck metal emerging from darkness better anyway. */}
+        <div className="pw-loader-mark relative w-[clamp(150px,28vw,240px)]">
+          <Logo variant="full" priority />
+          <span className="pw-loader-sheen pointer-events-none absolute inset-0" aria-hidden="true" />
+        </div>
 
         <div className="pw-loader-text mt-10 flex flex-col items-center gap-3">
           <p className="label text-[0.62rem] tracking-[0.42em] text-gold-antique">

@@ -31,11 +31,11 @@
   --color-stone: #171310;
 
   /* --- Metal: sampled from the logo's letterforms and frame ------------- */
-  --color-gold-antique: #c08a18; /* mid body of the engraved lettering */
-  --color-gold-rich: #d4a017; /* main gold — matches Aurora exactly */
-  --color-gold-high: #f5c542; /* struck highlight on the bevels */
-  --color-gold-pale: #fde68a; /* champagne, the brightest catch */
-  --color-bronze: #5a3a0c; /* inside the craquelure cracks */
+  --color-gold-antique: #b87914; /* ornament + frame, sampled */
+  --color-gold-rich: #d99a33; /* body gold, sampled from the mark */
+  --color-gold-high: #fcc933; /* struck bevel highlight, sampled */
+  --color-gold-pale: #fffdda; /* brightest catch — near-white, sampled */
+  --color-bronze: #573202; /* inside the craquelure cracks, sampled */
 
   /* --- Support ---------------------------------------------------------- */
   /* Warm cream rather than the previous cool ivory — the logo has no cool
@@ -313,6 +313,19 @@
     transform: rotate(var(--beam-tilt));
     transform-origin: 50% 50%;
     will-change: transform;
+  }
+
+  /* The loader's travelling highlight — a narrow warm band crossing the
+     struck gold once. Screen blend so it lights the metal rather than
+     washing it out. */
+  .pw-loader-sheen {
+    background: linear-gradient(
+      105deg,
+      transparent 38%,
+      rgba(255, 253, 218, 0.5) 50%,
+      transparent 62%
+    );
+    mix-blend-mode: screen;
   }
 
   /* Scroll cue: a suspension link travelling down its chain. Two-and-a-half

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { PWEmblem } from '@/components/brand/Marks';
+import { Logo } from '@/components/brand/Logo';
 import { Fact } from '@/components/ui/primitives';
 import { brand, business, primaryNav, services } from '@/lib/site';
 
@@ -38,7 +38,7 @@ export function Footer() {
         <div className="grid gap-14 lg:grid-cols-12 lg:gap-10">
           {/* --- Brand ------------------------------------------------- */}
           <div className="lg:col-span-4">
-            <PWEmblem uid="footer-emblem" className="h-32 w-32" />
+            <Logo variant="full" className="w-44" />
             <p className="mt-7 max-w-xs text-sm leading-relaxed text-ash">
               {brand.positioning} Every valuation begins with accurate measurement and is explained
               in full before anything is agreed.
