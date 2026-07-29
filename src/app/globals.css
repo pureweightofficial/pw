@@ -85,6 +85,13 @@
        read by every hairline rule on the page, so the layout comes level in
        step with the 3D instrument. Opens at the same tilt the scale does. */
     --beam-tilt: -2.6deg;
+
+    /* Height of the fixed navigation. Declared once because two things depend
+       on it: the bar itself, and every full-height section that centres content
+       underneath it. The hero previously centred in the whole viewport while
+       the bar floated on top, so on a short window the eyebrow line rendered
+       behind the logo. */
+    --nav-h: 72px;
   }
 
   body {

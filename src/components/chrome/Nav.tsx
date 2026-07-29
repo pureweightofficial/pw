@@ -100,7 +100,7 @@ export function Nav() {
             : 'border-b border-transparent bg-transparent',
         ].join(' ')}
       >
-        <nav aria-label="Primary" className="shell flex h-[72px] items-center justify-between gap-6">
+        <nav aria-label="Primary" className="shell flex h-[var(--nav-h)] items-center justify-between gap-6">
           <Link
             href="/"
             aria-label={`${brand.name} — home`}
@@ -185,7 +185,7 @@ export function Nav() {
         hidden={!menuOpen}
         className="fixed inset-0 z-40 flex flex-col bg-void/97 backdrop-blur-lg lg:hidden"
       >
-        <div className="h-[72px] shrink-0" />
+        <div className="h-[var(--nav-h)] shrink-0" />
 
         <div className="shell flex flex-1 flex-col justify-between overflow-y-auto pb-10 pt-8">
           <ul className="flex flex-col">

@@ -8,6 +8,16 @@ import { ScalePoster } from '@/components/webgl/ScalePoster';
 /**
  * HERO
  *
+ * TWO RULES KEEP THE COPY CLEAR OF THE FIXED NAVIGATION:
+ *
+ *  1. It reserves --nav-h before centring, so the bar never sits on top of the
+ *     eyebrow line.
+ *  2. It centres SAFELY. Plain `justify-content: center` overflows equally in
+ *     both directions when the content is taller than the viewport, pushing the
+ *     top of the block above the fold and behind the navigation — which is
+ *     exactly what happened on short windows. `safe center` falls back to
+ *     flex-start instead of losing content off the top edge.
+ *
  * The instrument is the image; the copy is the message. They are kept out of
  * each other's way rather than layered on top of one another:
  *
@@ -38,7 +48,7 @@ export function Hero() {
     <section
       data-scroll-section="hero"
       aria-labelledby="hero-heading"
-      className="relative isolate flex min-h-[100svh] flex-col justify-end overflow-hidden bg-void pb-16 pt-28 sm:pb-20 lg:min-h-screen lg:justify-center lg:pb-0 lg:pt-0"
+      className="relative isolate flex min-h-[100svh] flex-col justify-end overflow-hidden bg-void pb-16 pt-28 sm:pb-20 lg:min-h-screen lg:justify-center lg:[justify-content:safe_center] lg:pb-0 lg:pt-[calc(var(--nav-h)+2.5rem)]"
     >
       {/* --- The scene ------------------------------------------------- */}
       <div
