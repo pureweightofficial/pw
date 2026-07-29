@@ -42,6 +42,20 @@ const CROPS = {
 
 export type LogoVariant = keyof typeof CROPS;
 
+/**
+ * Rendered width per variant, so next/image can pick a sane candidate.
+ *
+ * Without this, next/image emits a 1x/2x srcSet and the 2x entry asks for a
+ * 3840px render of a 1200px source — an upscale nobody benefits from, fetched
+ * at high priority on the preload link. Declaring `sizes` switches it to a
+ * width-based srcSet that never exceeds the source.
+ */
+const SIZES: Record<LogoVariant, string> = {
+  full: '(max-width: 1024px) 200px, 260px',
+  wordmark: '(max-width: 1024px) 180px, 240px',
+  monogram: '64px',
+};
+
 export type LogoProps = {
   variant?: LogoVariant;
   className?: string;
@@ -73,6 +87,7 @@ export function Logo({
         width={NATURAL.w}
         height={NATURAL.h}
         priority={priority}
+        sizes={SIZES[variant]}
         // Oversize and offset so only the chosen window is visible. Widths are
         // expressed relative to the frame, which is why they exceed 100%.
         style={{

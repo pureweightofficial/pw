@@ -13,6 +13,7 @@ import {
 } from 'react';
 import * as THREE from 'three';
 import type { Capability } from '@/lib/capability';
+import { markHeroReady } from '@/lib/readiness';
 import { useCapability, useDocumentVisible, useInViewport } from '@/lib/hooks';
 import { disposeGeometry } from './geometry';
 import { disposeMaterials } from './materials';
@@ -167,6 +168,17 @@ export function SceneShell({
 
   const handleError = useCallback(() => setFailed(true), []);
 
+  /**
+   * Release the opening sequence when no live scene is coming. Covers a
+   * declined GPU, a data-saver signal, and a context that failed outright — in
+   * all of those the poster is not a placeholder, it is the finished hero, so
+   * there is nothing further to wait for.
+   */
+  useEffect(() => {
+    if (!eager) return;
+    if (capability && (!supported || !shouldMount)) markHeroReady();
+  }, [eager, capability, supported, shouldMount]);
+
   useEffect(() => {
     if (!shouldMount || !capability) return;
 
@@ -192,10 +204,17 @@ export function SceneShell({
       };
 
       canvas.addEventListener('webglcontextlost', onLost);
-      // Give the first frame a moment to compile shaders before we cross-fade.
-      requestAnimationFrame(() => requestAnimationFrame(() => setSceneReady(true)));
+      // Two frames: the first creates the context, the second is the earliest
+      // one that has actually been composited. Only then is the scene worth
+      // revealing, and only then does the opening sequence get to lift.
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          setSceneReady(true);
+          if (eager) markHeroReady();
+        }),
+      );
     },
-    [],
+    [eager],
   );
 
   useEffect(

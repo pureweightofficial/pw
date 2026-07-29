@@ -3,6 +3,7 @@
 import gsap from 'gsap';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Logo } from '@/components/brand/Logo';
+import { whenHeroReady } from '@/lib/readiness';
 
 /**
  * THE OPENING
@@ -115,11 +116,29 @@ export function Loader() {
     let ready = false;
     let raf = 0;
 
+    /**
+     * What "ready" actually means.
+     *
+     * `window.load` is not enough on its own: it fires once documents, styles,
+     * fonts and images have arrived, but WebGL still has to create its context,
+     * upload the procedural textures and compile shaders after that. Lifting on
+     * load alone revealed a poster that visibly popped into the live scene a
+     * beat later.
+     *
+     * The hero signal closes that gap, and is capped so a slow GPU delays the
+     * curtain by at most a couple of seconds rather than holding it hostage.
+     */
+    const HERO_WAIT_CEILING = 2600;
+
     const readiness = Promise.allSettled([
       document.fonts?.ready ?? Promise.resolve(),
       document.readyState === 'complete'
         ? Promise.resolve()
         : new Promise<void>((resolve) => window.addEventListener('load', () => resolve(), { once: true })),
+      Promise.race([
+        whenHeroReady(),
+        new Promise<void>((resolve) => window.setTimeout(resolve, HERO_WAIT_CEILING)),
+      ]),
     ]);
 
     readiness.then(() => {
