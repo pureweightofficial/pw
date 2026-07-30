@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { canonicalPath, ogFor } from '@/lib/site';
 import { Appointment } from '@/components/sections/Appointment';
 import { AssayExperience } from '@/components/sections/AssayExperience';
 import { BrandStory } from '@/components/sections/BrandStory';
@@ -16,7 +17,16 @@ export const metadata: Metadata = {
   title: 'Pureweight Gold Exchange — Private Gold Valuation & Exchange',
   description:
     'Private gold evaluation and exchange guided by precision, transparency and trusted expertise. Weight, purity and condition examined and explained before any figure is discussed.',
-  alternates: { canonical: '/' },
+  alternates: { canonical: canonicalPath('/') },
+  // Complete block per page: Next replaces openGraph wholesale rather than
+  // deep-merging, so a partial one silently drops og:image/site_name/type and
+  // an absent one inherits the HOMEPAGE og:url on every subpage.
+  openGraph: ogFor({
+    title: 'Pureweight Gold Exchange — Private Gold Valuation & Exchange',
+    description:
+      'Private gold evaluation and exchange guided by precision, transparency and trusted expertise. Weight, purity and condition examined and explained before any figure is discussed.',
+    path: '/',
+  }),
 };
 
 /**

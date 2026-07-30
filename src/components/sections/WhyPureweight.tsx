@@ -26,7 +26,7 @@ export function WhyPureweight() {
             className="font-display text-chapter font-semibold text-ivory will-reveal"
           >
             Three things we will not
-            <span className="accent-accent-italic text-gold-high/90"> compromise</span>
+            <span className="accent-italic text-gold-high/90"> compromise</span>
           </h2>
         </div>
 

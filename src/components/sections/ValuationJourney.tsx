@@ -38,7 +38,7 @@ export function ValuationJourney() {
             id="journey-heading"
             className="font-display text-chapter font-semibold text-ivory will-reveal"
           >
-            From Weight to <span className="accent-accent-italic text-gold-high/90">True Value</span>
+            From Weight to <span className="accent-italic text-gold-high/90">True Value</span>
           </h2>
           <p className="mt-7 max-w-xl text-lead text-ash will-reveal">
             Four stages, in order, with nothing agreed until the last one. Each stage produces a

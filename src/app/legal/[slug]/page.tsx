@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Eyebrow, Placeholder, Section } from '@/components/ui/primitives';
-import { brand } from '@/lib/site';
+import { brand, canonicalPath, ogFor } from '@/lib/site';
 
 /**
  * LEGAL PAGES
@@ -90,7 +90,8 @@ export async function generateMetadata({
   return {
     title: doc.title,
     description: doc.intro,
-    alternates: { canonical: `/legal/${slug}` },
+    alternates: { canonical: canonicalPath(`/legal/${slug}`) },
+    openGraph: ogFor({ title: doc.title, description: doc.intro, path: `/legal/${slug}` }),
     // Not indexable until the document actually says something.
     robots: { index: false, follow: true },
   };

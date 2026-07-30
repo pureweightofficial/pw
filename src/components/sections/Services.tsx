@@ -35,7 +35,7 @@ export function Services() {
             id="services-heading"
             className="font-display text-chapter font-semibold text-ivory will-reveal"
           >
-            What We <span className="accent-accent-italic text-gold-high/90">Examine</span>
+            What We <span className="accent-italic text-gold-high/90">Examine</span>
           </h2>
           <p className="mt-7 max-w-xl text-lead text-ash will-reveal">
             Each service is a different kind of examination. What they share is the order of

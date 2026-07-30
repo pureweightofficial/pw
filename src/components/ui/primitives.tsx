@@ -45,13 +45,32 @@ export function Placeholder({ label, inline = false }: { label: string; inline?:
  */
 export function Fact<T extends ReactNode>({
   field,
-  render,
+  link,
 }: {
   field: Verifiable<T>;
-  render?: (value: T) => ReactNode;
+  /**
+   * Declarative, not a render function — this component is inside the client
+   * boundary, and a server component handing it a function is a build error
+   * ("Functions cannot be passed directly to Client Components"), which is
+   * exactly how the first version of tel/mailto support failed. 'tel' strips
+   * formatting for the href; 'mailto' uses the value verbatim. Applied only
+   * once the field is verified — placeholders never become links.
+   */
+  link?: 'tel' | 'mailto';
 }) {
   if (!isVerified(field)) return <Placeholder label={field.label} inline />;
-  return <>{render ? render(field.value) : field.value}</>;
+
+  if (link) {
+    const raw = String(field.value);
+    const href = link === 'tel' ? `tel:${raw.replace(/[^+\d]/g, '')}` : `mailto:${raw}`;
+    return (
+      <a className="underline-offset-4 hover:underline" href={href}>
+        {field.value}
+      </a>
+    );
+  }
+
+  return <>{field.value}</>;
 }
 
 /* -------------------------------------------------------------------------- */

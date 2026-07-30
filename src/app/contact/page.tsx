@@ -1,13 +1,22 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BeamDivider, Eyebrow, Fact, Section } from '@/components/ui/primitives';
-import { brand, business } from '@/lib/site';
+import { brand, business, canonicalPath, ogFor, type Verifiable } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Contact',
   description:
     'Contact Pureweight Gold Exchange to arrange a private valuation or to ask a question about gold weight, purity and evaluation.',
-  alternates: { canonical: '/contact' },
+  alternates: { canonical: canonicalPath('/contact') },
+  // Complete block per page: Next replaces openGraph wholesale rather than
+  // deep-merging, so a partial one silently drops og:image/site_name/type and
+  // an absent one inherits the HOMEPAGE og:url on every subpage.
+  openGraph: ogFor({
+    title: 'Contact — Pureweight Gold Exchange',
+    description:
+      'Contact Pureweight Gold Exchange to arrange a private valuation or to ask a question about gold weight, purity and evaluation.',
+    path: '/contact',
+  }),
 };
 
 /**
@@ -19,14 +28,23 @@ export const metadata: Metadata = {
  * sends people carrying valuables to the wrong door.
  */
 export default function ContactPage() {
-  const details = [
-    { label: 'Telephone', field: business.telephone },
-    { label: 'Email', field: business.email },
+  // `link` is declarative ('tel'/'mailto') because Fact sits inside the client
+  // boundary and cannot receive functions from this server component — passing
+  // a render function here was a build-breaking serialization error.
+  const details: {
+    label: string;
+    // All six rows are string facts. Indexing the whole business object would
+    // union in Verifiable<string[]> (social) and break Fact's inference.
+    field: Verifiable<string>;
+    link?: 'tel' | 'mailto';
+  }[] = [
+    { label: 'Telephone', field: business.telephone, link: 'tel' },
+    { label: 'Email', field: business.email, link: 'mailto' },
     { label: 'Address', field: business.address },
     { label: 'Opening hours', field: business.openingHours },
     { label: 'Service area', field: business.serviceArea },
     { label: 'Appointment process', field: business.appointmentProcess },
-  ] as const;
+  ];
 
   return (
     <Section material="stone" labelledBy="contact-heading" className="pb-24 pt-36 lg:pb-36 lg:pt-44">
@@ -35,7 +53,7 @@ export default function ContactPage() {
           <div className="lg:col-span-5">
             <Eyebrow className="mb-8">Contact</Eyebrow>
             <h1 id="contact-heading" className="font-display text-chapter font-semibold text-ivory">
-              Speak with <span className="accent-accent-italic text-gold-high/90">Pureweight</span>
+              Speak with <span className="accent-italic text-gold-high/90">Pureweight</span>
             </h1>
             <p className="mt-8 max-w-md text-lead text-ivory/72">
               For a valuation, bring the item to a private appointment. For anything else — a
@@ -61,7 +79,7 @@ export default function ContactPage() {
                     {item.label}
                   </dt>
                   <dd className="text-sm text-ivory/78 sm:col-span-2">
-                    <Fact field={item.field} />
+                    <Fact field={item.field} link={item.link} />
                   </dd>
                 </div>
               ))}

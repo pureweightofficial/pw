@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { canonicalPath } from '@/lib/site';
 import { Cinzel, Playfair_Display, Rye, Yeseva_One } from 'next/font/google';
 import { Logo } from '@/components/brand/Logo';
 
@@ -18,6 +19,9 @@ import { Logo } from '@/components/brand/Logo';
 
 export const metadata: Metadata = {
   title: 'Type specimen (internal)',
+  // Without its own canonical this internal tool inherited the ROOT layout's
+  // canonical '/', declaring itself a duplicate of the homepage.
+  alternates: { canonical: canonicalPath('/type-specimen') },
   robots: { index: false, follow: false, nocache: true },
 };
 

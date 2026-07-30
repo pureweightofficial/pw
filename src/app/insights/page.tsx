@@ -1,13 +1,22 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Eyebrow, Section } from '@/components/ui/primitives';
-import { insightTopics } from '@/lib/site';
+import { insightTopics, canonicalPath, ogFor } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Insights',
   description:
     'Plain explanations of how gold is measured and valued — purity, hallmarks, weight units, and what to expect from a professional evaluation.',
-  alternates: { canonical: '/insights' },
+  alternates: { canonical: canonicalPath('/insights') },
+  // Complete block per page: Next replaces openGraph wholesale rather than
+  // deep-merging, so a partial one silently drops og:image/site_name/type and
+  // an absent one inherits the HOMEPAGE og:url on every subpage.
+  openGraph: ogFor({
+    title: 'Insights — Pureweight Gold Exchange',
+    description:
+      'Plain explanations of how gold is measured and valued — purity, hallmarks, weight units, and what to expect from a professional evaluation.',
+    path: '/insights',
+  }),
   // Marked noindex until the articles exist: an index page listing eight
   // unwritten titles is a thin page, and shipping it to search would earn a
   // quality problem the site does not need.
@@ -35,7 +44,7 @@ export default function InsightsPage() {
           <Eyebrow className="mb-8">Insights</Eyebrow>
           <h1 id="insights-heading" className="font-display text-chapter font-semibold text-ivory">
             Know what you hold
-            <span className="accent-accent-italic text-gold-high/90"> before you sell it</span>
+            <span className="accent-italic text-gold-high/90"> before you sell it</span>
           </h1>
           <p className="mt-8 max-w-xl text-lead text-ivory/72">
             Most people sell gold once or twice in a lifetime. These articles are intended to close

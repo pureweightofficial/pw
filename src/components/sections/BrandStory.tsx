@@ -30,7 +30,7 @@ export function BrandStory() {
               >
                 Weight can be measured.
                 <br />
-                <span className="accent-accent-italic text-gold-high/90">Trust must be earned.</span>
+                <span className="accent-italic text-gold-high/90">Trust must be earned.</span>
               </h2>
 
               <BeamDivider className="mt-12 max-w-xs will-reveal" />

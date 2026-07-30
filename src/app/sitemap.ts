@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { brand } from '@/lib/site';
+import { brand, canonicalPath } from '@/lib/site';
 
 // Required by `output: 'export'`, harmless on a server build — this route has
 // no request-time dependencies, so it is generated once at build.
@@ -18,15 +18,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const base = brand.url.replace(/\/$/, '');
   const lastModified = new Date();
 
+  // canonicalPath appends the trailing slash on the Pages target, where every
+  // slashless URL 301s — a sitemap full of redirects wastes crawl budget and
+  // mismatches the canonicals.
   return [
-    { url: `${base}/`, lastModified, changeFrequency: 'monthly', priority: 1 },
-    {
-      url: `${base}/request-a-valuation`,
-      lastModified,
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    { url: `${base}/faq`, lastModified, changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${base}/contact`, lastModified, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${base}${canonicalPath('/')}`, lastModified, changeFrequency: 'monthly' as const, priority: 1 },
+    { url: `${base}${canonicalPath('/request-a-valuation')}`, lastModified, changeFrequency: 'monthly' as const, priority: 0.9 },
+    { url: `${base}${canonicalPath('/faq')}`, lastModified, changeFrequency: 'monthly' as const, priority: 0.8 },
+    { url: `${base}${canonicalPath('/contact')}`, lastModified, changeFrequency: 'monthly' as const, priority: 0.8 },
   ];
 }

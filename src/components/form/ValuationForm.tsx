@@ -119,6 +119,9 @@ function ValuationFormInner() {
   }, [searchParams]);
 
   const [stepIndex, setStepIndex] = useState(0);
+  // Guards the focus effect: focusing the legend on first mount steals focus
+  // from the page before the visitor has interacted with the form at all.
+  const hasNavigated = useRef(false);
   const [data, setData] = useState<FormState>(prefilled);
   const [errors, setErrors] = useState<Errors>({});
   const [showErrors, setShowErrors] = useState(false);
@@ -189,9 +192,24 @@ function ValuationFormInner() {
     setStepIndex((i) => Math.max(i - 1, 0));
   }, []);
 
-  // Focus the new step's legend so a screen reader hears where it has arrived.
+  const successRef = useRef<HTMLHeadingElement>(null);
+
+  /**
+   * Focus follows the state that matters. On a step change, the new legend; on
+   * successful submission, the confirmation heading — previously focus was
+   * simply dropped to <body> when the form unmounted, so a screen-reader user
+   * heard nothing and a keyboard user restarted tabbing from the page top with
+   * a reference number they were never told about.
+   */
   useEffect(() => {
-    if (status === 'sent') return;
+    if (status === 'sent') {
+      successRef.current?.focus();
+      return;
+    }
+    if (!hasNavigated.current) {
+      hasNavigated.current = true;
+      return;
+    }
     legendRef.current?.focus();
   }, [stepIndex, status]);
 
@@ -338,7 +356,11 @@ function ValuationFormInner() {
       <div className="inset-panel p-9 lg:p-14" role="status" aria-live="polite">
         <p className="label mb-7">Enquiry received</p>
 
-        <h2 className="font-display text-4xl font-semibold text-ivory lg:text-5xl">
+        <h2
+          ref={successRef}
+          tabIndex={-1}
+          className="font-display text-4xl font-semibold text-ivory outline-none lg:text-5xl"
+        >
           Thank you — your details are with us.
         </h2>
 
@@ -572,9 +594,20 @@ function ValuationFormInner() {
               a band or on a clasp — is the single most useful image you can send.
             </p>
 
+            <input
+              id={`${uid}-images`}
+              type="file"
+              multiple
+              accept={UPLOAD_LIMITS.accept.join(',')}
+              className="peer sr-only"
+              onChange={(e) => {
+                addFiles(e.target.files);
+                e.target.value = '';
+              }}
+            />
             <label
               htmlFor={`${uid}-images`}
-              className="flex cursor-pointer flex-col items-center justify-center gap-3 border border-dashed border-gold-antique/35 bg-void/45 px-6 py-12 text-center transition-colors duration-300 hover:border-gold-antique/70 hover:bg-gold-antique/5"
+              className="flex cursor-pointer flex-col items-center justify-center gap-3 border border-dashed border-gold-antique/35 bg-void/45 px-6 py-12 text-center transition-colors duration-300 hover:border-gold-antique/70 hover:bg-gold-antique/5 peer-focus-visible:outline peer-focus-visible:outline-1 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-gold-rich"
             >
               {/* SVG rather than a "+" glyph: a fullwidth plus renders at CJK
                   width in Latin fonts and its weight varies by platform. An
@@ -596,17 +629,7 @@ function ValuationFormInner() {
               </span>
             </label>
 
-            <input
-              id={`${uid}-images`}
-              type="file"
-              multiple
-              accept={UPLOAD_LIMITS.accept.join(',')}
-              className="sr-only"
-              onChange={(e) => {
-                addFiles(e.target.files);
-                e.target.value = '';
-              }}
-            />
+            
 
             {fileError ? (
               <p role="alert" className="text-sm text-[#e5a68c]">
@@ -630,7 +653,7 @@ function ValuationFormInner() {
                     <button
                       type="button"
                       onClick={() => removeFile(attachment.id)}
-                      className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center bg-void/85 text-sm text-ivory transition-colors duration-200 hover:bg-void hover:text-gold-high"
+                      className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center bg-void/85 text-sm text-ivory transition-colors duration-200 hover:bg-void hover:text-gold-high"
                     >
                       <span className="sr-only">Remove {attachment.file.name}</span>
                       <svg

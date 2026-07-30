@@ -154,6 +154,31 @@ export async function POST(request: Request) {
   }
 
   /* --- Parse ----------------------------------------------------------- */
+  /**
+   * Gate on Content-Length BEFORE parsing. `request.formData()` buffers the
+   * entire body; without this check a single oversized POST is fully read into
+   * memory before any of the per-file limits below ever run. The cap is the
+   * upload budget plus generous form-field overhead. A missing Content-Length
+   * (chunked encoding) is rejected too — no legitimate browser form submit
+   * omits it.
+   */
+  const MAX_BODY_BYTES = UPLOAD_LIMITS.maxTotalBytes + 1024 * 1024;
+  const declaredLength = Number(request.headers.get('content-length'));
+
+  if (!Number.isFinite(declaredLength) || declaredLength <= 0) {
+    return NextResponse.json(
+      { ok: false, error: 'That submission could not be read. Please try again.' },
+      { status: 411 },
+    );
+  }
+
+  if (declaredLength > MAX_BODY_BYTES) {
+    return NextResponse.json(
+      { ok: false, error: 'The attached images total more than 24 MB. Please attach fewer.' },
+      { status: 413 },
+    );
+  }
+
   let form: FormData;
   try {
     form = await request.formData();
@@ -201,10 +226,48 @@ export async function POST(request: Request) {
     );
   }
 
+  /**
+   * The declared MIME type is client-controlled — a renamed executable arrives
+   * announcing itself as image/jpeg. The first bytes are not: every accepted
+   * format has a fixed signature, so each file's opening bytes are checked
+   * against the signature its declared type promises.
+   */
+  const matchesMagic = async (file: File): Promise<boolean> => {
+    const head = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+    const at = (i: number, ...bytes: number[]) => bytes.every((b, j) => head[i + j] === b);
+
+    switch (file.type) {
+      case 'image/jpeg':
+        return at(0, 0xff, 0xd8, 0xff);
+      case 'image/png':
+        return at(0, 0x89, 0x50, 0x4e, 0x47);
+      case 'image/webp':
+        // RIFF....WEBP
+        return at(0, 0x52, 0x49, 0x46, 0x46) && at(8, 0x57, 0x45, 0x42, 0x50);
+      case 'image/heic':
+      case 'image/heif':
+        // ....ftyp — brand varies (heic/heix/mif1...), the box type does not.
+        return at(4, 0x66, 0x74, 0x79, 0x70);
+      default:
+        return false;
+    }
+  };
+
   let totalBytes = 0;
   for (const file of files) {
     const problem = describeFileError(file);
     if (problem) return NextResponse.json({ ok: false, error: problem }, { status: 415 });
+
+    if (!(await matchesMagic(file))) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: `“${file.name}” does not appear to be a valid image. Please re-save it and try again.`,
+        },
+        { status: 415 },
+      );
+    }
+
     totalBytes += file.size;
   }
 

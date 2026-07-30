@@ -29,7 +29,7 @@ export function TrustStatement() {
             >
               Every gram carries value.
               <br />
-              <span className="accent-accent-italic text-gold-high/90">Every exchange deserves clarity.</span>
+              <span className="accent-italic text-gold-high/90">Every exchange deserves clarity.</span>
             </h2>
           </div>
 

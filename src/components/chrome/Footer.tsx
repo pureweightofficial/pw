@@ -120,13 +120,13 @@ export function Footer() {
               <div>
                 <dt className="label-ash mb-1.5 text-[0.58rem]">Telephone</dt>
                 <dd className="text-ivory/72">
-                  <Fact field={business.telephone} />
+                  <Fact field={business.telephone} link="tel" />
                 </dd>
               </div>
               <div>
                 <dt className="label-ash mb-1.5 text-[0.58rem]">Email</dt>
                 <dd className="text-ivory/72">
-                  <Fact field={business.email} />
+                  <Fact field={business.email} link="mailto" />
                 </dd>
               </div>
             </dl>

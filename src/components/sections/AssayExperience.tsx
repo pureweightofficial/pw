@@ -47,7 +47,7 @@ export function AssayExperience() {
           >
             Value is not guessed.
             <br />
-            <span className="accent-accent-italic text-gold-high/90">It is measured.</span>
+            <span className="accent-italic text-gold-high/90">It is measured.</span>
           </h2>
           <p className="mt-7 max-w-xl text-lead text-ash will-reveal">
             Five things decide what a piece of gold is worth. Four of them can be established with

@@ -30,7 +30,7 @@ export default function GlobalError({
 
         <h1 className="font-display text-chapter font-semibold text-ivory">
           We could not load
-          <span className="accent-accent-italic text-gold-high/90"> this page.</span>
+          <span className="accent-italic text-gold-high/90"> this page.</span>
         </h1>
 
         <p className="mx-auto mt-7 max-w-md text-lead text-ash">

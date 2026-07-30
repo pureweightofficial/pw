@@ -84,6 +84,10 @@
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: auto; /* Lenis owns smooth scroll; native would fight it */
+    /* Keeps anchored and focus-scrolled elements clear of the fixed navigation
+       (WCAG 2.4.11 focus-not-obscured). Lenis anchor scrolling applies its own
+       offset; this covers native focus scrolling, which does not. */
+    scroll-padding-top: calc(var(--nav-h) + 1rem);
 
     /* The site's spine. Written once per scroll frame by MotionProvider and
        read by every hairline rule on the page, so the layout comes level in
@@ -430,6 +434,30 @@
       transparent 62%
     );
     mix-blend-mode: screen;
+  }
+
+  /* Above-the-fold entrance — CSS only, so the LCP element paints with the
+     HTML instead of waiting for 211KB of JS to hydrate and GSAP to reveal it.
+     The audit measured the hero h1 held at opacity:0 until hydration, pinning
+     LCP to the JS critical path (worst case, the 3s watchdog). Below-the-fold
+     sections keep the ScrollTrigger reveal; the fold is special because LCP is
+     measured there. Reduced-motion gets no animation and full opacity. */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-rise {
+      animation: pw-rise 0.9s var(--ease-vault) both;
+      animation-delay: var(--rise-delay, 0ms);
+    }
+  }
+
+  @keyframes pw-rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 
   /* Scroll cue: a suspension link travelling down its chain. Two-and-a-half

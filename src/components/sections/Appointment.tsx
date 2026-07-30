@@ -35,7 +35,7 @@ export function Appointment() {
                 className="font-display text-chapter font-semibold text-ivory will-reveal"
               >
                 A private conversation
-                <span className="accent-accent-italic text-gold-high/90"> about true value.</span>
+                <span className="accent-italic text-gold-high/90"> about true value.</span>
               </h2>
 
               <p className="mt-8 max-w-md text-lead text-ivory/72 will-reveal">
@@ -71,7 +71,7 @@ export function Appointment() {
               <div className="mt-12 border-t border-gold-antique/16 pt-8 will-reveal">
                 <p className="label-ash mb-3 text-[0.58rem]">Prefer to speak to someone</p>
                 <div className="space-y-2 text-sm text-ivory/72">
-                  <Fact field={business.telephone} />
+                  <Fact field={business.telephone} link="tel" />
                   <Fact field={business.openingHours} />
                 </div>
               </div>

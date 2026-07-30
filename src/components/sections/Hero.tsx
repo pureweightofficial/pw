@@ -79,22 +79,22 @@ export function Hero() {
       {/* --- The copy -------------------------------------------------- */}
       <div className="shell relative w-full" data-cursor-normal>
         <div className="max-w-2xl">
-          <p className="label mb-9 will-reveal">Precision in Every Gram</p>
+          <p className="label mb-9 hero-rise">Precision in Every Gram</p>
 
           <h1
             id="hero-heading"
-            className="font-display text-hero font-semibold text-ivory will-reveal"
+            className="hero-rise font-display text-hero font-semibold text-ivory [--rise-delay:120ms]"
           >
             <span className="block">Where Gold Finds</span>
             <span className="gold-leaf accent-italic block">Its True Weight.</span>
           </h1>
 
-          <p className="mt-8 max-w-xl text-lead text-ivory/72 will-reveal">
+          <p className="hero-rise mt-8 max-w-xl text-lead text-ivory/72 [--rise-delay:240ms]">
             Private gold evaluation and exchange, guided by precision, transparency and trusted
             expertise.
           </p>
 
-          <div className="mt-11 flex flex-col items-start gap-4 will-reveal sm:flex-row sm:items-center sm:gap-7">
+          <div className="hero-rise mt-11 flex flex-col items-start gap-4 [--rise-delay:360ms] sm:flex-row sm:items-center sm:gap-7">
             <CTA href="/request-a-valuation" className="w-full justify-center sm:w-auto">
               Request a Private Valuation
             </CTA>

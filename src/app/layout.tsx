@@ -187,6 +187,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       style={{ '--craquelure': `url(${assetPath('/brand/craquelure.png')})` } as React.CSSProperties}
     >
       <head>
+        {/* GitHub Pages cannot send response headers, so the static target gets
+            its CSP and referrer policy via meta tags — the only two security
+            policies meta can carry (frame-ancestors is ignored in meta form and
+            is therefore omitted; clickjacking protection simply does not exist
+            on Pages, which is accepted while the preview is noindex). The node
+            target sends the full set as real headers from next.config.ts. */}
+        {process.env.GITHUB_PAGES === 'true' ? (
+          <meta
+            httpEquiv="Content-Security-Policy"
+            content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'"
+          />
+        ) : null}
+        <meta name="referrer" content="strict-origin-when-cross-origin" />
         <script dangerouslySetInnerHTML={{ __html: REVEAL_BOOTSTRAP }} />
 
         {/*

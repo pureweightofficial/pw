@@ -18,7 +18,7 @@ export default function NotFound() {
 
         <h1 className="font-display text-chapter font-semibold text-ivory">
           This page could not
-          <span className="accent-accent-italic text-gold-high/90"> be found.</span>
+          <span className="accent-italic text-gold-high/90"> be found.</span>
         </h1>
 
         <p className="mx-auto mt-7 max-w-md text-lead text-ash">

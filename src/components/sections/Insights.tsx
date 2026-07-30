@@ -29,7 +29,7 @@ export function Insights() {
               className="font-display text-chapter font-semibold text-ivory will-reveal"
             >
               Know what you hold
-              <span className="accent-accent-italic text-gold-high/90"> before you sell it</span>
+              <span className="accent-italic text-gold-high/90"> before you sell it</span>
             </h2>
           </div>
 

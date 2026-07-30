@@ -1,17 +1,22 @@
 import type { Metadata } from 'next';
 import { ValuationForm } from '@/components/form/ValuationForm';
 import { Eyebrow, Fact, Section } from '@/components/ui/primitives';
-import { business } from '@/lib/site';
+import { business, canonicalPath, ogFor } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Request a Private Valuation',
   description:
     'Begin a private, transparent conversation about your gold. Share what you know — weight, hallmark and photographs are all optional — and the Pureweight team will guide you through the next step.',
-  alternates: { canonical: '/request-a-valuation' },
-  openGraph: {
+  alternates: { canonical: canonicalPath('/request-a-valuation') },
+  // Complete block per page: Next replaces openGraph wholesale rather than
+  // deep-merging, so a partial one silently drops og:image/site_name/type and
+  // an absent one inherits the HOMEPAGE og:url on every subpage.
+  openGraph: ogFor({
     title: 'Request a Private Valuation — Pureweight Gold Exchange',
-    description: 'A private, transparent conversation about your gold. No obligation, no figure implied.',
-  },
+    description:
+      'Begin a private, transparent conversation about your gold. Share what you know — weight, hallmark and photographs are all optional — and the Pureweight team will guide you through the next step.',
+    path: '/request-a-valuation',
+  }),
 };
 
 /**
@@ -31,7 +36,7 @@ export default function RequestValuationPage() {
           <h1 id="request-heading" className="font-display text-chapter font-semibold text-ivory">
             Know the true value
             <br />
-            <span className="accent-accent-italic text-gold-high/90">of what you hold.</span>
+            <span className="accent-italic text-gold-high/90">of what you hold.</span>
           </h1>
           <p className="mx-auto mt-8 max-w-xl text-lead text-ivory/72">
             Six short steps. Nothing is required that you may not know, and nothing you send here
@@ -49,7 +54,7 @@ export default function RequestValuationPage() {
             <div>
               <p className="label-ash mb-2.5 text-[0.58rem]">Telephone</p>
               <div className="text-sm text-ivory/72">
-                <Fact field={business.telephone} />
+                <Fact field={business.telephone} link="tel" />
               </div>
             </div>
             <div>

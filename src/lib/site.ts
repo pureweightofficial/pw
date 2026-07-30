@@ -407,6 +407,58 @@ export function buildLocalBusinessJsonLd(): Record<string, unknown> | null {
   return jsonLd;
 }
 
+/* -------------------------------------------------------------------------- */
+/* URL + OPENGRAPH HELPERS                                                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The Pages export sets `trailingSlash: true`, so every served URL ends in a
+ * slash there — but the node target does not. Canonicals and sitemap entries
+ * built without knowing this 301'd (sitemap) or mismatched the served URL
+ * (canonicals) on the Pages target. One helper, both targets correct.
+ */
+const TRAILING_SLASH = process.env.GITHUB_PAGES === 'true';
+
+export function canonicalPath(path: string): string {
+  if (path === '/') return '/';
+  const clean = path.replace(/\/+$/, '');
+  return TRAILING_SLASH ? `${clean}/` : clean;
+}
+
+/**
+ * A COMPLETE OpenGraph object for a page.
+ *
+ * Next's metadata merge replaces `openGraph` wholesale rather than deep-merging
+ * it, which produced two failure modes the audit confirmed: pages with no
+ * openGraph inherited the homepage's og:url on every subpage, and the one page
+ * that declared a partial openGraph lost og:image, og:site_name and og:type
+ * entirely. Every page therefore builds its full block through here.
+ */
+export function ogFor({
+  title,
+  description,
+  path,
+}: {
+  title: string;
+  description: string;
+  path: string;
+}) {
+  return {
+    type: 'website' as const,
+    siteName: brand.name,
+    title,
+    description,
+    url: canonicalPath(path),
+    /**
+     * Explicit, because declaring `openGraph` in page metadata SUPPRESSES the
+     * root opengraph-image file convention — verified: subpages built through
+     * this helper shipped zero og:image until this line. The path resolves
+     * against metadataBase; every page shares the one generated card.
+     */
+    images: ['/opengraph-image'],
+  };
+}
+
 /** Every outstanding placeholder, for the build-time content report. */
 export function outstandingPlaceholders(): string[] {
   return Object.entries(business)

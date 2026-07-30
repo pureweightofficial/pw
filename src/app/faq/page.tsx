@@ -1,13 +1,22 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BeamDivider, Eyebrow, Placeholder, Section } from '@/components/ui/primitives';
-import { brand } from '@/lib/site';
+import { brand, canonicalPath, ogFor } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Frequently Asked Questions',
   description:
     'Straight answers about how gold is weighed and valued — carat and fineness, troy ounces, hallmarks, what to bring to a valuation, and what affects what a piece is worth.',
-  alternates: { canonical: '/faq' },
+  alternates: { canonical: canonicalPath('/faq') },
+  // Complete block per page: Next replaces openGraph wholesale rather than
+  // deep-merging, so a partial one silently drops og:image/site_name/type and
+  // an absent one inherits the HOMEPAGE og:url on every subpage.
+  openGraph: ogFor({
+    title: 'Frequently Asked Questions — Pureweight Gold Exchange',
+    description:
+      'Straight answers about how gold is weighed and valued — carat and fineness, troy ounces, hallmarks, what to bring to a valuation, and what affects what a piece is worth.',
+    path: '/faq',
+  }),
 };
 
 /**
@@ -123,7 +132,7 @@ export default function FaqPage() {
           <Eyebrow className="mb-8">Frequently Asked Questions</Eyebrow>
           <h1 id="faq-heading" className="font-display text-chapter font-semibold text-ivory">
             Straight answers,
-            <span className="accent-accent-italic text-gold-high/90"> before you decide anything</span>
+            <span className="accent-italic text-gold-high/90"> before you decide anything</span>
           </h1>
           <p className="mt-8 max-w-xl text-lead text-ivory/72">
             Most people sell gold once or twice in a lifetime. These are the questions that come up
