@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 /* ==========================================================================
    PUREWEIGHT GOLD EXCHANGE — DESIGN TOKENS
@@ -60,12 +60,15 @@
 
   /* --- Type ------------------------------------------------------------- */
   /* Upright display: engraved Roman capitals, matched to the logo's lettering. */
-  --font-display: var(--font-vintage), 'Rye', 'Playfair Display', Georgia, serif;
+  --font-display:
+    var(--font-vintage), "Rye", "Playfair Display", Georgia, serif;
   /* Italic counterpoint: no vintage display face ships an italic, so the accent
      lines keep a calligraphic serif. The contrast is intentional. */
-  --font-accent: var(--font-playfair), 'Playfair Display', Georgia, serif;
-  --font-sans: var(--font-manrope), 'Manrope', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-mono-label), ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --font-accent: var(--font-playfair), "Playfair Display", Georgia, serif;
+  --font-sans:
+    var(--font-manrope), "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:
+    var(--font-mono-label), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   /* --- Editorial scale (fluid, cinematic) ------------------------------- */
   /* 5.5vw, not 8.2vw: Cinzel is a capitals face, so every character is
@@ -78,7 +81,7 @@
   --text-chapter--line-height: 0.98;
   --text-statement: clamp(1.65rem, 3.4vw, 3.1rem);
   --text-statement--line-height: 1.16;
-  --text-lead: clamp(1.0rem, 1.25vw, 1.2rem);
+  --text-lead: clamp(1rem, 1.25vw, 1.2rem);
   --text-lead--line-height: 1.7;
 
   /* --- Motion: slow, deliberate, physically grounded -------------------- */
@@ -125,7 +128,7 @@
        stylesheet's location and never receives basePath — the same trap that
        shipped the logo pointing at the wrong origin. This default keeps the
        treatment working if the override is ever missing. */
-    --craquelure: url('/brand/craquelure.png');
+    --craquelure: url("/brand/craquelure.png");
   }
 
   body {
@@ -133,15 +136,23 @@
     background-color: var(--color-void);
     color: var(--color-ivory);
     font-family: var(--font-sans);
-    font-feature-settings: 'kern', 'liga', 'calt';
+    font-feature-settings: "kern", "liga", "calt";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
     /* Ambient warmth from a single off-canvas key light, plus the cold floor
        of the room. Keeps large flat areas from reading as dead #000. */
     background-image:
-      radial-gradient(120% 70% at 78% -8%, rgba(185, 130, 32, 0.09), transparent 58%),
-      radial-gradient(90% 55% at 8% 104%, rgba(77, 53, 21, 0.11), transparent 62%);
+      radial-gradient(
+        120% 70% at 78% -8%,
+        rgba(185, 130, 32, 0.09),
+        transparent 58%
+      ),
+      radial-gradient(
+        90% 55% at 8% 104%,
+        rgba(77, 53, 21, 0.11),
+        transparent 62%
+      );
     background-attachment: fixed;
   }
 
@@ -203,7 +214,7 @@
 @layer components {
   /* Fine ground-metal grain. One shared texture, several strengths. */
   .grain::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
@@ -225,7 +236,11 @@
         transparent 1px,
         transparent 3px
       ),
-      radial-gradient(140% 100% at 20% 0%, rgba(185, 130, 32, 0.055), transparent 55%);
+      radial-gradient(
+        140% 100% at 20% 0%,
+        rgba(185, 130, 32, 0.055),
+        transparent 55%
+      );
   }
 
   /* Charcoal stone — matte, non-directional, lit from one side. */
@@ -233,7 +248,11 @@
     position: relative;
     background-color: var(--color-stone);
     background-image:
-      radial-gradient(100% 80% at 85% 15%, rgba(232, 224, 210, 0.035), transparent 60%),
+      radial-gradient(
+        100% 80% at 85% 15%,
+        rgba(232, 224, 210, 0.035),
+        transparent 60%
+      ),
       radial-gradient(80% 90% at 5% 90%, rgba(0, 0, 0, 0.55), transparent 55%);
   }
 
@@ -242,8 +261,18 @@
     position: relative;
     background-color: var(--color-gunmetal);
     background-image:
-      linear-gradient(178deg, rgba(255, 233, 168, 0.045) 0%, transparent 22%, transparent 78%, rgba(0, 0, 0, 0.5) 100%),
-      radial-gradient(120% 60% at 50% 0%, rgba(215, 168, 61, 0.05), transparent 60%);
+      linear-gradient(
+        178deg,
+        rgba(255, 233, 168, 0.045) 0%,
+        transparent 22%,
+        transparent 78%,
+        rgba(0, 0, 0, 0.5) 100%
+      ),
+      radial-gradient(
+        120% 60% at 50% 0%,
+        rgba(215, 168, 61, 0.05),
+        transparent 60%
+      );
   }
 
   /* Dark walnut — visible only in warm reflected light. */
@@ -258,7 +287,11 @@
         transparent 2px,
         transparent 9px
       ),
-      radial-gradient(120% 90% at 70% 10%, rgba(185, 130, 32, 0.07), transparent 58%);
+      radial-gradient(
+        120% 90% at 70% 10%,
+        rgba(185, 130, 32, 0.07),
+        transparent 58%
+      );
   }
 
   /* Aged bronze plate — for inset panels and certificates. */
@@ -267,7 +300,11 @@
     background-color: #14100b;
     background-image:
       linear-gradient(160deg, rgba(185, 130, 32, 0.11), transparent 42%),
-      radial-gradient(90% 90% at 12% 8%, rgba(255, 233, 168, 0.06), transparent 52%);
+      radial-gradient(
+        90% 90% at 12% 8%,
+        rgba(255, 233, 168, 0.06),
+        transparent 52%
+      );
   }
 
   /* ------------------------------------------------------------------ */
@@ -311,7 +348,7 @@
          surface, under the 3:1 large-text threshold. #cc9022 cracked measures
          3.44:1. The ramp is a shade brighter at its dark end; the alternative
          was type you cannot read. */
-      linear-gradient(135deg, #fef3c7 0%, #fcc933 45%, #cc9022 100%);
+        linear-gradient(135deg, #fef3c7 0%, #fcc933 45%, #cc9022 100%);
     /* Tile size is set against the STROKE WIDTH it has to cross, not against
        the letter. At 420px a cell was 38px across while the italic stem it runs
        over is about 10px — so roughly a quarter of a crack per stroke, and the
@@ -394,7 +431,7 @@
 
   .label-rule::before,
   .label-center::after {
-    content: '';
+    content: "";
     display: block;
     width: 2.5rem;
     height: 1px;
@@ -444,14 +481,31 @@
   /* The loader's travelling highlight — a narrow warm band crossing the
      struck gold once. Screen blend so it lights the metal rather than
      washing it out. */
-  .pw-loader-sheen {
+  /* NEON LOCKUP — the opening. The glow is three layered shadows in the site's
+     own golds: a tight core, a mid halo, a wide spill. Static by design; the
+     strike-on flicker is GSAP animating OPACITY over these, so the shadows are
+     rasterised once and never repainted. */
+  .pw-neon-word {
+    letter-spacing: 0.02em;
+    text-shadow:
+      0 0 5px rgba(252, 201, 51, 0.55),
+      0 0 16px rgba(217, 154, 51, 0.4),
+      0 0 42px rgba(184, 121, 20, 0.32);
+  }
+
+  /* The seam where the halves meet: a hairline of the palest gold with its own
+     bloom. Flashes once via GSAP, then never again. */
+  .pw-neon-seam {
     background: linear-gradient(
-      105deg,
-      transparent 38%,
-      rgba(255, 253, 218, 0.5) 50%,
-      transparent 62%
+      to bottom,
+      transparent,
+      var(--color-gold-pale) 30%,
+      var(--color-gold-pale) 70%,
+      transparent
     );
-    mix-blend-mode: screen;
+    box-shadow:
+      0 0 12px rgba(252, 201, 51, 0.9),
+      0 0 34px rgba(217, 154, 51, 0.55);
   }
 
   /* Above-the-fold entrance — CSS only, so the LCP element paints with the
@@ -510,7 +564,7 @@
 
   .beam::before {
     /* Fulcrum: a small struck triangle sitting under the beam's centre. */
-    content: '';
+    content: "";
     position: absolute;
     left: 50%;
     top: 1px;
@@ -542,7 +596,12 @@
   /* Hairline gold rule with oxidation in the recess. */
   .rule-gold {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(185, 130, 32, 0.42), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(185, 130, 32, 0.42),
+      transparent
+    );
   }
 
   /* ------------------------------------------------------------------ */
@@ -564,8 +623,11 @@
     letter-spacing: 0.26em;
     text-transform: uppercase;
     color: var(--color-gold-pale);
-    background:
-      linear-gradient(180deg, rgba(185, 130, 32, 0.19), rgba(77, 53, 21, 0.1));
+    background: linear-gradient(
+      180deg,
+      rgba(185, 130, 32, 0.19),
+      rgba(77, 53, 21, 0.1)
+    );
     border: 1px solid rgba(185, 130, 32, 0.55);
     box-shadow:
       inset 0 1px 0 rgba(255, 233, 168, 0.16),
@@ -580,7 +642,7 @@
 
   .btn-primary::before {
     /* Slow metallic sheen — travels once on hover, never loops. */
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     background: linear-gradient(
@@ -636,13 +698,17 @@
   }
 
   .btn-ghost::after {
-    content: '';
+    content: "";
     position: absolute;
     left: 0.25rem;
     right: 0.25rem;
     bottom: 0.7rem;
     height: 1px;
-    background: linear-gradient(90deg, var(--color-gold-antique), rgba(185, 130, 32, 0.1));
+    background: linear-gradient(
+      90deg,
+      var(--color-gold-antique),
+      rgba(185, 130, 32, 0.1)
+    );
     transform: scaleX(0);
     transform-origin: 0 50%;
     transition: transform 620ms var(--ease-vault);
@@ -669,7 +735,7 @@
   }
 
   .nav-link::after {
-    content: '';
+    content: "";
     position: absolute;
     left: 0;
     bottom: 0.1rem;
@@ -682,12 +748,12 @@
   }
 
   .nav-link:hover,
-  .nav-link[aria-current='page'] {
+  .nav-link[aria-current="page"] {
     color: var(--color-gold-high);
   }
 
   .nav-link:hover::after,
-  .nav-link[aria-current='page']::after {
+  .nav-link[aria-current="page"]::after {
     transform: scaleX(1);
   }
 
@@ -736,7 +802,7 @@
       0 0 0 1px rgba(215, 168, 61, 0.3);
   }
 
-  .field[aria-invalid='true'] {
+  .field[aria-invalid="true"] {
     border-color: rgba(196, 92, 62, 0.75);
   }
 
@@ -768,8 +834,8 @@
     color: var(--color-ivory);
   }
 
-  .option-tile[aria-pressed='true'],
-  .option-tile[data-selected='true'] {
+  .option-tile[aria-pressed="true"],
+  .option-tile[data-selected="true"] {
     border-color: rgba(215, 168, 61, 0.72);
     background: rgba(185, 130, 32, 0.09);
     color: var(--color-gold-pale);
@@ -800,7 +866,7 @@
 
   /* Vignette over WebGL — cheaper and calmer than a post-processing pass. */
   .vignette::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
@@ -851,12 +917,12 @@
     --pool-size: 46rem;
   }
 
-  .ambient-glow[data-intensity='soft'] {
+  .ambient-glow[data-intensity="soft"] {
     --pool-alpha: 0.055;
     --pool-size: 38rem;
   }
 
-  .ambient-glow[data-intensity='warm'] {
+  .ambient-glow[data-intensity="warm"] {
     /* 0.10 IS THE MEASURED CEILING, not a chosen value. Found by stepping the
        alpha down and re-running check:contrast at each step: 0.14 failed five
        tokens, 0.13 and 0.12 failed three, 0.11 failed two, 0.10 passes
@@ -889,39 +955,39 @@
 
   /* Placement. Varying this between adjacent sections is what stops the page
      reading as one gradient repeated down the screen. */
-  .ambient-glow[data-placement='split'] .ambient-pool-a {
+  .ambient-glow[data-placement="split"] .ambient-pool-a {
     top: -18%;
     left: -12%;
   }
-  .ambient-glow[data-placement='split'] .ambient-pool-b {
+  .ambient-glow[data-placement="split"] .ambient-pool-b {
     right: -14%;
     bottom: -20%;
   }
 
-  .ambient-glow[data-placement='left'] .ambient-pool-a {
+  .ambient-glow[data-placement="left"] .ambient-pool-a {
     top: -10%;
     left: -18%;
   }
-  .ambient-glow[data-placement='left'] .ambient-pool-b {
+  .ambient-glow[data-placement="left"] .ambient-pool-b {
     bottom: -16%;
     left: 6%;
   }
 
-  .ambient-glow[data-placement='right'] .ambient-pool-a {
+  .ambient-glow[data-placement="right"] .ambient-pool-a {
     top: -14%;
     right: -16%;
   }
-  .ambient-glow[data-placement='right'] .ambient-pool-b {
+  .ambient-glow[data-placement="right"] .ambient-pool-b {
     right: 4%;
     bottom: -18%;
   }
 
-  .ambient-glow[data-placement='centre'] .ambient-pool-a {
+  .ambient-glow[data-placement="centre"] .ambient-pool-a {
     top: -22%;
     left: 50%;
     margin-left: calc(var(--pool-size) / -2);
   }
-  .ambient-glow[data-placement='centre'] .ambient-pool-b {
+  .ambient-glow[data-placement="centre"] .ambient-pool-b {
     bottom: -24%;
     left: 50%;
     margin-left: calc(var(--pool-size) / -2);
@@ -1037,7 +1103,7 @@
      */
     background-image: linear-gradient(
       to bottom,
-      rgba(0, 0, 0, 0.40) 0%,
+      rgba(0, 0, 0, 0.4) 0%,
       rgba(0, 0, 0, 0.72) 18%,
       rgba(0, 0, 0, 0.93) 38%,
       rgba(0, 0, 0, 0.96) 100%

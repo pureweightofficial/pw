@@ -2,14 +2,15 @@
 
 import gsap from "gsap";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Logo } from "@/components/brand/Logo";
 import { markHeroRevealed, whenHeroReady } from "@/lib/readiness";
 
 /**
  * THE OPENING
  *
- * A gold line traces the emblem out of black, the balance resolves, the
- * wordmark strikes in, and the curtain lifts. Roughly 2.6 seconds.
+ * The name arrives as two halves: PURE sweeps in from the left edge of the
+ * screen, WEIGHT from the right, and they fuse in the centre with a single
+ * seam-flash — then the joined word settles into a steady neon-gold glow and
+ * the curtain lifts. Roughly 2.6 seconds.
  *
  * Four rules keep it from becoming the thing everyone hates about luxury sites:
  *
@@ -26,7 +27,7 @@ import { markHeroRevealed, whenHeroReady } from "@/lib/readiness";
  * gate: if the JS for it never runs, nothing is lost.
  */
 
-const SESSION_KEY = "pw:loader:v1";
+const SESSION_KEY = "pw:loader:v2"; // bumped: neon opening replaces the emblem wipe
 
 export function Loader() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -103,40 +104,59 @@ export function Loader() {
     skipRef.current?.focus();
 
     const ctx = gsap.context(() => {
-      gsap.set(".pw-loader-mark", {
-        clipPath: "inset(0% 0% 100% 0%)",
-        opacity: 0,
-      });
-      gsap.set(".pw-loader-sheen", { xPercent: -130, opacity: 0 });
+      // Off-screen at the actual viewport edges, not a fixed pixel amount —
+      // `x: -50vw` clears the left edge on every width the clamp()ed type can
+      // reach. Dim until they arrive, so the glow reads as switching ON.
+      gsap.set(".pw-neon-left", { x: "-52vw", opacity: 0 });
+      gsap.set(".pw-neon-right", { x: "52vw", opacity: 0 });
+      gsap.set(".pw-neon-seam", { opacity: 0, scaleY: 0.2 });
       gsap.set(".pw-loader-text", { opacity: 0, y: 14, filter: "blur(6px)" });
 
       const tl = gsap.timeline();
       timelineRef.current = tl;
 
-      // The mark rises out of black rather than fading uniformly — a struck
-      // object catching the light from below.
-      tl.to(".pw-loader-mark", {
+      // The two halves converge. power2.inOut, NOT a *.out ease: filmed at
+      // 180ms, power4.out had already covered ~40% of the travel, so the
+      // two-sided sweep — the entire point of this opening — read as a fade.
+      // inOut leaves the words visibly at the screen edges for the first
+      // beats, lets them gather speed, and still brakes into the join.
+      tl.to(".pw-neon-left", {
+        x: 0,
         opacity: 1,
-        duration: 0.5,
-        ease: "power2.out",
+        duration: 1.4,
+        ease: "power2.inOut",
       })
         .to(
-          ".pw-loader-mark",
-          {
-            clipPath: "inset(0% 0% 0% 0%)",
-            duration: 1.5,
-            ease: "power3.inOut",
-          },
-          "-=0.4",
-        )
-        // One highlight travels across the gold, then never again.
-        .to(".pw-loader-sheen", { opacity: 1, duration: 0.2 }, "-=0.9")
-        .to(
-          ".pw-loader-sheen",
-          { xPercent: 130, duration: 1.1, ease: "power2.inOut" },
+          ".pw-neon-right",
+          { x: 0, opacity: 1, duration: 1.4, ease: "power2.inOut" },
           "<",
         )
-        .to(".pw-loader-sheen", { opacity: 0, duration: 0.3 }, "-=0.3")
+        // The seam: one bright vertical flash at the instant of contact,
+        // then gone. It never repeats.
+        .to(
+          ".pw-neon-seam",
+          { opacity: 1, scaleY: 1, duration: 0.14, ease: "power2.out" },
+          "-=0.28",
+        )
+        .to(".pw-neon-seam", {
+          opacity: 0,
+          duration: 0.5,
+          ease: "power2.inOut",
+        })
+        // The neon "strikes": two quick dips as the tube warms, then steady.
+        // Keyframed opacity only — nothing here touches layout or paint.
+        .to(
+          ".pw-neon-word",
+          {
+            keyframes: [
+              { opacity: 0.62, duration: 0.07 },
+              { opacity: 1, duration: 0.09 },
+              { opacity: 0.8, duration: 0.06 },
+              { opacity: 1, duration: 0.12 },
+            ],
+          },
+          "-=0.45",
+        )
         .to(
           ".pw-loader-text",
           {
@@ -146,7 +166,7 @@ export function Loader() {
             duration: 0.85,
             ease: "power3.out",
           },
-          "-=0.8",
+          "-=0.25",
         );
     }, root);
 
@@ -239,27 +259,46 @@ export function Loader() {
   return (
     <div
       ref={rootRef}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-void grain"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden bg-void grain"
       role="status"
       aria-live="polite"
       aria-label="Loading Pureweight Gold Exchange"
       onClick={dismiss}
     >
       <div ref={emblemRef} className="flex flex-col items-center px-6">
-        {/* The supplied mark. A raster cannot be stroke-traced the way an SVG
-            can, so it is revealed by a wipe and a travelling highlight instead
-            — which suits struck metal emerging from darkness better anyway. */}
-        <div className="pw-loader-mark relative w-[clamp(150px,28vw,240px)]">
-          <Logo variant="full" priority />
-          <span
-            className="pw-loader-sheen pointer-events-none absolute inset-0"
-            aria-hidden="true"
-          />
+        {/*
+          THE NAME, ARRIVING AS TWO HALVES.
+
+          "PURE" sweeps in from the left edge of the screen, "WEIGHT" from the
+          right, and they fuse in the centre — the brand name assembled the same
+          way the business works, two sides meeting at a balance point. A
+          hairline seam flashes at the moment of contact and the joined word
+          settles into a steady neon-gold glow.
+
+          The glow is layered text-shadow on the words themselves (cheap, no
+          filters, no extra layers); only transforms and opacity are animated, so
+          the whole opening stays on the compositor. `overflow-hidden` on the
+          fixed root clips the entry, so the words genuinely come from off-screen
+          rather than fading in near the middle.
+        */}
+        <div
+          className="relative flex select-none items-baseline"
+          aria-hidden="true"
+        >
+          <span className="pw-neon-word pw-neon-left font-display text-[clamp(2.4rem,9vw,5.5rem)] leading-none text-gold-high">
+            PURE
+          </span>
+          <span className="pw-neon-word pw-neon-right font-display text-[clamp(2.4rem,9vw,5.5rem)] leading-none text-gold-high">
+            WEIGHT
+          </span>
+          {/* The seam — flashes once at the instant the halves meet. */}
+          <span className="pw-neon-seam pointer-events-none absolute left-1/2 top-[-12%] h-[124%] w-px" />
         </div>
 
         <div className="pw-loader-text mt-10 flex flex-col items-center gap-3">
-          <p className="label text-[0.62rem] tracking-[0.42em] text-gold-antique">
-            Establishing True Value
+          {/* Mirrors the logo lockup: PUREWEIGHT over GOLD EXCHANGE. */}
+          <p className="label text-[0.6rem] tracking-[0.55em] text-gold-antique">
+            Gold Exchange
           </p>
           <div className="flex items-baseline gap-3">
             <span
