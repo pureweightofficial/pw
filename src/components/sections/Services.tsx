@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { assetPath } from '@/lib/asset';
 import { BeamDivider, Eyebrow, Section } from '@/components/ui/primitives';
 import { services } from '@/lib/site';
+import { AmbientGlow } from '@/components/ui/AmbientGlow';
 
 /**
  * SERVICES
@@ -28,6 +29,7 @@ import { services } from '@/lib/site';
 export function Services() {
   return (
     <Section id="services" material="steel" labelledBy="services-heading" className="py-24 lg:py-36">
+      <AmbientGlow intensity="soft" placement="left" />
       <div className="shell">
         <div className="max-w-3xl">
           <Eyebrow className="mb-8 will-reveal">Chapter 03 — The Services</Eyebrow>

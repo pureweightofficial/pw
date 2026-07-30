@@ -1,5 +1,6 @@
 import { BeamDivider, Eyebrow, Fact, Placeholder, Section } from '@/components/ui/primitives';
 import { brand, business } from '@/lib/site';
+import { AmbientGlow } from '@/components/ui/AmbientGlow';
 
 /**
  * BRAND STORY
@@ -19,6 +20,7 @@ import { brand, business } from '@/lib/site';
 export function BrandStory() {
   return (
     <Section id="story" material="walnut" labelledBy="story-heading" className="py-24 lg:py-40">
+      <AmbientGlow intensity="normal" placement="split" />
       <div className="shell">
         <div className="grid gap-16 lg:grid-cols-12 lg:gap-20">
           <div className="lg:col-span-5">

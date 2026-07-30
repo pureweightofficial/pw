@@ -1,5 +1,6 @@
 import { Eyebrow, Fact, Section } from '@/components/ui/primitives';
 import { business } from '@/lib/site';
+import { AmbientGlow } from '@/components/ui/AmbientGlow';
 
 /**
  * VERIFIED TRUST EVIDENCE
@@ -57,6 +58,7 @@ const evidence = [
 export function TrustEvidence() {
   return (
     <Section id="evidence" material="steel" labelledBy="evidence-heading" className="py-24 lg:py-36">
+      <AmbientGlow intensity="soft" placement="left" />
       <div className="shell">
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-16">
           <div className="lg:col-span-5">

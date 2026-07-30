@@ -1,15 +1,21 @@
 import { Eyebrow, Section } from '@/components/ui/primitives';
 import { pillars } from '@/lib/site';
+import { AmbientGlow } from '@/components/ui/AmbientGlow';
 
 /**
  * WHY PUREWEIGHT
  *
- * The pillars, presented as engraved medallions rather than icon cards. The count
- * is driven by the data in site.ts and the grid reflows, so adding or removing one
- * does not need a change here. The
+ * The pillars, presented as engraved medallions rather than icon cards. The
  * medallion geometry is lifted directly from the emblem — beaded outer ring,
- * hairline inner rule, cardinal lozenges — so these read as struck from the
- * same die as the logo rather than as generic circles.
+ * hairline inner rule, cardinal lozenges — so these read as struck from the same
+ * die as the logo rather than as generic circles.
+ *
+ * THE COUNT IS DATA-DRIVEN, INCLUDING THE INTERIOR MARKS. The marks used to be
+ * selected by three hardcoded `index === n` tests, so when the pillars went from
+ * three to four the fourth medallion rendered as an empty beaded circle — a
+ * silent visual gap that typechecked, linted and built perfectly. They are now
+ * an indexed table read modulo its own length, so no pillar count can produce a
+ * blank face again.
  *
  * The "slow light pass" the brief asked for is a single sweep across the
  * medallion on hover, plus the reveal-on-enter. It does not loop. A gold sheen
@@ -20,6 +26,7 @@ import { pillars } from '@/lib/site';
 export function WhyPureweight() {
   return (
     <Section id="pillars" material="stone" labelledBy="pillars-heading" className="py-24 lg:py-40">
+      <AmbientGlow intensity="normal" placement="split" />
       <div className="shell">
         <div className="mx-auto max-w-2xl text-center">
           <Eyebrow align="center" className="mb-8 will-reveal">Chapter 05 — Built on Trust</Eyebrow>
@@ -57,12 +64,13 @@ export function WhyPureweight() {
 }
 
 /**
- * An engraved medallion. Each carries a different interior mark:
- * a graduated cross for Precision, an open beam for Transparency, and the PW
- * monogram itself for Trust.
+ * An engraved medallion. The interior mark comes from the MARKS table below —
+ * the old comment here named the three original pillars, which no longer exist.
  */
 function Medallion({ index, label }: { index: number; label: string }) {
   const uid = `medallion-${index}`;
+  // Modulo, so a fifth pillar reuses a mark rather than rendering an empty face.
+  const Mark = MARKS[index % MARKS.length];
 
   return (
     <div className="relative">
@@ -100,9 +108,7 @@ function Medallion({ index, label }: { index: number; label: string }) {
           })}
         </g>
 
-        {index === 0 ? <PrecisionMark uid={uid} /> : null}
-        {index === 1 ? <TransparencyMark uid={uid} /> : null}
-        {index === 2 ? <TrustMark uid={uid} /> : null}
+        <Mark uid={uid} />
       </svg>
 
       {/* The light pass. One sweep on hover, then done. */}
@@ -113,6 +119,34 @@ function Medallion({ index, label }: { index: number; label: string }) {
         <span className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-gold-pale/18 to-transparent transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-full" />
       </span>
     </div>
+  );
+}
+
+/**
+ * The interior marks, in pillar order.
+ *
+ *   0  weighed in front of you       the balance beam itself, level and open
+ *   1  measured against the market   a graduated dial reading true
+ *   2  the working is shown          the struck monogram
+ *   3  no obligation, ever           a return arrow — your items come back
+ *
+ * Read modulo its length by Medallion, so the array can be shorter than the
+ * pillar list without producing a blank medallion.
+ */
+const MARKS = [TransparencyMark, PrecisionMark, TrustMark, ReturnMark] as const;
+
+/** NO OBLIGATION — a return arrow. What you brought in goes back out with you. */
+function ReturnMark({ uid }: { uid: string }) {
+  return (
+    <g stroke={`url(#${uid}-gold)`} fill="none" strokeLinecap="round">
+      {/* An open arc rather than a closed ring: nothing here binds. */}
+      <path d="M 138 100 A 38 38 0 1 1 100 62" strokeWidth="2.4" />
+      {/* The head, turned back on itself. */}
+      <path d="M 100 62 L 112 54 M 100 62 L 110 74" strokeWidth="2.4" />
+      {/* An open palm line beneath, and the hairline the other marks all carry. */}
+      <path d="M 74 128 A 26 12 0 0 0 126 128" strokeWidth="1.6" strokeOpacity="0.7" />
+      <line x1="70" y1="142" x2="130" y2="142" strokeWidth="1" strokeOpacity="0.4" />
+    </g>
   );
 }
 

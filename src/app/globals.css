@@ -23,7 +23,7 @@
      true #000 is not only a look — it buys contrast headroom, and that headroom
      is what makes an all-gold type palette legible at all. Every gold in the
      ramp below, including the deepest, clears WCAG AA on #000; several of them
-     would not have cleared it on the previous #000000 ground once dimmed.
+     would not have cleared it on the previous #050406 ground once dimmed.
      ---------------------------------------------------------------------- */
 
   /* --- Ground ----------------------------------------------------------- */
@@ -810,6 +810,138 @@
       rgba(0, 0, 0, 0.42) 74%,
       rgba(0, 0, 0, 0.88) 100%
     );
+  }
+
+  /* AMBIENT GOLD GLOW — see components/ui/AmbientGlow.tsx for the reasoning.
+
+     Two soft pools of gold light drifting behind a section. Only `transform` is
+     animated, so these stay on the compositor and never trigger layout or paint.
+
+     THE ALPHAS ARE A MEASURED CEILING, NOT A PREFERENCE. A glow behind text
+     lightens the background and lowers contrast — silently, and only wherever it
+     happens to have drifted to. The peak composite of both pools is registered as
+     a surface in scripts/check-contrast.mjs and every text token is audited
+     against it. Raising these without re-running that audit breaks WCAG AA in a
+     way no screenshot reveals. */
+  .ambient-glow {
+    --pool-alpha: 0.08;
+    --pool-size: 46rem;
+  }
+
+  .ambient-glow[data-intensity='soft'] {
+    --pool-alpha: 0.055;
+    --pool-size: 38rem;
+  }
+
+  .ambient-glow[data-intensity='warm'] {
+    /* 0.10 IS THE MEASURED CEILING, not a chosen value. Found by stepping the
+       alpha down and re-running check:contrast at each step: 0.14 failed five
+       tokens, 0.13 and 0.12 failed three, 0.11 failed two, 0.10 passes
+       everything. The binding constraints are the deep golds — gold-antique and
+       the cracked-gold dark stops — which have the least headroom to begin with.
+       Do not raise this without re-running that audit. */
+    --pool-alpha: 0.1;
+    --pool-size: 54rem;
+  }
+
+  .ambient-pool {
+    position: absolute;
+    display: block;
+    width: var(--pool-size);
+    height: var(--pool-size);
+    border-radius: 50%;
+    /* Gold at the centre falling away to nothing. A soft final stop rather than a
+       hard one, so no disc edge is visible on a wide-gamut display. */
+    background: radial-gradient(
+      circle closest-side,
+      rgba(217, 154, 51, var(--pool-alpha)) 0%,
+      rgba(184, 121, 20, calc(var(--pool-alpha) * 0.45)) 45%,
+      transparent 72%
+    );
+    /* Promotes each pool to its own compositor layer up front so the first frame
+       of the drift is not a paint. Scoped here rather than applied globally —
+       will-change on a large element has a real memory cost. */
+    will-change: transform;
+  }
+
+  /* Placement. Varying this between adjacent sections is what stops the page
+     reading as one gradient repeated down the screen. */
+  .ambient-glow[data-placement='split'] .ambient-pool-a {
+    top: -18%;
+    left: -12%;
+  }
+  .ambient-glow[data-placement='split'] .ambient-pool-b {
+    right: -14%;
+    bottom: -20%;
+  }
+
+  .ambient-glow[data-placement='left'] .ambient-pool-a {
+    top: -10%;
+    left: -18%;
+  }
+  .ambient-glow[data-placement='left'] .ambient-pool-b {
+    bottom: -16%;
+    left: 6%;
+  }
+
+  .ambient-glow[data-placement='right'] .ambient-pool-a {
+    top: -14%;
+    right: -16%;
+  }
+  .ambient-glow[data-placement='right'] .ambient-pool-b {
+    right: 4%;
+    bottom: -18%;
+  }
+
+  .ambient-glow[data-placement='centre'] .ambient-pool-a {
+    top: -22%;
+    left: 50%;
+    margin-left: calc(var(--pool-size) / -2);
+  }
+  .ambient-glow[data-placement='centre'] .ambient-pool-b {
+    bottom: -24%;
+    left: 50%;
+    margin-left: calc(var(--pool-size) / -2);
+  }
+
+  /* The drift. Long and deliberately mismatched — 34s against 47s — so the two
+     pools never settle into a repeating pattern the eye can lock onto. Slow enough
+     to be noticeable only if you look for it, which is the difference between
+     atmosphere and decoration. */
+  @keyframes pw-drift-a {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(7%, 5%, 0) scale(1.12);
+    }
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
+
+  @keyframes pw-drift-b {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1.08);
+    }
+    50% {
+      transform: translate3d(-6%, -7%, 0) scale(1);
+    }
+    100% {
+      transform: translate3d(0, 0, 0) scale(1.08);
+    }
+  }
+
+  /* Reduced motion keeps the glow and drops the drift: the point is depth, not
+     movement, and the still version delivers it. Same treatment the scene
+     particles and the chain physics get. */
+  @media (prefers-reduced-motion: no-preference) {
+    .ambient-pool-a {
+      animation: pw-drift-a 34s ease-in-out infinite;
+    }
+    .ambient-pool-b {
+      animation: pw-drift-b 47s ease-in-out infinite;
+    }
   }
 
   /* Hero opening media.

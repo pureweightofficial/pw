@@ -52,12 +52,48 @@ function token(name) {
   return hex;
 }
 
+/**
+ * The ambient glow's PEAK COMPOSITE, treated as a real surface.
+ *
+ * The glow lightens whatever is behind it, which lowers text contrast — silently,
+ * and only in the places it happens to have drifted to. A flat-surface audit
+ * cannot see that at all, so the brightest point the glow can reach is computed
+ * here from the same alpha the stylesheet uses and added to the surface list.
+ *
+ * Worst case is BOTH pools overlapping at full strength over the darkest ground,
+ * which is why they are composited in sequence rather than averaged.
+ */
+function glowPeak() {
+  const warm = /\.ambient-glow\[data-intensity='warm'\]\s*\{[^}]*--pool-alpha:\s*([\d.]+)/.exec(CSS);
+  if (!warm) throw new Error('could not parse the warm --pool-alpha from globals.css');
+  const alpha = Number(warm[1]);
+
+  // The gradient's centre stop, read off the .ambient-pool rule.
+  const stop = /rgba\((\d+),\s*(\d+),\s*(\d+),\s*var\(--pool-alpha\)\)/.exec(CSS);
+  if (!stop) throw new Error('could not parse the pool gradient centre colour');
+  const gold = [Number(stop[1]), Number(stop[2]), Number(stop[3])];
+
+  const hexToRgb = (h) => {
+    const n = parseInt(h.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  };
+
+  // Two pools can overlap, so composite gold over the ground twice.
+  let bg = hexToRgb(token('void'));
+  for (let i = 0; i < 2; i++) {
+    bg = bg.map((c, k) => gold[k] * alpha + c * (1 - alpha));
+  }
+  const to255 = (c) => Math.round(c).toString(16).padStart(2, '0');
+  return `#${bg.map(to255).join('')}`;
+}
+
 const SURFACES = {
   void: token('void'),
   char: token('char'),
   stone: token('stone'),
   gunmetal: token('gunmetal'),
   iron: token('iron'),
+  'void + glow peak': glowPeak(),
 };
 
 // [label, hex, alpha, isLargeText, where]

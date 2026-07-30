@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { VisitCta } from '@/components/ui/VisitCta';
 import { ScalePoster } from '@/components/webgl/ScalePoster';
+import { AmbientGlow } from '@/components/ui/AmbientGlow';
 
 /**
  * FINAL BALANCE
@@ -31,6 +32,7 @@ export function FinalBalance() {
       aria-labelledby="finale-heading"
       className="relative isolate flex min-h-[92svh] items-center overflow-hidden bg-void py-24 lg:min-h-screen"
     >
+      <AmbientGlow intensity="warm" placement="centre" />
       <div className="vignette absolute inset-0 -z-10" aria-hidden="true" data-webgl-surface>
         <FinaleCanvas />
       </div>

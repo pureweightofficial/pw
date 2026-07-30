@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { assetPath } from '@/lib/asset';
+import { AmbientGlow } from '@/components/ui/AmbientGlow';
 import {
   GOLD_FINENESS,
   describeAge,
@@ -114,6 +115,7 @@ export function LiveRates() {
       aria-labelledby="rates-heading"
       className="relative border-y border-bronze/25 bg-char py-20 sm:py-24"
     >
+      <AmbientGlow intensity="normal" placement="right" />
       <div className="shell">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>

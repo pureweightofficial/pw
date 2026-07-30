@@ -1,6 +1,7 @@
 import { Eyebrow, Fact, Section } from '@/components/ui/primitives';
 import { VisitCta } from '@/components/ui/VisitCta';
 import { business } from '@/lib/site';
+import { AmbientGlow } from '@/components/ui/AmbientGlow';
 
 /**
  * VISIT THE SHOP
@@ -67,6 +68,7 @@ export function Appointment() {
       labelledBy="appointment-heading"
       className="py-24 lg:py-36"
     >
+      <AmbientGlow intensity="soft" placement="right" />
       <div className="shell">
         <div className="grid gap-14 lg:grid-cols-12 lg:gap-16">
           {/* --- Framing ------------------------------------------------ */}
