@@ -151,7 +151,10 @@ export function beamGeometry(halfLength = 1.62): THREE.BufferGeometry {
   return memo(`beam-${halfLength}`, () => {
     const L = halfLength;
     const hEnd = 0.03;
-    const hMid = 0.088;
+    // 0.066, was 0.088: even three-quarter-on, the deeper lens face read as a
+    // blade. Depth moves into the extrusion instead (below), so the beam keeps
+    // its visual mass side-on without presenting a wide flat face.
+    const hMid = 0.066;
 
     const shape = new THREE.Shape();
     shape.moveTo(-L, 0);
@@ -165,7 +168,7 @@ export function beamGeometry(halfLength = 1.62): THREE.BufferGeometry {
     shape.quadraticCurveTo(-L * 0.74, hEnd * 1.25, -L, 0);
 
     const geo = new THREE.ExtrudeGeometry(shape, {
-      depth: 0.046,
+      depth: 0.07,
       bevelEnabled: true,
       bevelThickness: 0.011,
       bevelSize: 0.011,

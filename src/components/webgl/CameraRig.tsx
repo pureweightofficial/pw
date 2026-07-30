@@ -37,9 +37,17 @@ type Keyframe = {
  * more closely, which is the section's whole subject.
  */
 const HERO_PATH: Keyframe[] = [
-  { at: 0.0, position: [0.55, 2.28, 7.0], target: [0, 1.5, 0], fov: 34 },
-  { at: 0.45, position: [0.3, 2.0, 5.6], target: [0, 1.52, 0], fov: 32 },
-  { at: 1.0, position: [-0.16, 1.78, 4.35], target: [-0.1, 1.42, 0], fov: 30 },
+  /**
+   * Retuned against the first real render. The old path targeted y=1.5 — with
+   * the scene group offset at -1.15 that is EMPTY AIR above the finial, so the
+   * instrument sat low in frame while the beam crossed dead-centre at its
+   * widest. Targets now track the instrument's actual mid-height (~0.7 world),
+   * and the camera starts wider and more off-axis to reinforce the
+   * three-quarter view.
+   */
+  { at: 0.0, position: [1.35, 1.65, 7.4], target: [0.4, 0.62, 0], fov: 34 },
+  { at: 0.45, position: [0.95, 1.5, 6.0], target: [0.35, 0.66, 0], fov: 32 },
+  { at: 1.0, position: [0.35, 1.35, 4.7], target: [0.25, 0.72, 0], fov: 30 },
 ];
 
 /** The finale: closer still, and squarely on the pointer as it reaches zero. */

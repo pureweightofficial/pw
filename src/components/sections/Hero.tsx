@@ -78,7 +78,9 @@ export function Hero() {
 
       {/* --- The copy -------------------------------------------------- */}
       <div className="shell relative w-full" data-cursor-normal>
-        <div className="max-w-2xl">
+        {/* 4xl, not 2xl: the capitals headline needs the wider measure to hold
+            two lines. The lead paragraph keeps its own tighter max-w-xl. */}
+        <div className="max-w-4xl">
           <p className="label mb-9 hero-rise">Precision in Every Gram</p>
 
           <h1

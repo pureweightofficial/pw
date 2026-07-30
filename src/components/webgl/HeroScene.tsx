@@ -49,7 +49,17 @@ export function HeroScene({ capability }: { capability: Capability }) {
         />
       )}
 
-      <BalanceScale capability={capability} mode="hero" />
+      {/*
+        Yawed to a true three-quarter view and seated right of centre —
+        screenshot-verified fixes, both. Dead-on frontal, the beam's lens face
+        filled the frame width and read as a giant flat blade rather than a
+        thin instrument arm; yawing ~19 degrees foreshortens it into a bar and
+        gives the whole object depth. The x-shift clears it out of the
+        headline column, per the original composition brief.
+      */}
+      <group position={[0.55, 0, 0]} rotation={[0, -0.34, 0]}>
+        <BalanceScale capability={capability} mode="hero" />
+      </group>
 
       <Dust count={capability.particles} opacity={0.42} sigma={1.55} />
     </group>

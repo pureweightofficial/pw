@@ -53,7 +53,11 @@
   --font-mono: var(--font-mono-label), ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
   /* --- Editorial scale (fluid, cinematic) ------------------------------- */
-  --text-hero: clamp(2.9rem, 8.2vw, 8.5rem);
+  /* 5.5vw, not 8.2vw: Cinzel is a capitals face, so every character is
+     cap-width. At 8.2vw the headline wrapped to four lines on a 1400px laptop
+     and pushed the primary CTA below the fold — screenshot-verified. 5.5vw
+     holds "Where Gold Finds" to one line inside its measure. */
+  --text-hero: clamp(2.6rem, 5.5vw, 6.75rem);
   --text-hero--line-height: 0.92;
   --text-chapter: clamp(2.1rem, 5.2vw, 4.75rem);
   --text-chapter--line-height: 0.98;

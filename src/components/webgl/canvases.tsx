@@ -24,8 +24,10 @@ export function HeroCanvas() {
     <SceneShell
       eager
       showFallbackNotice
-      camera={{ position: [0.55, 2.28, 7], fov: 34 }}
-      exposure={1.06}
+      camera={{ position: [1.35, 1.65, 7.4], fov: 34 }}
+      /* 1.18, screenshot-verified: at 1.06 the forged-iron column and plinth
+         disappeared into the void and the instrument read as a floating beam. */
+      exposure={1.18}
       poster={<ScalePoster />}
     >
       {(capability) => <HeroScene capability={capability} />}

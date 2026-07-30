@@ -193,13 +193,17 @@ export function forgedIron(): THREE.MeshStandardMaterial {
     'iron-forged',
     () =>
       new THREE.MeshStandardMaterial({
-        color: new THREE.Color('#151310'),
+        // Lifted from #151310 / env 0.5 after the first real render: forged
+        // iron read as a silhouette hole in the frame rather than as a
+        // material. Still far below the golds — iron absorbs the room, it just
+        // has to visibly EXIST in it.
+        color: new THREE.Color('#221d17'),
         metalness: 0.86,
         roughness: 0.66,
         roughnessMap: ironRoughnessMap(),
         normalMap: ironNormalMap(),
         normalScale: new THREE.Vector2(0.7, 0.7),
-        envMapIntensity: 0.5,
+        envMapIntensity: 0.78,
       }),
   );
 }
