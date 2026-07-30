@@ -51,6 +51,15 @@ const USES = [
   ['gold-pale', '#FFFDDA', 1, false, 'CTA label, reference'],
   ['error', '#E5A68C', 1, false, 'form error messages'],
   ['ash (css ::placeholder)', '#A2977F', 1, false, 'field placeholder text'],
+  // CRACKED GOLD. The craquelure multiplies the gold ramp beneath it, so each
+  // stop is audited at the texture's darkest crack (175/255 = 0.686 of the
+  // stop's value). Applied only at display scale, so the 3:1 large-text
+  // threshold governs. If the crack floor in scripts/make-craquelure.mjs is
+  // ever deepened, these are the rows that will catch it.
+  ['crackle x #fef3c7', '#AEA789', 1, true, 'cracked gold — lightest stop'],
+  ['crackle x #fcc933', '#AD8A23', 1, true, 'cracked gold — highlight stop'],
+  ['crackle x #d99a33', '#956A23', 1, true, 'cracked gold — body stop'],
+  ['crackle x #cc9022', '#8C6317', 1, true, 'cracked gold — DARKEST stop'],
 ];
 
 let failures = 0;

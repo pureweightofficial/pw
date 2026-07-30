@@ -96,6 +96,13 @@
        the bar floated on top, so on a short window the eyebrow line rendered
        behind the logo. */
     --nav-h: 72px;
+
+    /* The craquelure image path. Overridden from the root layout with the
+       basePath-corrected URL, because CSS url() is resolved against the
+       stylesheet's location and never receives basePath — the same trap that
+       shipped the logo pointing at the wrong origin. This default keeps the
+       treatment working if the override is ever missing. */
+    --craquelure: url('/brand/craquelure.png');
   }
 
   body {
@@ -251,13 +258,58 @@
      the nine-stop metal ramp this carried before: at display size the extra
      stops read as banding rather than as reflection, and the physically-modelled
      gold now lives where it belongs, on the 3D instrument. */
+  /* ------------------------------------------------------------------ */
+  /* CRACKED GOLD — the logo's craquelure, carried onto the lettering.    */
+  /*                                                                      */
+  /* The mark's most identifying feature is the crazed lacquer running     */
+  /* through its gold. The 3D scale already carries it as a normal map;    */
+  /* this puts it on the type, so the headline and the logo read as the    */
+  /* same material rather than as gold twice.                             */
+  /*                                                                      */
+  /* Two layers, both clipped to the glyphs: the craquelure multiplied     */
+  /* over the gold ramp. Multiply is what makes a crack read as a shadow   */
+  /* IN the metal rather than a line drawn on top of it.                   */
+  /*                                                                      */
+  /* LEGIBILITY IS THE CONSTRAINT, and it was measured, not judged. The    */
+  /* texture darkens whatever is beneath it, so its crack depth is capped  */
+  /* at the point where every gold stop still clears the 3:1 large-text    */
+  /* threshold on this ground — see scripts/make-craquelure.mjs for the    */
+  /* per-stop figures. This treatment is therefore restricted to display   */
+  /* sizes only. It must never be applied to body copy, where the 4.5:1    */
+  /* threshold applies and a hairline crack across a 16px stem would be    */
+  /* both illegible and pointless.                                        */
+  /* ------------------------------------------------------------------ */
+
   .gold-leaf {
-    background-image: linear-gradient(135deg, #fef3c7 0%, #fcc933 45%, #b87914 100%);
+    background-image:
+      var(--craquelure),
+      /* Dark stop lifted from #b87914 to #cc9022. The crack multiplies whatever
+         is under it, and #b87914 already sits near the floor of what this ground
+         can carry — cracked, it measured 2.75:1 against the lightest section
+         surface, under the 3:1 large-text threshold. #cc9022 cracked measures
+         3.44:1. The ramp is a shade brighter at its dark end; the alternative
+         was type you cannot read. */
+      linear-gradient(135deg, #fef3c7 0%, #fcc933 45%, #cc9022 100%);
+    /* Sized so a cell spans roughly a capital, not a whole word — at
+       cover/contain the cracks would scale with the text and stop reading as
+       a fixed material property of the gold. */
+    background-size:
+      420px 420px,
+      100% 100%;
+    background-blend-mode: multiply, normal;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    /* Keeps thin Playfair strokes from vanishing on near-black. */
+    /* Keeps thin strokes from vanishing on near-black. */
     filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.85));
+  }
+
+  /* The same material at ornament scale, for the largest headline only, where
+     a tighter cell reads as fine crazing rather than as broken plate. */
+  .gold-leaf-fine {
+    background-size:
+      260px 260px,
+      100% 100%;
   }
 
   /* Struck-in-metal lettering: light catches the top edge, shadow pools below. */

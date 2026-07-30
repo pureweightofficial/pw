@@ -5,6 +5,7 @@ import { Loader } from '@/components/chrome/Loader';
 import { Nav } from '@/components/chrome/Nav';
 import { SceneCursor } from '@/components/chrome/SceneCursor';
 import { MotionProvider } from '@/components/motion/MotionProvider';
+import { assetPath } from '@/lib/asset';
 import { allowIndexing, brand, buildLocalBusinessJsonLd } from '@/lib/site';
 import './globals.css';
 
@@ -178,7 +179,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const jsonLd = buildLocalBusinessJsonLd();
 
   return (
-    <html lang="en-GB" className={`${cinzel.variable} ${playfair.variable} ${manrope.variable} ${geistMono.variable}`}>
+    <html
+      lang="en-GB"
+      className={`${cinzel.variable} ${playfair.variable} ${manrope.variable} ${geistMono.variable}`}
+      /* CSS url() never receives basePath, so the cracked-gold texture's path is
+         injected here through the same helper every other asset uses. */
+      style={{ '--craquelure': `url(${assetPath('/brand/craquelure.png')})` } as React.CSSProperties}
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: REVEAL_BOOTSTRAP }} />
 
