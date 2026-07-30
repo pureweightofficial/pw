@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback, useState } from 'react';
 import { HeroVideo } from '@/components/hero/HeroVideo';
 import { useMotion } from '@/components/motion/MotionProvider';
 import { CTA } from '@/components/ui/primitives';
@@ -52,6 +53,22 @@ import { CTA } from '@/components/ui/primitives';
 export function Hero() {
   const { scrollTo } = useMotion();
 
+  /**
+   * The film's pause state lives here rather than inside HeroVideo, because the
+   * control cannot live inside HeroVideo. The media sits in a `-z-10` layer with
+   * the scrims stacked over it, so a button in there would be painted under —
+   * and click-blocked by — a scrim. It has to be a sibling at the section's own
+   * stacking level.
+   */
+  const [filmPaused, setFilmPaused] = useState(false);
+  const [filmActive, setFilmActive] = useState(false);
+
+  // Stable identity: HeroVideo reports through this from an effect, so a fresh
+  // function each render would loop.
+  const handleActiveChange = useCallback((active: boolean) => {
+    setFilmActive(active);
+  }, []);
+
   return (
     <section
       data-scroll-section="hero"
@@ -63,7 +80,7 @@ export function Hero() {
           cursor's "Explore" affordance would be promising an interaction that
           does not exist. It still applies to the assay and closing scenes. */}
       <div className="vignette absolute inset-0 -z-10" aria-hidden="true">
-        <HeroVideo />
+        <HeroVideo paused={filmPaused} onActiveChange={handleActiveChange} />
       </div>
 
       {/* Directional scrim: heaviest behind the copy, clear over the subject.
@@ -135,6 +152,33 @@ export function Hero() {
           </span>
         </div>
       </div>
+
+      {/* --- Film control (WCAG 2.2 SC 2.2.2) --------------------------- */}
+      {/* The film loops indefinitely, and auto-starting motion that runs beyond
+          five seconds must be pausable. Rendered only when a film is genuinely
+          running: on the reduced-motion, metered-connection and decode-failure
+          paths the hero is a still image, and offering to pause a photograph
+          would be nonsense.
+
+          It carries its own near-opaque backing rather than inheriting the
+          scrim. It sits bottom-right, where the ramp has released to ~16% and the
+          film underneath is at its brightest — ash on bare film there measures
+          about 1.8:1. On this chip it is ~5:1.
+
+          Last child on purpose: it must paint above the scrims to be clickable. */}
+      {filmActive ? (
+        <button
+          type="button"
+          onClick={() => setFilmPaused((previous) => !previous)}
+          aria-label={filmPaused ? 'Play the background film' : 'Pause the background film'}
+          className="absolute bottom-4 right-4 inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-bronze/50 bg-void/85 px-4 text-[0.58rem] tracking-[0.26em] text-ash uppercase backdrop-blur-sm transition-colors duration-300 hover:border-gold-antique/70 hover:text-gold-high focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-antique sm:bottom-6 sm:right-6"
+        >
+          <span aria-hidden="true" className="text-[0.7rem] leading-none">
+            {filmPaused ? '▶' : '‖'}
+          </span>
+          {filmPaused ? 'Play' : 'Pause'}
+        </button>
+      ) : null}
     </section>
   );
 }

@@ -7,7 +7,7 @@
  * still reads every word, uses every control and submits the form.
  */
 
-export type QualityTier = 'high' | 'medium' | 'low' | 'none';
+export type QualityTier = "high" | "medium" | "low" | "none";
 
 export type Capability = {
   tier: QualityTier;
@@ -16,12 +16,26 @@ export type Capability = {
   coarsePointer: boolean;
   saveData: boolean;
   /**
-   * A metered or genuinely slow connection, reported by the Network Information
-   * API. Separate from `saveData` and from `tier` on purpose: the hero video is
-   * gated on bandwidth, not on GPU, so a device with no WebGL at all still gets
-   * the full moving hero as long as its connection can carry half a megabyte.
+   * A metered or slow connection per the Network Information API. This is the
+   * signal the WebGL tier uses, where the cost being avoided is ~600KB of
+   * renderer plus shader compilation.
    */
   slowNetwork: boolean;
+  /**
+   * The raw effectiveType string, exposed so each consumer can set its own
+   * threshold instead of inheriting the renderer's.
+   *
+   * This matters because effectiveType is a COARSE ESTIMATE, not a measurement.
+   * Chrome reports "3g" readily — including on desktop, on localhost, and early
+   * in a page's life before it has RTT samples to work from. Treating "3g" as
+   * "no video" was a real defect: it silently withheld the hero film from
+   * visitors whose connections were entirely capable of it, and it was only
+   * caught by driving a real browser and printing this value.
+   *
+   * Empty string when the API is unavailable, which is most of Safari and
+   * Firefox — absence must therefore never be read as "slow".
+   */
+  effectiveType: string;
   /** Device pixel ratio ceiling for the renderer. */
   dprCap: number;
   /** Whether to render real-time shadows. */
@@ -33,12 +47,13 @@ export type Capability = {
 };
 
 const SSR_DEFAULT: Capability = {
-  tier: 'none',
+  tier: "none",
   webgl: false,
   reducedMotion: false,
   coarsePointer: false,
   saveData: false,
   slowNetwork: false,
+  effectiveType: "",
   dprCap: 1,
   shadows: false,
   particles: 0,
@@ -54,48 +69,56 @@ let cached: Capability | null = null;
  * and only creation tells the truth.
  */
 function probeWebGL(): { ok: boolean; renderer: string } {
-  if (typeof window === 'undefined') return { ok: false, renderer: '' };
+  if (typeof window === "undefined") return { ok: false, renderer: "" };
 
   try {
-    const canvas = document.createElement('canvas');
-    const gl = (canvas.getContext('webgl2') ??
-      canvas.getContext('webgl')) as WebGLRenderingContext | null;
+    const canvas = document.createElement("canvas");
+    const gl = (canvas.getContext("webgl2") ??
+      canvas.getContext("webgl")) as WebGLRenderingContext | null;
 
-    if (!gl) return { ok: false, renderer: '' };
+    if (!gl) return { ok: false, renderer: "" };
 
-    let renderer = '';
-    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    let renderer = "";
+    const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
     if (debugInfo) {
-      renderer = String(gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) ?? '');
+      renderer = String(
+        gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) ?? "",
+      );
     }
 
     // Release the probe context immediately so we do not burn one of the
     // browser's limited simultaneous WebGL contexts.
-    gl.getExtension('WEBGL_lose_context')?.loseContext();
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
 
     return { ok: true, renderer };
   } catch {
-    return { ok: false, renderer: '' };
+    return { ok: false, renderer: "" };
   }
 }
 
 export function detectCapability(): Capability {
-  if (typeof window === 'undefined') return SSR_DEFAULT;
+  if (typeof window === "undefined") return SSR_DEFAULT;
   if (cached) return cached;
 
   const { ok: webgl, renderer } = probeWebGL();
 
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+  const reducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+  const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
 
   const connection = (
-    navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }
+    navigator as Navigator & {
+      connection?: { saveData?: boolean; effectiveType?: string };
+    }
   ).connection;
   const saveData = Boolean(connection?.saveData);
-  const slowNetwork = /^(slow-2g|2g|3g)$/.test(connection?.effectiveType ?? '');
+  const effectiveType = connection?.effectiveType ?? "";
+  const slowNetwork = /^(slow-2g|2g|3g)$/.test(effectiveType);
 
   const cores = navigator.hardwareConcurrency ?? 4;
-  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4;
+  const memory =
+    (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4;
   const smallViewport = Math.min(window.innerWidth, window.innerHeight) < 768;
 
   // Software rasterisers report themselves; they will not sustain a real scene.
@@ -103,24 +126,30 @@ export function detectCapability(): Capability {
 
   let tier: QualityTier;
   if (!webgl || software) {
-    tier = 'none';
+    tier = "none";
   } else if (saveData || slowNetwork) {
     // Respect an explicit data-saving signal by not downloading/compiling the
     // full scene, even if the hardware could handle it.
-    tier = 'none';
+    tier = "none";
   } else if (cores <= 4 || memory <= 4 || (coarsePointer && smallViewport)) {
-    tier = 'low';
+    tier = "low";
   } else if (cores <= 8 || smallViewport) {
-    tier = 'medium';
+    tier = "medium";
   } else {
-    tier = 'high';
+    tier = "high";
   }
 
   const byTier: Record<
     QualityTier,
     Omit<
       Capability,
-      'tier' | 'webgl' | 'reducedMotion' | 'coarsePointer' | 'saveData' | 'slowNetwork'
+      | "tier"
+      | "webgl"
+      | "reducedMotion"
+      | "coarsePointer"
+      | "saveData"
+      | "slowNetwork"
+      | "effectiveType"
     >
   > = {
     high: { dprCap: 1.75, shadows: true, particles: 140, chainPhysics: true },
@@ -138,6 +167,7 @@ export function detectCapability(): Capability {
     coarsePointer,
     saveData,
     slowNetwork,
+    effectiveType,
     ...base,
     // Reduced motion keeps the scene but stills it: no drifting particles, no
     // swinging chains. The object is presented already at rest.

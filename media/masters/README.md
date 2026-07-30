@@ -21,7 +21,8 @@ Supplied by the client, 30 July 2026.
 ### What ships, and what does not
 
 The homepage hero uses **only the first 4.55 seconds**, re-encoded to
-`public/video/hero-atmosphere.{mp4,webm}` with the audio track removed.
+`public/video/hero-atmosphere.mp4` with the audio track removed, and mirrored
+into a **palindrome** so it can loop without a visible cut (see below).
 
 That window is darkness, a gold line, the ornamental PW ring, the ring
 dissolving, and the instrument standing with **empty pans**. It contains no text
@@ -52,27 +53,47 @@ FF=node_modules/ffmpeg-static/ffmpeg.exe   # or just `ffmpeg` if on PATH
 Then, from the repository root:
 
 ```bash
-# H.264 — universal fallback
+# The shipped film. `split` + `reverse` + `concat` mirrors the cut, so the file is
+# 4.58s forward then 4.58s back. Its first and last frames are the same frame,
+# which is what lets it loop with no visible cut.
 "$FF" -ss 0 -t 4.55 -i media/masters/pureweight-brand-animation.mp4 \
-  -an -c:v libx264 -crf 27 -preset veryslow -profile:v high -level 4.0 \
+  -filter_complex "[0:v]split[a][b];[b]reverse[r];[a][r]concat=n=2:v=1:a=0[v]" -map "[v]" \
+  -an -c:v libx264 -crf 30 -preset veryslow -profile:v high -level 4.0 \
   -pix_fmt yuv420p -g 48 -movflags +faststart \
   public/video/hero-atmosphere.mp4 -y
-
-# VP9 — smaller, listed first so browsers that support it take it
-"$FF" -ss 0 -t 4.55 -i media/masters/pureweight-brand-animation.mp4 \
-  -an -c:v libvpx-vp9 -crf 36 -b:v 0 -row-mt 1 -deadline good -cpu-used 2 \
-  -pix_fmt yuv420p public/video/hero-atmosphere.webm -y
-
-# Still — the FINAL frame, so the instrument is presented already at rest on
-# every path that does not play the film
-"$FF" -sseof -0.15 -i public/video/hero-atmosphere.mp4 \
-  -frames:v 1 -q:v 6 public/video/hero-still.jpg -y
 ```
 
-Result: 484 KB MP4, 437 KB WebM, 39 KB JPEG, silent, 4.58 s.
+Result: **659 KB, 9.17 s, silent, 1280×720 H.264**.
 
-`-an` is not cosmetic. The element is muted, so the audio would never be heard,
-but an un-stripped track still costs 160 KB of download.
+The still frame (`hero-still.jpg`, 39 KB) is the lit instrument, which is now the
+palindrome's **midpoint** rather than its end. It does not need regenerating
+unless the cut point moves; if it does, take it from `-ss 4.55`, not `-sseof`,
+because the file now *ends* on darkness.
+
+Three decisions worth not re-litigating:
+
+- **`-an` is not cosmetic.** The element is muted so the audio would never be
+  heard, but an un-stripped track still costs 160 KB of download.
+- **CRF 30, not 27.** Doubling the duration doubled the bytes, and at 100% crop
+  30 is indistinguishable from 27 on this content — the chain links, the beam
+  craquelure and the PW filigree all hold. It is then dimmed to 82% and scrimmed
+  on top of that. 27 would cost 910 KB for no visible gain.
+- **No WebM.** A VP9 sibling was built and discarded: on dark, soft-gradient
+  content it came out at **785 KB against H.264's 659 KB**. Fewer bytes was
+  WebM's entire justification, and it lost. H.264 is universally supported, so
+  one file is the whole story.
+
+### Why it loops, and what that obliges
+
+The client asked for continuous motion. A straight loop of a build-up shot would
+hard-cut from full light back to black every few seconds, so the file is mirrored
+instead — verified at **0.25/255 mean channel difference** across the seam.
+
+Looping has an accessibility consequence that the one-shot version did not have.
+**WCAG 2.2 SC 2.2.2 (Pause, Stop, Hide)** requires a control for motion that
+starts automatically and runs beyond five seconds. A 4.58 s one-shot cleared that
+threshold outright; an indefinite loop does not. The hero therefore renders a
+real pause control, and it must not be removed while the film loops.
 
 ### After any re-cut, re-run the contrast gate
 
