@@ -972,12 +972,20 @@
      every path — motion, reduced motion, metered connection, decode failure —
      lands on an identical composition. */
   .hero-media {
-    /* Portrait and short landscape. Cropping a 16:9 frame to fill a tall
-       viewport leaves nothing but the centre column, so the whole instrument is
-       fitted into the upper band instead and the copy takes the dark space
-       beneath it — which is where the mobile hero already aligns its text. */
-    object-fit: contain;
-    object-position: center 18%;
+    /*
+     * PORTRAIT FILLS THE FRAME. It used to `contain`, on the reasoning that
+     * cropping a 16:9 clip into a tall viewport "leaves nothing but the centre
+     * column". That was the wrong call twice over: a tall crop of the column,
+     * beam and finial is a strong portrait composition, and `contain` produced a
+     * letterboxed band with a HARD HORIZONTAL SEAM where the video ended, with
+     * the copy sitting on flat black beneath it. It read as unfinished.
+     *
+     * 38% rather than centre: it favours the beam, pans and finial over the
+     * plinth, so the part of the instrument that reads at a glance is the part
+     * that survives the crop.
+     */
+    object-fit: cover;
+    object-position: 50% 38%;
   }
 
   @media (min-width: 1024px) and (min-aspect-ratio: 4 / 3) {
@@ -1007,11 +1015,32 @@
      film is letterboxed into the upper band and the copy sits below it over
      bare void — the two never overlap, so there is nothing to defend against. */
   .hero-scrim {
+    /*
+     * VERTICAL on portrait, because the copy is full-width there.
+     *
+     * This was a left-to-right ramp inherited from the desktop composition,
+     * where copy occupies the left column and the instrument sits right. On a
+     * phone the copy spans the whole width and sits at the BOTTOM, so a
+     * horizontal ramp darkened the wrong axis entirely — leaving the right-hand
+     * end of every line over open film.
+     *
+     * Light at the top so the instrument still reads, heavy from the middle down
+     * where the headline, lead and CTA actually are.
+     *
+     * THE STOPS ARE MEASURED, NOT CHOSEN. The first ramp tried (0.28/0.44/0.86/
+     * 0.94) passed a 390x844 phone and FAILED a 360x740 one at 1.94:1 — on a
+     * shorter viewport the copy sits proportionally higher, reaching into the
+     * light part of the ramp while the film is still bright there. These values
+     * measure 6.00:1 lead / 6.81 label / 10.21 heading on 360x740 and better on
+     * 390x844, sampled from live renders with the copy hidden. Re-measure with
+     * scripts in scratchpad (mobile-hero probe) before loosening them.
+     */
     background-image: linear-gradient(
-      to right,
-      rgba(0, 0, 0, 0.96) 0%,
-      rgba(0, 0, 0, 0.72) 50%,
-      rgba(0, 0, 0, 0) 100%
+      to bottom,
+      rgba(0, 0, 0, 0.40) 0%,
+      rgba(0, 0, 0, 0.72) 18%,
+      rgba(0, 0, 0, 0.93) 38%,
+      rgba(0, 0, 0, 0.96) 100%
     );
   }
 
