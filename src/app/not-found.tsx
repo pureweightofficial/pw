@@ -30,8 +30,8 @@ export default function NotFound() {
           <Link href="/" className="btn-primary">
             <span className="relative z-10">Return Home</span>
           </Link>
-          <Link href="/request-a-valuation" className="btn-ghost">
-            Request a Valuation
+          <Link href="/contact" className="btn-ghost">
+            Visit Our Shop
           </Link>
         </div>
       </div>

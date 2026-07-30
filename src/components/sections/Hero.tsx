@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { HeroVideo } from '@/components/hero/HeroVideo';
 import { useMotion } from '@/components/motion/MotionProvider';
 import { CTA } from '@/components/ui/primitives';
+import { VisitCta } from '@/components/ui/VisitCta';
 
 /**
  * HERO
@@ -96,7 +97,7 @@ export function Hero() {
           instrument so it sits in a pool of light rather than on a flat field. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_70%_at_50%_50%,transparent_0%,rgba(5,4,6,0.72)_70%,var(--color-void)_100%)]"
+        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_70%_at_50%_50%,transparent_0%,rgba(0, 0, 0,0.72)_70%,var(--color-void)_100%)]"
       />
 
       {/* --- The copy -------------------------------------------------- */}
@@ -115,22 +116,21 @@ export function Hero() {
           </h1>
 
           <p className="hero-rise mt-8 max-w-xl text-lead text-ivory/72 [--rise-delay:240ms]">
-            Private gold evaluation and exchange, guided by precision, transparency and trusted
-            expertise.
+            We buy gold and silver over the counter — jewellery, coins and bullion. Your items
+            examined and weighed in front of you, against the live market.
           </p>
 
           <div className="hero-rise mt-11 flex flex-col items-start gap-4 [--rise-delay:360ms] sm:flex-row sm:items-center sm:gap-7">
-            <CTA href="/request-a-valuation" className="w-full justify-center sm:w-auto">
-              Request a Private Valuation
-            </CTA>
+            {/* No form: this trade happens at the counter. See VisitCta. */}
+            <VisitCta primaryOnly />
 
             <CTA
               variant="ghost"
               magnetic={false}
-              onClick={() => scrollTo('#journey')}
-              aria-label="See how the valuation process works"
+              onClick={() => scrollTo('#rates')}
+              aria-label="See today's gold and silver prices"
             >
-              See How It Works
+              Today&rsquo;s Prices
               <span aria-hidden="true" className="text-gold-antique">
                 ↓
               </span>

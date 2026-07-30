@@ -187,8 +187,8 @@ export default function FaqPage() {
         </div>
 
         <div className="mt-16 flex flex-wrap gap-4">
-          <Link href="/request-a-valuation" className="btn-primary">
-            <span className="relative z-10">Request a Private Valuation</span>
+          <Link href="/contact" className="btn-primary">
+            <span className="relative z-10">Visit Our Shop</span>
           </Link>
           <Link href="/contact" className="btn-ghost">
             Ask Something Else

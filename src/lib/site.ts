@@ -132,8 +132,9 @@ export const business: BusinessFacts = {
 /* -------------------------------------------------------------------------- */
 
 export const primaryNav = [
-  { label: 'The Process', href: '/#journey' },
-  { label: 'Services', href: '/#services' },
+  { label: 'Live Prices', href: '/#rates' },
+  { label: 'What We Buy', href: '/#services' },
+  { label: 'How It Works', href: '/#journey' },
   { label: 'Purity & Weight', href: '/#assay' },
   { label: 'About', href: '/#story' },
   { label: 'Insights', href: '/insights' },
@@ -141,9 +142,15 @@ export const primaryNav = [
   { label: 'Contact', href: '/contact' },
 ] as const;
 
+/**
+ * The nav's single action. Points at the shop rather than at a form: this trade
+ * happens over the counter, so the useful thing to offer is the address and the
+ * hours. See VisitCta for why the label is not "Call us" — the number is still an
+ * unconfirmed fact and must not be implied here.
+ */
 export const navCta = {
-  label: 'Request a Valuation',
-  href: '/request-a-valuation',
+  label: 'Visit the Shop',
+  href: '/contact',
 } as const;
 
 /* -------------------------------------------------------------------------- */
@@ -240,7 +247,7 @@ export const services: readonly Service[] = [
     points: ['Individually weighed', 'Hallmark examination', 'Itemised written summary'],
     cta: 'Enquire About Gold Valuation',
     image: '/img/valuation.jpg',
-    enquiryHref: '/request-a-valuation?item=unsure',
+    enquiryHref: '/contact',
     confirmed: false,
   },
   {
@@ -251,7 +258,7 @@ export const services: readonly Service[] = [
     points: ['Refiner mark check', 'Serial recorded where present', 'Bars and coin'],
     cta: 'Enquire About Bullion Exchange',
     image: '/img/bullion.jpg',
-    enquiryHref: '/request-a-valuation?item=bullion',
+    enquiryHref: '/contact',
     confirmed: false,
   },
   {
@@ -262,7 +269,7 @@ export const services: readonly Service[] = [
     points: ['Stone and setting allowance', 'Mixed-carat sorting', 'Antique pieces considered'],
     cta: 'Enquire About Jewellery Evaluation',
     image: '/img/jewellery.jpg',
-    enquiryHref: '/request-a-valuation?item=jewellery',
+    enquiryHref: '/contact',
     confirmed: false,
   },
   {
@@ -272,7 +279,7 @@ export const services: readonly Service[] = [
     body: 'For larger holdings, estates and confidential matters, an appointment gives the time an item deserves and keeps the conversation private.',
     points: ['By arrangement', 'Confidential handling', 'Estate and probate matters'],
     cta: 'Request a Private Appointment',
-    enquiryHref: '/request-a-valuation?appointment=in-person',
+    enquiryHref: '/contact',
     confirmed: false,
   },
 ] as const;

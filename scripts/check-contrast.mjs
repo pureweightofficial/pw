@@ -79,8 +79,6 @@ const USES = [
   ['gold-high', token('gold-high'), 1, false, 'hover / in-balance / rate figures'],
   ['gold-pale', token('gold-pale'), 1, false, 'CTA label, reference'],
   ['gold-rich', token('gold-rich'), 1, false, 'rates table figures'],
-  ['error', '#E5A68C', 1, false, 'form error messages'],
-  ['ash (css ::placeholder)', token('ash'), 1, false, 'field placeholder text'],
   // CRACKED GOLD. The craquelure multiplies the gold ramp beneath it, so each
   // stop is audited at the texture's darkest crack (175/255 = 0.686 of the
   // stop's value). Applied only at display scale, so the 3:1 large-text

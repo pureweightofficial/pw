@@ -134,8 +134,8 @@ export default function InsightsPage() {
           </dl>
 
           <div className="mt-14">
-            <Link href="/request-a-valuation" className="btn-primary">
-              <span className="relative z-10">Request a Private Valuation</span>
+            <Link href="/contact" className="btn-primary">
+              <span className="relative z-10">Visit Our Shop</span>
             </Link>
           </div>
         </div>

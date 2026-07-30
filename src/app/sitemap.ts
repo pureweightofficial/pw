@@ -23,7 +23,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // mismatches the canonicals.
   return [
     { url: `${base}${canonicalPath('/')}`, lastModified, changeFrequency: 'monthly' as const, priority: 1 },
-    { url: `${base}${canonicalPath('/request-a-valuation')}`, lastModified, changeFrequency: 'monthly' as const, priority: 0.9 },
     { url: `${base}${canonicalPath('/faq')}`, lastModified, changeFrequency: 'monthly' as const, priority: 0.8 },
     { url: `${base}${canonicalPath('/contact')}`, lastModified, changeFrequency: 'monthly' as const, priority: 0.8 },
   ];

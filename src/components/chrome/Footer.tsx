@@ -66,10 +66,10 @@ export function Footer() {
               ))}
               <li>
                 <Link
-                  href="/request-a-valuation"
+                  href="/contact"
                   className="text-sm text-gold-antique transition-colors duration-300 hover:text-gold-high"
                 >
-                  Request a Valuation
+                  Visit the Shop
                 </Link>
               </li>
             </ul>

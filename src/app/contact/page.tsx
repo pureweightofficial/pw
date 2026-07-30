@@ -63,8 +63,8 @@ export default function ContactPage() {
 
             <BeamDivider className="mt-12 max-w-xs" />
 
-            <Link href="/request-a-valuation" className="btn-primary mt-12">
-              <span className="relative z-10">Request a Private Valuation</span>
+            <Link href="/contact" className="btn-primary mt-12">
+              <span className="relative z-10">Visit Our Shop</span>
             </Link>
           </div>
 

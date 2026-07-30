@@ -83,7 +83,7 @@ export function Services() {
                         />
                         <span
                           aria-hidden="true"
-                          className="absolute inset-0 bg-[radial-gradient(ellipse_75%_65%_at_50%_45%,transparent_10%,rgba(5,4,6,0.55)_75%,rgba(5,4,6,0.9)_100%)]"
+                          className="absolute inset-0 bg-[radial-gradient(ellipse_75%_65%_at_50%_45%,transparent_10%,rgba(0, 0, 0,0.55)_75%,rgba(0, 0, 0,0.9)_100%)]"
                         />
                       </>
                     ) : (

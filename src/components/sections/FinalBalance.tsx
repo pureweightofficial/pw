@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { CTA } from '@/components/ui/primitives';
+import { VisitCta } from '@/components/ui/VisitCta';
 import { ScalePoster } from '@/components/webgl/ScalePoster';
 
 /**
@@ -54,16 +54,12 @@ export function FinalBalance() {
           </h2>
 
           <p className="mx-auto mt-8 max-w-lg text-lead text-ivory/72 will-reveal">
-            Begin with a private and transparent conversation about your gold.
+            Bring your items in. We will examine and weigh them with you, and explain every
+            figure before you decide.
           </p>
 
-          <div className="mt-12 flex flex-col items-center justify-center gap-4 will-reveal sm:flex-row sm:gap-7">
-            <CTA href="/request-a-valuation" className="w-full justify-center sm:w-auto">
-              Request a Private Valuation
-            </CTA>
-            <CTA href="/contact" variant="ghost" magnetic={false}>
-              Contact Pureweight
-            </CTA>
+          <div className="mt-12 flex justify-center will-reveal">
+            <VisitCta />
           </div>
         </div>
       </div>

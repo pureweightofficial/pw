@@ -27,13 +27,15 @@ export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 /* --- Palette, sampled from the logo (see globals.css) -------------------- */
-const VOID = '#050406';
+const VOID = '#000000';
 const GOLD_ANTIQUE = '#b87914';
 const GOLD_RICH = '#d99a33';
 const GOLD_HIGH = '#fcc933';
 const GOLD_PALE = '#fffdda';
-const IVORY = '#fef3c7';
-const ASH = '#a2977f';
+// Kept in step with globals.css. These two are the GOLD type colours now,
+// not the old cream/grey neutrals; the names are historical.
+const IVORY = '#f4cf63';
+const ASH = '#cba85f';
 
 /** Pulls a single static font file out of the Google Fonts CSS response. */
 async function loadDisplayFont(): Promise<ArrayBuffer | null> {
@@ -82,7 +84,7 @@ export default async function OpenGraphImage() {
           display: 'flex',
           backgroundColor: VOID,
           // The warm key entering upper-left, exactly as in the 3D rig.
-          backgroundImage: `radial-gradient(1000px 620px at 20% -12%, rgba(184,121,20,0.30), rgba(5,4,6,0) 62%), radial-gradient(760px 480px at 96% 110%, rgba(87,50,2,0.42), rgba(5,4,6,0) 60%)`,
+          backgroundImage: `radial-gradient(1000px 620px at 20% -12%, rgba(184,121,20,0.30), rgba(0,0,0,0) 62%), radial-gradient(760px 480px at 96% 110%, rgba(87,50,2,0.42), rgba(0,0,0,0) 60%)`,
         }}
       >
         {/* --- Left: the message ------------------------------------- */}
@@ -134,7 +136,7 @@ export default async function OpenGraphImage() {
                 Private gold evaluation and exchange.
               </div>
               <div style={{ fontSize: 15, letterSpacing: 5, color: GOLD_PALE }}>
-                REQUEST A VALUATION
+                VISIT THE SHOP
               </div>
             </div>
           </div>
