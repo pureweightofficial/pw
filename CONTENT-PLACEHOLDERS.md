@@ -96,6 +96,51 @@ can break WCAG AA without any visible warning. The command is in the same file.
 
 ---
 
+## 1c. Live market rates — provider confirmed, secret still needed
+
+**Confirmed by the client:** provider **GoldAPI.io**, currency **USD**. Verified
+against the live endpoint — gold returned `$4,080.28`/troy oz and silver
+`$58.10`/troy oz, both inside the plausibility bounds, and `public/rates.json`
+was written from real data.
+
+### One step left, and only you can do it
+
+The API key must never live in the repository — it is public, and a key in source
+is a key that gets used by someone else. It goes in as an encrypted repository
+secret:
+
+**Settings → Secrets and variables → Actions**
+
+| Type | Name | Value |
+| --- | --- | --- |
+| **Secret** | `RATES_API_KEY` | your GoldAPI key |
+| Variable | `RATES_PROVIDER` | `goldapi` |
+| Variable | `RATES_CURRENCY` | `USD` |
+
+Until those exist, the scheduled workflow fails on purpose and writes nothing —
+see the note at the foot of `.github/workflows/rates.yml`. A red run there is
+correct behaviour, not a fault.
+
+### The committed rates.json is a starting value, not a substitute
+
+`public/rates.json` currently holds a real reading so the panel works today. It
+carries its own timestamp and **ages out on its own**: the panel stops calling it
+live after an hour, captions it with its real age up to 36 hours, and then
+publishes nothing at all. Once the secret is in place the workflow overwrites it
+every three hours and it never reaches that state.
+
+### Two things this does NOT confirm
+
+- **`priceReferenceSource`** stays a placeholder. GoldAPI is the feed for the
+  *website's* market panel. What the *business* prices against at the counter is a
+  separate fact, and it has not been stated. Conflating the two would put words in
+  the client's mouth about their own pricing basis.
+- **`settlementMethods`** stays a placeholder. Choosing a USD endpoint tells us the
+  currency the panel displays. It does not say how a customer is actually paid —
+  cash, bank transfer, cheque, limits — and that is what the field is for.
+
+---
+
 ## 2. Business facts
 
 All in [`src/lib/site.ts`](src/lib/site.ts) under `business`. Change
