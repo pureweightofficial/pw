@@ -1,0 +1,82 @@
+name: Refresh market rates
+
+# WHY A SLOW CRON
+#
+# On a static host, publishing a new rates.json means redeploying the site. A
+# 30-minute cadence would be ~48 deploys a day: wasteful, and it buries real
+# changes in commit noise. Every three hours keeps the figure honest — the panel
+# states its own age and stops calling itself live after an hour — without
+# turning the history into a price ticker.
+#
+# This cadence is a CONSEQUENCE OF THE HOST, not a design preference. On a node or
+# edge host, delete this workflow and answer /api/rates from a function that holds
+# the key. The panel already supports that via NEXT_PUBLIC_RATES_ENDPOINT, and it
+# would then sit in the `live` state continuously.
+
+on:
+  schedule:
+    # Every three hours, on the hour. Cron on GitHub is best-effort and can be
+    # delayed under load, which is another reason the page must never assume its
+    # data is fresh and must always show the real age.
+    - cron: '7 */3 * * *'
+  workflow_dispatch: {}
+
+# Never let two refreshes race for the same commit.
+concurrency:
+  group: rates
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # No install step: the fetch script uses only built-in fetch and fs, on
+      # purpose. A scheduled job that reaches the network with an API key should
+      # have the smallest possible dependency surface.
+      - name: Fetch rates
+        id: fetch
+        env:
+          RATES_PROVIDER: ${{ vars.RATES_PROVIDER }}
+          RATES_CURRENCY: ${{ vars.RATES_CURRENCY }}
+          RATES_API_KEY: ${{ secrets.RATES_API_KEY }}
+        run: node scripts/fetch-rates.mjs
+
+      # Only commit when the figures actually moved. An unchanged file must not
+      # produce an empty commit and must not trigger a pointless redeploy.
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- public/rates.json; then
+            echo "Rates unchanged — nothing to commit, no redeploy triggered."
+            exit 0
+          fi
+          git config user.name  "pureweight-rates[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/rates.json
+          git commit -m "Refresh market rates [skip ci]"
+          git push
+
+# IF THIS JOB FAILS, THAT IS THE DESIGNED BEHAVIOUR.
+#
+# scripts/fetch-rates.mjs exits non-zero and writes NOTHING when the key is
+# missing, the provider errors, or a returned value fails its plausibility check.
+# The previous rates.json stays in place, ages out of its window on its own, and
+# the site's rates panel then reports itself unavailable in plain language.
+#
+# A red run here is strictly better than a green run that published a wrong or
+# invented gold price. Do not add a fallback value to make it pass.
+#
+# SETUP REQUIRED (repository Settings):
+#   Secrets:   RATES_API_KEY    the provider key
+#   Variables: RATES_PROVIDER   metalpriceapi | metals-dev | goldapi
+#              RATES_CURRENCY   ISO 4217 code, e.g. GBP — must match the
+#                               confirmed trading jurisdiction, which is still an
+#                               open item in CONTENT-PLACEHOLDERS.md

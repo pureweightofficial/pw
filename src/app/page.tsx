@@ -6,6 +6,7 @@ import { BrandStory } from '@/components/sections/BrandStory';
 import { FinalBalance } from '@/components/sections/FinalBalance';
 import { Hero } from '@/components/sections/Hero';
 import { Insights } from '@/components/sections/Insights';
+import { LiveRates } from '@/components/sections/LiveRates';
 import { Services } from '@/components/sections/Services';
 import { Testimonials } from '@/components/sections/Testimonials';
 import { TrustEvidence } from '@/components/sections/TrustEvidence';
@@ -56,6 +57,9 @@ export default function HomePage() {
     <>
       <Hero />
       <TrustStatement />
+      {/* Step one of the customer journey is checking the price, so it is the
+          first thing after the trust line rather than buried further down. */}
+      <LiveRates />
       <ValuationJourney />
       <Services />
       <AssayExperience />
