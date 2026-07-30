@@ -62,7 +62,7 @@ async function loadDisplayFont(): Promise<ArrayBuffer | null> {
 /** Inlines the supplied logo so Satori can render it without a network fetch. */
 async function loadLogo(): Promise<string | null> {
   try {
-    const bytes = await readFile(join(process.cwd(), 'public/brand/pureweight-logo.png'));
+    const bytes = await readFile(join(process.cwd(), 'src/assets/pureweight-logo.png'));
     return `data:image/png;base64,${bytes.toString('base64')}`;
   } catch {
     return null;

@@ -392,13 +392,18 @@ function ValuationFormInner() {
         else goNext();
       }}
       onKeyDown={(event) => {
-        // Enter advances rather than submitting from step one — but never from
-        // inside a textarea, where Enter means a new line.
-        if (
-          event.key === 'Enter' &&
-          !isLast &&
-          (event.target as HTMLElement).tagName !== 'TEXTAREA'
-        ) {
+        /**
+         * Enter advances the step — but ONLY from a text input.
+         *
+         * The first version excluded only TEXTAREA, which meant Enter was
+         * intercepted on every other element in the form: a keyboard user
+         * pressing Enter on the Back button got "Continue" instead, and the
+         * option tiles' native activation was swallowed. Enter's meaning
+         * belongs to the focused control everywhere except single-line text
+         * fields, where advancing is the expected convention.
+         */
+        const target = event.target as HTMLElement;
+        if (event.key === 'Enter' && !isLast && target.tagName === 'INPUT') {
           event.preventDefault();
           goNext();
         }

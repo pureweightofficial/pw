@@ -30,7 +30,7 @@ real host and real traffic.
 | 5 | Raise form-control border contrast to ≥3:1 (WCAG 1.4.11) | A11y | High | S |
 | 6 | Move the mobile-menu close control inside the dialog + focus trap | Mobile/A11y | High | S |
 | 7 | One metadata pass: trailing-slash sitemap URLs, per-page og:url, full og on /request-a-valuation | SEO | High | M |
-| 8 | `npm update next` out of the vulnerable 15.5.x range (6 high advisories via bundled deps) | Sec | Med | S |
+| 8 | ~~`npm update next`~~ **Annotated at fix time:** the vulnerable range covers every published Next incl. 16.2.12 — advisories are in postcss/sharp bundled inside Next, unfixed upstream. Real exposure is build-time-only on our own assets (uploads never touch sharp). Tracked, not patchable today. | Sec | Med | — |
 | 9 | Document + decouple the `/pw` basePath from GITHUB_PAGES before any custom-domain launch | Infra | Med | S |
 | 10 | Add a CSP (node headers + meta fallback); the site is fully self-contained so a tight one is cheap | Sec | Med | M |
 

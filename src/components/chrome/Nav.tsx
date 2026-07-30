@@ -185,7 +185,24 @@ export function Nav() {
         hidden={!menuOpen}
         className="fixed inset-0 z-40 flex flex-col bg-void/97 backdrop-blur-lg lg:hidden"
       >
-        <div className="h-[var(--nav-h)] shrink-0" />
+        {/* The dialog's own close control — INSIDE the aria-modal region and the
+            focus trap. The header hamburger also closes the menu, but it sits
+            outside both, so a screen-reader user inside the dialog previously
+            had no discoverable way out other than Escape. */}
+        <div className="flex h-[var(--nav-h)] shrink-0 items-center justify-end">
+          <div className="shell flex justify-end">
+            <button
+              type="button"
+              onClick={() => setMenuOpen(false)}
+              className="flex h-11 min-w-11 items-center justify-center gap-2 border border-gold-antique/40 px-4 text-[0.62rem] font-medium tracking-[0.22em] text-gold-antique uppercase transition-colors duration-300 hover:border-gold-rich hover:text-gold-high"
+            >
+              Close
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+          </div>
+        </div>
 
         <div className="shell flex flex-1 flex-col justify-between overflow-y-auto pb-10 pt-8">
           <ul className="flex flex-col">

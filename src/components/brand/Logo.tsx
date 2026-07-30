@@ -28,8 +28,17 @@ import { assetPath } from '@/lib/asset';
  * SVG would fix both and is the correct long-term asset.
  */
 
-const SRC = assetPath('/brand/pureweight-logo.png');
-const NATURAL = { w: 1200, h: 1239 };
+const SRC = assetPath('/brand/pureweight-logo.webp');
+/**
+ * The shipped asset is a 520px WebP (63KB) generated from the 1200px original —
+ * 2x of the largest render (260px), so nothing is upscaled. The original PNG
+ * lives in src/assets/ as the build-time source for the OG card and for
+ * regenerating this file; it no longer ships to visitors (it was 640KB,
+ * preloaded at high priority, on every page). Crop windows below are
+ * fractional, so they are resolution-independent.
+ * Regenerate: node -e with sharp — see git history of this line.
+ */
+const NATURAL = { w: 520, h: 537 };
 
 /** Windows into the supplied file, as fractions of its natural size. */
 const CROPS = {
