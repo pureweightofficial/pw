@@ -4,7 +4,9 @@ import { pillars } from '@/lib/site';
 /**
  * WHY PUREWEIGHT
  *
- * Three pillars, presented as engraved medallions rather than icon cards. The
+ * The pillars, presented as engraved medallions rather than icon cards. The count
+ * is driven by the data in site.ts and the grid reflows, so adding or removing one
+ * does not need a change here. The
  * medallion geometry is lifted directly from the emblem — beaded outer ring,
  * hairline inner rule, cardinal lozenges — so these read as struck from the
  * same die as the logo rather than as generic circles.
@@ -25,12 +27,16 @@ export function WhyPureweight() {
             id="pillars-heading"
             className="font-display text-chapter font-normal text-ivory will-reveal"
           >
-            Three things we will not
-            <span className="accent-italic text-gold-high/90"> compromise</span>
+            {/* Not "three things" any more — the heading used to hardcode the count
+                and would have silently gone wrong when the pillars became four. */}
+            What you can check
+            <span className="accent-italic text-gold-high/90"> for yourself</span>
           </h2>
         </div>
 
-        <div className="mt-20 grid gap-16 md:grid-cols-3 md:gap-10 lg:mt-28 lg:gap-16">
+        {/* 2 x 2 on tablet, 4 across on desktop. Was md:grid-cols-3, which left a
+            lone orphan on the second row once the pillars went from three to four. */}
+        <div className="mt-20 grid gap-16 sm:grid-cols-2 sm:gap-10 lg:mt-28 lg:grid-cols-4 lg:gap-12">
           {pillars.map((pillar, index) => (
             <article key={pillar.title} className="group flex flex-col items-center text-center">
               <div className="will-reveal">

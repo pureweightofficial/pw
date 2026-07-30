@@ -62,7 +62,7 @@ export function BrandStory() {
               <section className="will-reveal">
                 <h3 className="label mb-5">On measurement</h3>
                 <p className="text-lead text-ivory/72">
-                  Every valuation begins with a number that can be independently checked. Weight is
+                  Every figure begins with a number that can be independently checked. Weight is
                   not negotiable and not a matter of opinion — which is exactly why it is the right
                   place to start a conversation about value.
                 </p>

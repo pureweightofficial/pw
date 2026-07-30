@@ -35,7 +35,7 @@ export function TrustStatement() {
 
           <div className="lg:col-span-5 lg:pt-20">
             <p className="text-lead text-ivory/70 will-reveal">
-              Pureweight approaches gold valuation through accurate measurement, transparent
+              Pureweight buys gold and silver through accurate measurement, transparent
               communication and professional handling.
             </p>
             <p className="mt-6 text-lead text-ash will-reveal">

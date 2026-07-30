@@ -97,17 +97,17 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(brand.url),
   title: {
-    default: 'Pureweight Gold Exchange — Private Gold Valuation & Exchange',
+    default: 'Pureweight Gold Exchange — We Buy Gold, Silver, Coins & Bullion',
     template: '%s — Pureweight Gold Exchange',
   },
   description:
-    'Private gold evaluation and exchange guided by precision, transparency and trusted expertise. Weight, purity and condition examined and explained before any figure is discussed.',
+    'We buy gold and silver over the counter — jewellery, coins and bullion. Your items examined and weighed in front of you, with the figure explained before you decide. Live market reference prices.',
   applicationName: brand.name,
   keywords: [
-    'gold valuation',
+    'sell gold',
     'gold exchange',
     'bullion exchange',
-    'jewellery evaluation',
+    'sell silver',
     'gold hallmarks',
     'precious metal assessment',
     'private gold appointment',
@@ -116,15 +116,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: brand.name,
-    title: 'Pureweight Gold Exchange — Private Gold Valuation & Exchange',
+    title: 'Pureweight Gold Exchange — We Buy Gold, Silver, Coins & Bullion',
     description:
-      'Weight, purity and condition examined and explained before any figure is discussed. Book a private valuation.',
+      'Gold and silver bought over the counter. Weighed in front of you, with the figure explained before you decide.',
     url: brand.url,
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Pureweight Gold Exchange',
-    description: 'Private gold evaluation and exchange, guided by precision.',
+    description: 'We buy gold and silver, weighed and valued in front of you.',
   },
   // Off until the placeholders are cleared and someone opts in deliberately.
   robots: allowIndexing

@@ -15,17 +15,17 @@ import { ValuationJourney } from '@/components/sections/ValuationJourney';
 import { WhyPureweight } from '@/components/sections/WhyPureweight';
 
 export const metadata: Metadata = {
-  title: 'Pureweight Gold Exchange — Private Gold Valuation & Exchange',
+  title: 'Pureweight Gold Exchange — We Buy Gold, Silver, Coins & Bullion',
   description:
-    'Private gold evaluation and exchange guided by precision, transparency and trusted expertise. Weight, purity and condition examined and explained before any figure is discussed.',
+    'We buy gold and silver over the counter — jewellery, coins and bullion. Your items examined and weighed in front of you, with the figure explained before you decide. Live market reference prices.',
   alternates: { canonical: canonicalPath('/') },
   // Complete block per page: Next replaces openGraph wholesale rather than
   // deep-merging, so a partial one silently drops og:image/site_name/type and
   // an absent one inherits the HOMEPAGE og:url on every subpage.
   openGraph: ogFor({
-    title: 'Pureweight Gold Exchange — Private Gold Valuation & Exchange',
+    title: 'Pureweight Gold Exchange — We Buy Gold, Silver, Coins & Bullion',
     description:
-      'Private gold evaluation and exchange guided by precision, transparency and trusted expertise. Weight, purity and condition examined and explained before any figure is discussed.',
+      'We buy gold and silver over the counter — jewellery, coins and bullion. Your items examined and weighed in front of you, with the figure explained before you decide. Live market reference prices.',
     path: '/',
   }),
 };

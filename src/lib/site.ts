@@ -46,7 +46,7 @@ export const brand = {
    * Positioning line. This is brand voice, not a factual claim — it describes
    * the intent of the service rather than asserting a credential.
    */
-  positioning: 'Private gold evaluation and exchange, guided by precision.',
+  positioning: 'We buy gold and silver, weighed and valued in front of you.',
   /** Update once the production domain is confirmed. */
   url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.pureweight.example',
 } as const;
@@ -159,49 +159,64 @@ export const navCta = {
 
 export const chapters = [
   { id: 'trust', index: '01', title: 'True Value' },
-  { id: 'journey', index: '02', title: 'The Process' },
-  { id: 'services', index: '03', title: 'The Services' },
+  { id: 'journey', index: '02', title: 'How It Works' },
+  { id: 'services', index: '03', title: 'What We Buy' },
   { id: 'assay', index: '04', title: 'Purity & Weight' },
   { id: 'pillars', index: '05', title: 'Built on Trust' },
-  { id: 'appointment', index: '06', title: 'Begin Your Exchange' },
+  { id: 'appointment', index: '06', title: 'Come and See Us' },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
 /* VALUATION JOURNEY                                                          */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * WHAT HAPPENS AT THE COUNTER.
+ *
+ * Four steps, not the five the client described, because their first step —
+ * "customer checks current gold and silver prices" — is not something that
+ * happens here. It happens in the market panel further up this same page, which
+ * is why that panel sits directly beneath the hero. Repeating it as step one
+ * would be describing the website to itself.
+ *
+ * Each `body` is what the client confirmed about their own trade. Each `detail`
+ * describes process only, and deliberately promises no timing, no percentage and
+ * no amount — those are unverified facts and stay behind the placeholder guard.
+ *
+ * `tilt` is the beam angle the 3D instrument takes at this stage: weighted down
+ * by the goods at the start, level once the exchange completes.
+ */
 export const journey = [
   {
     step: '01',
-    title: 'Discover the Weight',
-    body: 'The process begins with identifying the item and establishing its accurate weight.',
+    title: 'Bring It In',
+    body: 'Come to the shop with whatever you have — jewellery, coins, bars, or a drawer of odds and ends.',
     detail:
-      'Items are recorded and weighed on the calibrated equipment held at the counter. Weight is the first fixed quantity in any valuation, and everything that follows is measured against it.',
-    /** Beam tilt, in degrees, for this stage of the story. */
+      'Nothing needs sorting, cleaning or valuing beforehand. Broken chains, single earrings and pieces with the stones still in them are all perfectly normal, and there is no minimum worth bringing.',
     tilt: -2.4,
   },
   {
     step: '02',
-    title: 'Verify the Purity',
-    body: "Hallmarks, material composition and purity are reviewed using the company's confirmed assessment process.",
+    title: 'Weighed In Front of You',
+    body: 'Each item is examined and weighed at the counter while you watch, not taken away.',
     detail:
-      'Marks are examined under magnification and the material is assessed for fineness. Where a mark is absent, worn or unclear, the item is examined further before any figure is discussed.',
+      'Hallmarks are read under magnification, and where a mark is worn or absent the metal is tested rather than assumed. The scale stays where you can see it and the weight is read out as it is taken.',
     tilt: -1.4,
   },
   {
     step: '03',
-    title: 'Establish the Value',
-    body: "The verified characteristics are considered against the business's approved valuation method.",
+    title: 'An Offer Against the Market',
+    body: 'You are told what the metal weighs, how pure it is, and what we can pay for it.',
     detail:
-      'Weight and fineness are read together against the reference the business works to at the time of assessment. You are shown how the figure is composed before you are asked to decide anything.',
+      'Precious metal prices move through the trading day, so the figure relates to the market at that moment. How it is arrived at is shown rather than summarised — weight, fineness, and the market reference it is measured against.',
     tilt: -0.5,
   },
   {
     step: '04',
-    title: 'Complete the Exchange',
-    body: 'The customer reviews the valuation and proceeds through the confirmed exchange or settlement process.',
+    title: 'Accept, or Take It Home',
+    body: 'If the figure suits you the sale completes there and then. If it does not, your items go back in your pocket.',
     detail:
-      'Nothing is committed until the figure is understood and accepted. Settlement then follows the process the business has confirmed for that item type.',
+      'There is no obligation at any point and no charge for having looked. Declining is an ordinary outcome and is treated as one.',
     tilt: 0,
   },
 ] as const;
@@ -238,49 +253,62 @@ export type Service = {
   confirmed: boolean;
 };
 
+/**
+ * WHAT WE BUY.
+ *
+ * The client confirmed the trade: they BUY gold and silver — jewellery, coins and
+ * bullion. They do not sell, they do not run a church fundraising programme, and
+ * there is ONE shop rather than several. All three were offered and all three
+ * were declined, so none of them appears anywhere on this site.
+ *
+ * `confirmed: true` here means exactly one thing: the client has confirmed they
+ * buy this category. It does not license claims about HOW. So each `points` entry
+ * describes what falls inside the category — checkable by looking at the item in
+ * your hand — and never a process promise, a timescale or a rate. Those remain
+ * unverified business facts behind the placeholder guard.
+ */
 export const services: readonly Service[] = [
   {
     index: '01',
-    title: 'Gold Valuation',
-    summary: 'An itemised assessment of weight, fineness and condition.',
-    body: 'Each piece is weighed, examined and recorded individually rather than assessed as a single lot. You see the figures the valuation is built from, not only the result.',
-    points: ['Individually weighed', 'Hallmark examination', 'Itemised written summary'],
-    cta: 'Enquire About Gold Valuation',
-    image: '/img/valuation.jpg',
+    title: 'Gold Jewellery',
+    summary: 'Worn, broken, inherited or unwanted — in any condition.',
+    body: 'Chains, rings, bracelets, earrings and pendants, whether whole or in pieces. Nothing needs to be a matching pair, in working order, or worth anything in particular before it is worth bringing in.',
+    points: ['Any carat, 9ct to 24ct', 'Broken and single pieces', 'Stones and settings allowed for'],
+    cta: 'Bring Jewellery In',
+    image: '/img/jewellery.jpg',
     enquiryHref: '/contact',
-    confirmed: false,
+    confirmed: true,
   },
   {
     index: '02',
-    title: 'Bullion Exchange',
-    summary: 'Bars and coins assessed on stated fineness and verified weight.',
-    body: 'Refiner marks, serial numbers and stated fineness are checked against the physical weight of the piece. Recognised bullion is handled on its own terms and is not treated as scrap.',
-    points: ['Refiner mark check', 'Serial recorded where present', 'Bars and coin'],
-    cta: 'Enquire About Bullion Exchange',
-    image: '/img/bullion.jpg',
+    title: 'Silver',
+    summary: 'Hallmarked silver, from jewellery to tableware.',
+    body: 'Silver is weighed and assessed on the same basis as gold, against its own market price. Plated items contain very little recoverable silver, and we will tell you plainly when that is what you have.',
+    points: ['Sterling and 800 silver', 'Jewellery, cutlery, tableware', 'Plate identified honestly'],
+    cta: 'Bring Silver In',
     enquiryHref: '/contact',
-    confirmed: false,
+    confirmed: true,
   },
   {
     index: '03',
-    title: 'Jewellery Evaluation',
-    summary: 'Worn, inherited and broken pieces examined under inspection light.',
-    body: 'Settings, solder, clasps and stones all affect the recoverable metal in a piece. These are identified and explained rather than quietly discounted.',
-    points: ['Stone and setting allowance', 'Mixed-carat sorting', 'Antique pieces considered'],
-    cta: 'Enquire About Jewellery Evaluation',
-    image: '/img/jewellery.jpg',
+    title: 'Coins',
+    summary: 'Precious-metal coins, whether collected or inherited.',
+    body: 'Coins are looked at twice: once for the metal in them, and once for whether the coin itself is worth more than that metal. Where the second is true you are told so, rather than paid for the weight.',
+    points: ['Sovereigns and krugerrands', 'Pre-decimal silver', 'Collections and single coins'],
+    cta: 'Bring Coins In',
     enquiryHref: '/contact',
-    confirmed: false,
+    confirmed: true,
   },
   {
     index: '04',
-    title: 'Private Appointments',
-    summary: 'A scheduled, unhurried consultation away from the counter.',
-    body: 'For larger holdings, estates and confidential matters, an appointment gives the time an item deserves and keeps the conversation private.',
-    points: ['By arrangement', 'Confidential handling', 'Estate and probate matters'],
-    cta: 'Request a Private Appointment',
+    title: 'Bars & Bullion',
+    summary: 'Investment bars and coins, assessed on weight and stated fineness.',
+    body: 'Refiner marks and stated fineness are checked against the physical weight of the piece. Recognised bullion is handled on its own terms rather than treated as scrap metal.',
+    points: ['Refiner mark checked', 'Weight verified at the counter', 'Bars and investment coins'],
+    cta: 'Bring Bullion In',
+    image: '/img/bullion.jpg',
     enquiryHref: '/contact',
-    confirmed: false,
+    confirmed: true,
   },
 ] as const;
 
@@ -325,18 +353,35 @@ export const assayFactors = [
 /* PILLARS                                                                    */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * The client's stated value proposition, with the promises removed.
+ *
+ * They gave: fast cash, fair market pricing, honest weighing, transparent
+ * process, local trusted service, professional expertise. Several are unusable as
+ * written. "Fast cash" is a timing promise. "Fair pricing" is a judgement for the
+ * seller to make, not for the buyer to assert. "Trusted" is a claim about other
+ * people's opinions and would need a genuine review source behind it.
+ *
+ * What survives is the same substance stated as method rather than as boast —
+ * which is also the stronger version, because every line below is something a
+ * customer can check while standing at the counter.
+ */
 export const pillars = [
   {
-    title: 'Precision',
-    body: 'Accurate measurement provides the foundation for every professional valuation.',
+    title: 'Weighed in front of you',
+    body: 'The scale stays where you can see it and the weight is read out as it is taken. Nothing is carried into a back room.',
   },
   {
-    title: 'Transparency',
-    body: 'Customers should clearly understand the factors considered during the evaluation process.',
+    title: 'Measured against the market',
+    body: 'Precious metal has a published market price. Any figure is related back to it, at the moment you are standing there.',
   },
   {
-    title: 'Trust',
-    body: 'Every interaction should feel private, respectful and professionally managed.',
+    title: 'The working is shown',
+    body: 'Weight, the purity we have established, and how the two produce the figure — explained before you are asked to decide anything.',
+  },
+  {
+    title: 'No obligation, ever',
+    body: 'Having something examined and valued costs nothing. Taking it home again is an ordinary outcome, not an awkward one.',
   },
 ] as const;
 
@@ -348,10 +393,10 @@ export const pillars = [
 /* -------------------------------------------------------------------------- */
 
 export const trustStrip = [
-  'Private Appointments',
-  'Transparent Evaluation',
-  'Professional Weighing',
-  'Confidential Service',
+  'Weighed at the Counter',
+  'Market-Referenced Figures',
+  'Gold, Silver, Coins, Bullion',
+  'No Obligation to Sell',
 ] as const;
 
 /* -------------------------------------------------------------------------- */

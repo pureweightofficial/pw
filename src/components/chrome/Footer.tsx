@@ -40,8 +40,8 @@ export function Footer() {
           <div className="lg:col-span-4">
             <Logo variant="full" className="w-44" />
             <p className="mt-7 max-w-xs text-sm leading-relaxed text-ash">
-              {brand.positioning} Every valuation begins with accurate measurement and is explained
-              in full before anything is agreed.
+              {brand.positioning} Jewellery, coins and bullion, examined at the counter with the
+              figure explained before anything is agreed.
             </p>
 
             <div className="mt-7 space-y-2 text-sm text-ash">
@@ -77,7 +77,7 @@ export function Footer() {
 
           {/* --- Services ---------------------------------------------- */}
           <div className="lg:col-span-3">
-            <h2 className="label mb-5 text-[0.6rem]">Services</h2>
+            <h2 className="label mb-5 text-[0.6rem]">What We Buy</h2>
             <ul className="space-y-3">
               {services.map((service) => (
                 <li key={service.title} className="flex items-baseline gap-2">
