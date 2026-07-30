@@ -310,7 +310,18 @@ export function HeroVideo({ paused, onActiveChange }: HeroVideoProps) {
         priority
         className="hero-media"
         style={{
-          opacity: started ? 0 : 1,
+          /**
+           * `started && playVideo`, NOT `started` alone.
+           *
+           * A decode error can fire AFTER playback has begun. That sets `failed`,
+           * which collapses `playVideo` and unmounts the video — but `started`
+           * stays true, so keying only on it left the still hidden at opacity 0
+           * with nothing on top of it. The result was a permanently blank hero
+           * with no recovery short of a reload, on a page whose entire fallback
+           * story is "the still frame is a complete hero". Found by audit, not by
+           * looking at it, because it needs a mid-playback failure to reproduce.
+           */
+          opacity: started && playVideo ? 0 : 1,
           transition: 'opacity 600ms cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       />

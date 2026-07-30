@@ -150,8 +150,49 @@ export default async function OpenGraphImage() {
           }}
         >
           {logo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={logo} width={400} height={413} alt="" />
+            /**
+             * THE MONOGRAM ONLY — NOT THE FULL LOCKUP.
+             *
+             * The supplied artwork's centre panel is a balance carrying a bar
+             * struck "999.9 FINE GOLD / 1 KILO GOLD" on one pan and banded US
+             * $100 notes on the other. Both are claims this site is not in a
+             * position to make: a purity-and-capacity claim, and a settlement
+             * currency for a business whose trading jurisdiction is still an
+             * unconfirmed placeholder. They are the same two claims the hero film
+             * was cut at 4.55s to exclude.
+             *
+             * This card was previously drawing the full lockup at 400px wide, on a
+             * 1200x630 image — large enough that both are plainly readable, and
+             * this is the asset that gets pasted into social and messaging
+             * previews. So it is cropped to the PW roundel, which is unambiguous
+             * brand and carries no assertion at all.
+             *
+             * The crop numbers are the `monogram` window from Logo.tsx, scaled:
+             * source 520x537, window x 4.2% y 18.5% w 23.5% h 22.5%, at 2.4547x.
+             *
+             * NOTE: this does not fix the artwork itself, which is still rendered
+             * whole in the footer, the loader and the 404 page, and is downloadable
+             * at full resolution. That needs the client's decision, and it is
+             * logged in CONTENT-PLACEHOLDERS.md.
+             */
+            <div
+              style={{
+                display: 'flex',
+                position: 'relative',
+                overflow: 'hidden',
+                width: 300,
+                height: 297,
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={logo}
+                width={1276}
+                height={1318}
+                alt=""
+                style={{ position: 'absolute', left: -54, top: -244 }}
+              />
+            </div>
           ) : (
             <div
               style={{

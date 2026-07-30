@@ -32,6 +32,46 @@ wipe. An SVG would fix both and is the one brand asset still outstanding.
 Also still holding a placeholder mark:
 [`src/app/icon.svg`](src/app/icon.svg) — replace with the real monogram.
 
+### ⚠️ The logo artwork carries the same two claims the film was cut to remove
+
+**This needs your decision, and it is the highest-priority item in this file.**
+
+The supplied lockup's centre panel is a balance carrying:
+
+- a gold bar struck **`999.9 FINE GOLD` / `1 KILO GOLD`** on the left pan, and
+- banded **US $100 notes** on the right pan.
+
+These are the **same** claims that caused the hero film to be cut at 4.55 s — a
+purity-and-capacity claim, and a settlement currency for a business whose trading
+jurisdiction is still `[INSERT CONFIRMED SERVICE AREA]`. Cutting them from a
+decorative background film while they sit in the logo on every page is not a
+coherent position.
+
+**Already done:** the OpenGraph social card was drawing the full lockup at 400 px
+on a 1200×630 image, where both are plainly readable, and it is the asset that
+gets pasted into social and messaging previews. It now draws the **PW roundel
+only** — unambiguous brand, no assertion.
+
+**Not done, because it is your call, not ours:** the full lockup still renders in
+the footer, the opening loader and the 404 page, and the artwork is downloadable
+at full resolution from `/brand/pureweight-logo.webp`. At those display sizes the
+struck text is a few pixels tall and unreadable, and the notes read as generic
+cash rather than a specific currency — so the practical exposure is low, but it is
+not zero.
+
+Three questions:
+
+| # | Question | Why it matters |
+| --- | --- | --- |
+| 1 | Is `999.9` / `1 KILO` accurate for what Pureweight actually handles? | If yes, it stops being a problem anywhere. If no, it should not be in the mark. |
+| 2 | Is US dollar the actual settlement currency? | Drives both this and `RATES_CURRENCY` for the live rate feed. |
+| 3 | Has the use of US currency imagery been cleared? | Reproducing US banknotes is governed by 18 U.S.C. § 504 and 31 CFR Part 411, which set conditions on size and reproduction. **This is a question for your lawyer, not for us** — we are flagging it, not advising on it. |
+
+If you want the claims off the site entirely without touching the artwork, there
+is a ready one-line change: `Logo.tsx` already defines a `wordmark` crop
+(`PUREWEIGHT / GOLD EXCHANGE`, no scale) and a `monogram` crop, and the three
+`variant="full"` usages can point at `wordmark` instead. Say the word.
+
 ---
 
 ## 1b. The hero brand film — four claims to confirm
