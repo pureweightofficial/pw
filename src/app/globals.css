@@ -290,11 +290,14 @@
          3.44:1. The ramp is a shade brighter at its dark end; the alternative
          was type you cannot read. */
       linear-gradient(135deg, #fef3c7 0%, #fcc933 45%, #cc9022 100%);
-    /* Sized so a cell spans roughly a capital, not a whole word — at
-       cover/contain the cracks would scale with the text and stop reading as
-       a fixed material property of the gold. */
+    /* Tile size is set against the STROKE WIDTH it has to cross, not against
+       the letter. At 420px a cell was 38px across while the italic stem it runs
+       over is about 10px — so roughly a quarter of a crack per stroke, and the
+       effect was invisible. At 190px a crack lands every 17px and actually
+       crosses the stroke. Fixed in px rather than %, so the crazing stays a
+       property of the material instead of scaling with the type. */
     background-size:
-      420px 420px,
+      190px 190px,
       100% 100%;
     background-blend-mode: multiply, normal;
     -webkit-background-clip: text;
@@ -304,11 +307,11 @@
     filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.85));
   }
 
-  /* The same material at ornament scale, for the largest headline only, where
-     a tighter cell reads as fine crazing rather than as broken plate. */
-  .gold-leaf-fine {
+  /* Coarser crazing, for very large or very heavy type where 190px would read
+     as noise rather than as cracked plate. */
+  .gold-leaf-coarse {
     background-size:
-      260px 260px,
+      300px 300px,
       100% 100%;
   }
 
