@@ -41,11 +41,23 @@ function readShippedTreatment() {
   const blocks = [...css.matchAll(/\.hero-scrim \{[\s\S]*?\}/g)].map((m) => m[0]);
   if (blocks.length === 0) throw new Error(`no .hero-scrim rule found in ${CSS}`);
 
-  const stops = [...blocks.at(-1).matchAll(/rgba\(5, 4, 6, ([\d.]+)\) ([\d.]+)%/g)].map((m) => [
-    Number(m[2]) / 100,
-    Number(m[1]),
-  ]);
-  if (stops.length < 2) throw new Error('could not parse the scrim gradient stops');
+  // Colour AND alpha are both parsed. An earlier version matched the literal
+  // `rgba(5, 4, 6, ...)`, which silently stopped matching anything the moment the
+  // ground moved to pure black — it threw rather than passing falsely, but only
+  // by luck. Nothing about the ground colour is assumed here now.
+  const stopMatches = [
+    ...blocks
+      .at(-1)
+      .matchAll(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)\s*([\d.]+)%/g),
+  ];
+  if (stopMatches.length < 2) throw new Error('could not parse the scrim gradient stops');
+
+  const scrimRgb = [
+    Number(stopMatches[0][1]),
+    Number(stopMatches[0][2]),
+    Number(stopMatches[0][3]),
+  ];
+  const stops = stopMatches.map((m) => [Number(m[5]) / 100, Number(m[4])]);
 
   const dimMatch = /filter: brightness\(([\d.]+)\)/.exec(css);
   if (!dimMatch) throw new Error('could not parse the film brightness filter');
@@ -55,6 +67,7 @@ function readShippedTreatment() {
 
   return {
     stops,
+    scrimRgb,
     dim: Number(dimMatch[1]),
     scale: Number(tx[1]),
     shift: Number(tx[2]) / 100,
@@ -65,9 +78,32 @@ function readShippedTreatment() {
 /* COLOUR MATHS — WCAG 2.x, composited in gamma space as browsers do           */
 /* -------------------------------------------------------------------------- */
 
-const VOID = [5, 4, 6];
-const IVORY = [254, 243, 199];
-const ASH = [162, 151, 127];
+/**
+ * Text colours are READ FROM THE TOKENS, never copied.
+ *
+ * They were literals until the palette moved to pure black with gold type, at
+ * which point literals would have had this audit certifying colours the site had
+ * stopped using. `ivory` and `ash` are historical names — they are now the
+ * primary and secondary GOLDS that carry nearly all the type.
+ */
+const TOKENS = Object.fromEntries(
+  [...readFileSync(CSS, 'utf8').matchAll(/--color-([a-z-]+):\s*#([0-9a-fA-F]{6})/g)].map((m) => [
+    m[1],
+    m[2],
+  ]),
+);
+
+function tokenRgb(name) {
+  const hex = TOKENS[name];
+  if (!hex) {
+    throw new Error(`no --color-${name} in ${CSS}. Found: ${Object.keys(TOKENS).join(', ')}`);
+  }
+  const n = parseInt(hex, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+const IVORY = tokenRgb('ivory');
+const ASH = tokenRgb('ash');
 
 const luminance = ([r, g, b]) => {
   const channel = (c) => {
@@ -146,7 +182,7 @@ for (let f = 0; f < frames; f++) {
       const film = [raw[i], raw[i + 1], raw[i + 2]].map((c) =>
         Math.min(255, c * treatment.dim),
       );
-      const bg = over(VOID, rampAt(treatment.stops, x), film);
+      const bg = over(treatment.scrimRgb, rampAt(treatment.stops, x), film);
 
       const S = BANDS.small;
       if (x >= S.x[0] && x <= S.x[1] && v >= S.y[0] && v <= S.y[1]) {
@@ -182,6 +218,10 @@ console.log('HERO FILM CONTRAST — real pixels, not tokens');
 console.log(
   `  ${frames} frames at 4fps  |  film dim ${treatment.dim}  |  ` +
     `scale ${treatment.scale} shift ${treatment.shift * 100}%`,
+);
+console.log(
+  `  ground rgb(${treatment.scrimRgb.join(',')})  |  ` +
+    `type rgb(${IVORY.join(',')}) / rgb(${ASH.join(',')})`,
 );
 console.log('');
 console.log(line('lead paragraph — text-ivory/72', worst.lead, 4.5));

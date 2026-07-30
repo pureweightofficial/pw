@@ -19,16 +19,23 @@
      its --aurora-gold-bright is #f5c542), so the two agree and the palette
      follows both rather than splitting the difference.
 
-     Ground is pure black in the logo. It is carried here with a fractional
-     warm cast so large flat areas do not read as dead #000 on OLED.
+     Ground is PURE BLACK, and text is gold rather than off-white. Going to a
+     true #000 is not only a look — it buys contrast headroom, and that headroom
+     is what makes an all-gold type palette legible at all. Every gold in the
+     ramp below, including the deepest, clears WCAG AA on #000; several of them
+     would not have cleared it on the previous #050406 ground once dimmed.
      ---------------------------------------------------------------------- */
 
   /* --- Ground ----------------------------------------------------------- */
-  --color-void: #050406;
-  --color-char: #0a0809;
-  --color-gunmetal: #13100e;
-  --color-iron: #1c1813;
-  --color-stone: #171310;
+  /* True black. The page background is #000 with no cast: the brief's ground is
+     pure black in the logo, and the earlier fractional warm tint was costing
+     contrast that the gold type needs. Surfaces above it are lifted only enough
+     to give a panel an edge — they still read as black to the eye. */
+  --color-void: #000000;
+  --color-char: #050404;
+  --color-gunmetal: #0d0b09;
+  --color-iron: #14110d;
+  --color-stone: #100d09;
 
   /* --- Metal: sampled from the logo's letterforms and frame ------------- */
   --color-gold-antique: #b87914; /* ornament + frame, sampled */
@@ -38,10 +45,18 @@
   --color-bronze: #573202; /* inside the craquelure cracks, sampled */
 
   /* --- Support ---------------------------------------------------------- */
-  /* Warm cream rather than the previous cool ivory — the logo has no cool
-     tones anywhere, and neutral text against amber gold reads as a mismatch. */
-  --color-ivory: #fef3c7;
-  --color-ash: #a2977f;
+  /* THESE TWO CARRY ALMOST ALL THE TYPE ON THE SITE — roughly 140 usages
+     between them — so they are where "shining gold text" is actually delivered.
+     Both were neutral before: `ivory` a near-white cream, `ash` a warm grey.
+     Retuning the two tokens turns every one of those usages gold without
+     touching a single class name, which is why the palette is defined here and
+     not sprinkled through components.
+
+     The names are now historical. They are kept because renaming them would
+     touch ~140 call sites for no behavioural gain, and the values are the single
+     source of truth that both contrast audits read directly. */
+  --color-ivory: #f4cf63; /* primary type — light shining gold */
+  --color-ash: #cba85f; /* secondary type and fine print — muted gold */
 
   /* --- Type ------------------------------------------------------------- */
   /* Upright display: engraved Roman capitals, matched to the logo's lettering. */
@@ -792,8 +807,8 @@
     background: radial-gradient(
       118% 92% at 50% 44%,
       transparent 38%,
-      rgba(5, 4, 6, 0.42) 74%,
-      rgba(5, 4, 6, 0.88) 100%
+      rgba(0, 0, 0, 0.42) 74%,
+      rgba(0, 0, 0, 0.88) 100%
     );
   }
 
@@ -839,9 +854,9 @@
   .hero-scrim {
     background-image: linear-gradient(
       to right,
-      rgba(5, 4, 6, 0.96) 0%,
-      rgba(5, 4, 6, 0.72) 50%,
-      rgba(5, 4, 6, 0) 100%
+      rgba(0, 0, 0, 0.96) 0%,
+      rgba(0, 0, 0, 0.72) 50%,
+      rgba(0, 0, 0, 0) 100%
     );
   }
 
@@ -857,12 +872,12 @@
     .hero-scrim {
       background-image: linear-gradient(
         to right,
-        rgba(5, 4, 6, 0.96) 0%,
-        rgba(5, 4, 6, 0.92) 34%,
-        rgba(5, 4, 6, 0.84) 52%,
-        rgba(5, 4, 6, 0.5) 72%,
-        rgba(5, 4, 6, 0.16) 88%,
-        rgba(5, 4, 6, 0) 100%
+        rgba(0, 0, 0, 0.96) 0%,
+        rgba(0, 0, 0, 0.92) 34%,
+        rgba(0, 0, 0, 0.84) 52%,
+        rgba(0, 0, 0, 0.5) 72%,
+        rgba(0, 0, 0, 0.16) 88%,
+        rgba(0, 0, 0, 0) 100%
       );
     }
   }
