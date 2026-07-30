@@ -107,6 +107,41 @@ const nextConfig: NextConfig = {
                 { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
               ],
             },
+
+            /**
+             * CACHING — the fix for "I land and see the old version first".
+             *
+             * GitHub Pages serves EVERYTHING with `Cache-Control: max-age=600`,
+             * including the HTML. So for ten minutes after a deploy a returning
+             * visitor gets the previous document out of browser cache, and that
+             * document references the previous content-hashed chunks — which are
+             * also still cached. The result is a completely coherent OLD SITE,
+             * which is exactly what it looks like: the old design, then the new
+             * one on the next load. Nothing is broken; the browser is doing what
+             * it was told.
+             *
+             * Pages cannot be configured, so this is unfixable there and is a
+             * genuine reason not to run production on it. On a node host these
+             * two rules resolve it:
+             */
+            {
+              // Documents must revalidate every time. `no-cache` does NOT mean
+              // "do not store" — it means "store, but check with the server
+              // before reusing", so a deploy is picked up on the next
+              // navigation while unchanged pages still answer 304.
+              source: '/:path*',
+              headers: [{ key: 'Cache-Control', value: 'no-cache' }],
+            },
+            {
+              // Build output is content-hashed: a changed file gets a changed
+              // name, so the old one can never be served in error. It is
+              // therefore safe to cache permanently, and `immutable` stops the
+              // browser revalidating it at all.
+              source: '/_next/static/:path*',
+              headers: [
+                { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+              ],
+            },
           ];
         },
       }),

@@ -49,7 +49,26 @@ const vintage = Rye({
   subsets: ['latin'],
   weight: '400',
   variable: '--font-vintage',
-  display: 'swap',
+  /**
+   * `block`, NOT `swap`, and this is the fix for the reported "old design then
+   * new design" flash on landing.
+   *
+   * `swap` paints the metric-matched fallback immediately and swaps when the
+   * real face arrives. For body text that is right — a brief substitution beats
+   * invisible words. For THIS face it is wrong: Rye is a Victorian slab with
+   * flared serifs and nothing in any fallback stack resembles it, so the swap
+   * does not read as a font loading. It reads as the page changing design.
+   *
+   * `block` renders the text invisible for a short block period (~3s) and then
+   * paints it once, in Rye. There is no wrong-font state to see.
+   *
+   * The usual objection to `block` — briefly invisible headings — barely applies
+   * here, because the opening curtain covers the first ~2.4s of a first visit,
+   * so the block period elapses behind it. Repeat visitors have the face in
+   * cache. Reduced-motion visitors skip the curtain and may see a short blank,
+   * which is still less jarring than watching the headline change typeface.
+   */
+  display: 'block',
   preload: true,
 });
 
@@ -65,7 +84,9 @@ const playfair = Playfair_Display({
   weight: ['400', '500', '600', '700'],
   style: ['normal', 'italic'],
   variable: '--font-playfair',
-  display: 'swap',
+  // Same reasoning as Rye: a calligraphic italic has no fallback that resembles
+  // it, so a swap reads as a redesign rather than as a font arriving.
+  display: 'block',
   // Explicit, though it is the default — this is the LCP typeface and its
   // preload behaviour is load-bearing.
   preload: true,
@@ -75,6 +96,12 @@ const manrope = Manrope({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-manrope',
+  /**
+   * Stays `swap`, deliberately. This carries the body copy, and invisible body
+   * text is worse than a brief substitution — the visitor can start reading
+   * immediately. Manrope is also metric-close to the system sans fallback, so
+   * the substitution is subtle rather than a change of character.
+   */
   display: 'swap',
 });
 
