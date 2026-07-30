@@ -46,7 +46,7 @@ export function FinalBalance() {
 
           <h2
             id="finale-heading"
-            className="font-display text-chapter font-semibold text-ivory will-reveal"
+            className="font-display text-chapter font-normal text-ivory will-reveal"
           >
             Know the true value
             <br />

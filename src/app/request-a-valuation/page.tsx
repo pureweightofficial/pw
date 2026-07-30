@@ -33,7 +33,7 @@ export default function RequestValuationPage() {
       <div className="shell">
         <div className="mx-auto max-w-3xl text-center">
           <Eyebrow className="mb-8">Private Valuation</Eyebrow>
-          <h1 id="request-heading" className="font-display text-chapter font-semibold text-ivory">
+          <h1 id="request-heading" className="font-display text-chapter font-normal text-ivory">
             Know the true value
             <br />
             <span className="accent-italic text-gold-high/90">of what you hold.</span>

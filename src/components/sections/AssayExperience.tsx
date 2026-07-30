@@ -43,7 +43,7 @@ export function AssayExperience() {
           <Eyebrow className="mb-8 will-reveal">Chapter 04 — Purity &amp; Weight</Eyebrow>
           <h2
             id="assay-heading"
-            className="font-display text-chapter font-semibold text-ivory will-reveal"
+            className="font-display text-chapter font-normal text-ivory will-reveal"
           >
             Value is not guessed.
             <br />
@@ -90,7 +90,7 @@ export function AssayExperience() {
                         <span className="font-sans text-[0.6rem] tracking-[0.24em] text-gold-antique">
                           {String(index + 1).padStart(2, '0')}
                         </span>
-                        <h3 className="font-display text-2xl font-semibold text-ivory lg:text-3xl">
+                        <h3 className="font-display text-2xl font-normal text-ivory lg:text-3xl">
                           {factor.label}
                         </h3>
                       </div>

@@ -48,7 +48,7 @@ export function Testimonials() {
         <div className="min-h-[16rem]" aria-live="polite" aria-atomic="true">
           {current ? (
             <blockquote className="will-reveal">
-              <p className="font-display text-statement font-semibold leading-tight text-ivory italic">
+              <p className="font-display text-statement font-normal leading-tight text-ivory italic">
                 &ldquo;{current.quote}&rdquo;
               </p>
               <footer className="mt-9">
@@ -60,7 +60,7 @@ export function Testimonials() {
             </blockquote>
           ) : (
             <div className="will-reveal">
-              <p className="mx-auto max-w-2xl font-display text-statement font-semibold leading-tight text-ash italic">
+              <p className="mx-auto max-w-2xl font-display text-statement font-normal leading-tight text-ash italic">
                 &ldquo;&nbsp;&nbsp;&nbsp;&rdquo;
               </p>
               <p className="mx-auto mt-8 inline-flex items-center gap-2 border border-dashed border-gold-antique/35 bg-gold-antique/5 px-4 py-2 text-[0.66rem] tracking-[0.16em] text-gold-antique uppercase">

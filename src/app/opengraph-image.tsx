@@ -39,7 +39,7 @@ const ASH = '#a2977f';
 async function loadDisplayFont(): Promise<ArrayBuffer | null> {
   try {
     const css = await fetch(
-      'https://fonts.googleapis.com/css2?family=Cinzel:wght@600&display=swap',
+      'https://fonts.googleapis.com/css2?family=Rye&display=swap',
       {
         // The modern UA returns woff2, which Satori cannot parse. An older one
         // gets a plain TTF.
@@ -53,7 +53,7 @@ async function loadDisplayFont(): Promise<ArrayBuffer | null> {
     const font = await fetch(url);
     return font.ok ? await font.arrayBuffer() : null;
   } catch {
-    // A share card without Cinzel is a small loss; a build that fails because
+    // A share card without Rye is a small loss; a build that fails because
     // a font server was slow is a large one.
     return null;
   }
@@ -71,7 +71,7 @@ async function loadLogo(): Promise<string | null> {
 
 export default async function OpenGraphImage() {
   const [displayFont, logo] = await Promise.all([loadDisplayFont(), loadLogo()]);
-  const display = displayFont ? 'Cinzel' : undefined;
+  const display = displayFont ? 'Rye' : undefined;
 
   return new ImageResponse(
     (
@@ -171,7 +171,7 @@ export default async function OpenGraphImage() {
     {
       ...size,
       fonts: displayFont
-        ? [{ name: 'Cinzel', data: displayFont, style: 'normal', weight: 600 as const }]
+        ? [{ name: 'Rye', data: displayFont, style: 'normal', weight: 400 as const }]
         : [],
     },
   );

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Cinzel, Geist_Mono, Manrope, Playfair_Display } from 'next/font/google';
+import { Geist_Mono, Manrope, Playfair_Display, Rye } from 'next/font/google';
 import { Footer } from '@/components/chrome/Footer';
 import { Loader } from '@/components/chrome/Loader';
 import { Nav } from '@/components/chrome/Nav';
@@ -31,30 +31,23 @@ import './globals.css';
  */
 
 /**
- * THE VINTAGE DISPLAY FACE — matched to the logo, not to the reference site.
+ * THE VINTAGE DISPLAY FACE — Rye, chosen from the type specimen against the
+ * actual logo. It is a genuine Victorian slab/Tuscan display: heavy, blunt,
+ * flared serifs — the closest letterform match to the mark's engraved
+ * lettering among the free candidates (Cinzel matched the *feeling* but its
+ * fine tapered serifs were the wrong shape; Yeseva One read as signwriting).
  *
- * The supplied mark sets PUREWEIGHT in a heavy Victorian display serif: blunt
- * flared serifs, high stroke contrast, engraved-label character. Playfair
- * Display — which the Aurora reference uses, and which this site adopted when
- * matching Aurora was the brief — is a fashion-editorial serif and reads as a
- * different brand entirely beside that mark.
+ * RYE SHIPS EXACTLY ONE WEIGHT: 400, and it is already heavy by design.
+ * Nothing may set a heavier weight on display type — the browser would
+ * synthesize a faux-bold and the letterforms turn to mush. font-synthesis is
+ * disabled in globals.css as a hard stop, and the previous font-normal
+ * utilities were swept back to font-normal in the same change.
  *
- * Cinzel is drawn from Roman inscriptional capitals, so it reads as *struck into
- * metal* rather than printed. That is the same idea the whole site is built on,
- * and it sits with the logo instead of arguing with it.
- *
- * Note it is a capitals design: lowercase renders as small capitals. That is a
- * deliberate part of the choice, not a limitation — mixed-case headlines become
- * caps-and-small-caps, which is precisely how an assay stamp is lettered.
- *
- * To try a different vintage face, this import and the --font-vintage token are
- * the only two places to change. Rye (Victorian slab, closer serif shape but
- * more saloon-poster) and Yeseva One (heavier, softer, true lowercase) are the
- * two nearest free alternatives.
+ * Unlike Cinzel, Rye has true lowercase, so headlines are mixed-case again.
  */
-const cinzel = Cinzel({
+const vintage = Rye({
   subsets: ['latin'],
-  weight: ['400', '600', '700'],
+  weight: '400',
   variable: '--font-vintage',
   display: 'swap',
   preload: true,
@@ -181,7 +174,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en-GB"
-      className={`${cinzel.variable} ${playfair.variable} ${manrope.variable} ${geistMono.variable}`}
+      className={`${vintage.variable} ${playfair.variable} ${manrope.variable} ${geistMono.variable}`}
       /* CSS url() never receives basePath, so the cracked-gold texture's path is
          injected here through the same helper every other asset uses. */
       style={{ '--craquelure': `url(${assetPath('/brand/craquelure.png')})` } as React.CSSProperties}

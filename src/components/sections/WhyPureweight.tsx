@@ -23,7 +23,7 @@ export function WhyPureweight() {
           <Eyebrow align="center" className="mb-8 will-reveal">Chapter 05 — Built on Trust</Eyebrow>
           <h2
             id="pillars-heading"
-            className="font-display text-chapter font-semibold text-ivory will-reveal"
+            className="font-display text-chapter font-normal text-ivory will-reveal"
           >
             Three things we will not
             <span className="accent-italic text-gold-high/90"> compromise</span>
@@ -37,7 +37,7 @@ export function WhyPureweight() {
                 <Medallion index={index} label={pillar.title} />
               </div>
 
-              <h3 className="mt-9 font-display text-3xl font-semibold text-ivory will-reveal lg:text-4xl">
+              <h3 className="mt-9 font-display text-3xl font-normal text-ivory will-reveal lg:text-4xl">
                 {pillar.title}
               </h3>
 

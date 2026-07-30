@@ -359,7 +359,7 @@ function ValuationFormInner() {
         <h2
           ref={successRef}
           tabIndex={-1}
-          className="font-display text-4xl font-semibold text-ivory outline-none lg:text-5xl"
+          className="font-display text-4xl font-normal text-ivory outline-none lg:text-5xl"
         >
           Thank you — your details are with us.
         </h2>
@@ -487,7 +487,7 @@ function ValuationFormInner() {
         <legend
           ref={legendRef}
           tabIndex={-1}
-          className="mb-8 font-display text-3xl font-semibold text-ivory outline-none lg:text-4xl"
+          className="mb-8 font-display text-3xl font-normal text-ivory outline-none lg:text-4xl"
         >
           {step.legend}
         </legend>

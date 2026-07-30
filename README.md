@@ -39,31 +39,30 @@ Four faces, each with one job.
 
 | Face | Role |
 | --- | --- |
-| **Cinzel** 600 | Upright display — engraved Roman capitals |
+| **Rye** 400 | Upright display — Victorian slab, matched to the logo |
 | **Playfair Display** italic | Accent counterpoint only |
 | **Manrope** | Body, navigation, forms |
 | **Geist Mono** 500 | Micro-labels at 10px / 0.42em tracking |
 
-**Why Cinzel and not the reference site's face.** The supplied logo sets
-PUREWEIGHT in a heavy Victorian display serif — blunt flared serifs, high stroke
-contrast, engraved-label character. Playfair Display, which the Aurora reference
-uses, is a fashion-editorial serif and reads as a different brand beside that
-mark. Cinzel is drawn from Roman inscriptional capitals, so it reads as *struck
-into metal*, which is the idea the whole site is built on.
+**Why Rye.** The supplied logo sets PUREWEIGHT in a heavy Victorian display
+serif — blunt flared serifs, high stroke contrast, engraved-label character.
+Rye is a genuine Victorian slab/Tuscan and is the closest letterform match
+among the free candidates. It was chosen by eye from a specimen page that
+rendered every candidate at real display size directly beneath the actual mark;
+Cinzel matched the *feeling* (inscriptional, struck-into-metal) but its fine
+tapered serifs were the wrong shape, and Yeseva One read as hand-painted
+signwriting.
 
-It is a capitals design: lowercase renders as small capitals, so mixed-case
-headlines become caps-and-small-caps. That is deliberate — it is how an assay
-stamp is lettered.
+**Rye ships exactly one weight: 400** — and it is already heavy by design.
+Nothing may set a heavier weight on display type: the browser would synthesize
+a faux-bold and the letterforms turn to mush. `font-synthesis: none` on
+`h1–h4` is the hard stop, so even a stray `font-weight: 600` renders as true
+400 rather than as smeared type.
 
 **Why Playfair is still here.** No vintage display face on Google Fonts ships an
 italic, and this design uses italic serif accents in 21 places. Rather than lose
 them, the italic counterpoint stays calligraphic via `.accent-italic`. An
 engraved roman against a calligraphic italic is a pairing, not an accident.
-
-**To try a different vintage face** the import in `layout.tsx` and the
-`--font-vintage` token are the only two places to change. The nearest free
-alternatives are **Rye** (Victorian slab, closer serif shape, more
-saloon-poster) and **Yeseva One** (heavier, softer, true lowercase).
 
 > **The build must be Turbopack.** `next/font`'s automatic preloading depends on
 > `next-font-manifest.json`, and the webpack build populates it with *zero* route

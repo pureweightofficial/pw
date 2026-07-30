@@ -28,7 +28,7 @@ export default function GlobalError({
       <div className="shell-narrow text-center">
         <Eyebrow className="mb-6">Something went wrong</Eyebrow>
 
-        <h1 className="font-display text-chapter font-semibold text-ivory">
+        <h1 className="font-display text-chapter font-normal text-ivory">
           We could not load
           <span className="accent-italic text-gold-high/90"> this page.</span>
         </h1>

@@ -85,7 +85,7 @@ export function Hero() {
 
           <h1
             id="hero-heading"
-            className="hero-rise font-display text-hero font-semibold text-ivory [--rise-delay:120ms]"
+            className="hero-rise font-display text-hero font-normal text-ivory [--rise-delay:120ms]"
           >
             <span className="block">Where Gold Finds</span>
             <span className="gold-leaf accent-italic block">Its True Weight.</span>

@@ -106,7 +106,7 @@ export default async function LegalPage({ params }: { params: Promise<{ slug: st
     <Section material="stone" labelledBy="legal-heading" className="pb-24 pt-36 lg:pb-36 lg:pt-44">
       <div className="shell-narrow">
         <Eyebrow className="mb-8">Legal</Eyebrow>
-        <h1 id="legal-heading" className="font-display text-chapter font-semibold text-ivory">
+        <h1 id="legal-heading" className="font-display text-chapter font-normal text-ivory">
           {doc.title}
         </h1>
         <p className="mt-8 text-lead text-ivory/72">{doc.intro}</p>
@@ -124,7 +124,7 @@ export default async function LegalPage({ params }: { params: Promise<{ slug: st
         <div className="mt-16 space-y-12">
           {doc.sections.map((section, index) => (
             <section key={section.heading}>
-              <h2 className="flex items-baseline gap-4 font-display text-2xl font-semibold text-ivory">
+              <h2 className="flex items-baseline gap-4 font-display text-2xl font-normal text-ivory">
                 <span className="font-sans text-[0.6rem] tracking-[0.22em] text-gold-antique">
                   {String(index + 1).padStart(2, '0')}
                 </span>
