@@ -198,9 +198,23 @@ export function SceneShell({
       const canvas = gl.domElement;
       canvasElRef.current = canvas;
 
-      const onLost = (event: Event) => {
-        event.preventDefault();
-        setFailed(true);
+      /**
+       * A context loss is only a FAILURE if it happens while the canvas is
+       * live. R3F deliberately force-loses the context when a canvas unmounts,
+       * to hand the slot back to a browser that only allows a handful — and the
+       * non-eager scenes unmount every time they scroll far off-screen. Treating
+       * that teardown as a failure set `failed` permanently, so scrolling away
+       * from the assay or finale section once meant the live scene never came
+       * back: poster forever, on a state flag no visitor could reset.
+       *
+       * The disambiguator is DOM connection, checked a frame later: after a
+       * genuine in-page loss the canvas is still in the document; after an
+       * unmount teardown it has been detached by the time the frame fires.
+       */
+      const onLost = () => {
+        requestAnimationFrame(() => {
+          if (canvas.isConnected) setFailed(true);
+        });
       };
 
       canvas.addEventListener('webglcontextlost', onLost);
