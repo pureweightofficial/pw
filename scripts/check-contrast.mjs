@@ -64,7 +64,12 @@ function token(name) {
  * which is why they are composited in sequence rather than averaged.
  */
 function glowPeak() {
-  const warm = /\.ambient-glow\[data-intensity='warm'\]\s*\{[^}]*--pool-alpha:\s*([\d.]+)/.exec(CSS);
+  // Quote-AGNOSTIC on purpose. Prettier normalises CSS attribute selectors to
+  // double quotes, the hand-written source used single, and a regex pinned to
+  // one of them broke the first time the stylesheet went through the
+  // formatter — CI failed on a commit whose local check had run against the
+  // pre-format file. ['\"] accepts both so no formatter pass can break this.
+  const warm = /\.ambient-glow\[data-intensity=['\"]warm['\"]\]\s*\{[^}]*--pool-alpha:\s*([\d.]+)/.exec(CSS);
   if (!warm) throw new Error('could not parse the warm --pool-alpha from globals.css');
   const alpha = Number(warm[1]);
 
