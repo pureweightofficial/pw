@@ -11,8 +11,7 @@ export const dynamic = 'force-static';
  *
  * Generated rather than designed in a file, so it cannot drift out of sync with
  * the brand — which it had already done once: this card was still carrying the
- * pre-rebrand palette and fetching Cormorant Garamond after the site moved to
- * the sampled logo colours and Playfair Display. Everything visual here now
+ * pre-rebrand palette and the wrong display face. Everything visual here now
  * comes from the same two sources as the site itself: the real logo file, and
  * the palette sampled from it.
  *
@@ -40,7 +39,7 @@ const ASH = '#a2977f';
 async function loadDisplayFont(): Promise<ArrayBuffer | null> {
   try {
     const css = await fetch(
-      'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&display=swap',
+      'https://fonts.googleapis.com/css2?family=Cinzel:wght@600&display=swap',
       {
         // The modern UA returns woff2, which Satori cannot parse. An older one
         // gets a plain TTF.
@@ -54,7 +53,7 @@ async function loadDisplayFont(): Promise<ArrayBuffer | null> {
     const font = await fetch(url);
     return font.ok ? await font.arrayBuffer() : null;
   } catch {
-    // A share card without Playfair is a small loss; a build that fails because
+    // A share card without Cinzel is a small loss; a build that fails because
     // a font server was slow is a large one.
     return null;
   }
@@ -72,7 +71,7 @@ async function loadLogo(): Promise<string | null> {
 
 export default async function OpenGraphImage() {
   const [displayFont, logo] = await Promise.all([loadDisplayFont(), loadLogo()]);
-  const display = displayFont ? 'Playfair Display' : undefined;
+  const display = displayFont ? 'Cinzel' : undefined;
 
   return new ImageResponse(
     (
@@ -108,8 +107,9 @@ export default async function OpenGraphImage() {
             style={{
               display: 'flex',
               flexDirection: 'column',
-              fontSize: 82,
-              lineHeight: 1.02,
+              fontSize: 74,
+              lineHeight: 1.06,
+              letterSpacing: 1,
               fontFamily: display,
               backgroundImage: `linear-gradient(135deg, ${IVORY} 0%, ${GOLD_HIGH} 45%, ${GOLD_ANTIQUE} 100%)`,
               backgroundClip: 'text',
@@ -171,7 +171,7 @@ export default async function OpenGraphImage() {
     {
       ...size,
       fonts: displayFont
-        ? [{ name: 'Playfair Display', data: displayFont, style: 'normal', weight: 500 }]
+        ? [{ name: 'Cinzel', data: displayFont, style: 'normal', weight: 600 as const }]
         : [],
     },
   );
