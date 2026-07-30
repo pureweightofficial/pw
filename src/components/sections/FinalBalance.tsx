@@ -46,11 +46,11 @@ export function FinalBalance() {
 
           <h2
             id="finale-heading"
-            className="font-display text-chapter font-normal text-ivory will-reveal"
+            className="font-display text-chapter font-semibold text-ivory will-reveal"
           >
             Know the true value
             <br />
-            <span className="gold-leaf italic">of what you hold.</span>
+            <span className="gold-leaf accent-italic">of what you hold.</span>
           </h2>
 
           <p className="mx-auto mt-8 max-w-lg text-lead text-ivory/72 will-reveal">

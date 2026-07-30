@@ -34,8 +34,8 @@ export default function ContactPage() {
         <div className="grid gap-16 lg:grid-cols-12 lg:gap-20">
           <div className="lg:col-span-5">
             <Eyebrow className="mb-8">Contact</Eyebrow>
-            <h1 id="contact-heading" className="font-display text-chapter font-normal text-ivory">
-              Speak with <span className="italic text-gold-high/90">Pureweight</span>
+            <h1 id="contact-heading" className="font-display text-chapter font-semibold text-ivory">
+              Speak with <span className="accent-accent-italic text-gold-high/90">Pureweight</span>
             </h1>
             <p className="mt-8 max-w-md text-lead text-ivory/72">
               For a valuation, bring the item to a private appointment. For anything else — a

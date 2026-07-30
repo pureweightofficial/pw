@@ -32,10 +32,10 @@ export function Appointment() {
 
               <h2
                 id="appointment-heading"
-                className="font-display text-chapter font-normal text-ivory will-reveal"
+                className="font-display text-chapter font-semibold text-ivory will-reveal"
               >
                 A private conversation
-                <span className="italic text-gold-high/90"> about true value.</span>
+                <span className="accent-accent-italic text-gold-high/90"> about true value.</span>
               </h2>
 
               <p className="mt-8 max-w-md text-lead text-ivory/72 will-reveal">

@@ -28,9 +28,9 @@ export default function GlobalError({
       <div className="shell-narrow text-center">
         <Eyebrow className="mb-6">Something went wrong</Eyebrow>
 
-        <h1 className="font-display text-chapter font-normal text-ivory">
+        <h1 className="font-display text-chapter font-semibold text-ivory">
           We could not load
-          <span className="italic text-gold-high/90"> this page.</span>
+          <span className="accent-accent-italic text-gold-high/90"> this page.</span>
         </h1>
 
         <p className="mx-auto mt-7 max-w-md text-lead text-ash">

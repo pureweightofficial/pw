@@ -121,9 +121,9 @@ export default function FaqPage() {
       <div className="shell">
         <div className="max-w-3xl">
           <Eyebrow className="mb-8">Frequently Asked Questions</Eyebrow>
-          <h1 id="faq-heading" className="font-display text-chapter font-normal text-ivory">
+          <h1 id="faq-heading" className="font-display text-chapter font-semibold text-ivory">
             Straight answers,
-            <span className="italic text-gold-high/90"> before you decide anything</span>
+            <span className="accent-accent-italic text-gold-high/90"> before you decide anything</span>
           </h1>
           <p className="mt-8 max-w-xl text-lead text-ivory/72">
             Most people sell gold once or twice in a lifetime. These are the questions that come up
@@ -142,7 +142,7 @@ export default function FaqPage() {
                   <span className="font-sans text-[0.6rem] tracking-[0.22em] text-gold-antique">
                     {String(index + 1).padStart(2, '0')}
                   </span>
-                  <span className="font-display text-2xl font-normal leading-snug text-ivory lg:text-3xl">
+                  <span className="font-display text-2xl font-semibold leading-snug text-ivory lg:text-3xl">
                     {item.question}
                   </span>
                 </dt>
@@ -165,7 +165,7 @@ export default function FaqPage() {
           <dl className="border-t border-gold-antique/16">
             {businessSpecific.map((item) => (
               <div key={item.question} className="border-b border-gold-antique/12 py-8">
-                <dt className="font-display text-xl font-normal text-ivory lg:text-2xl">
+                <dt className="font-display text-xl font-semibold text-ivory lg:text-2xl">
                   {item.question}
                 </dt>
                 <dd className="mt-4">

@@ -33,9 +33,9 @@ export function Services() {
           <Eyebrow className="mb-8 will-reveal">Chapter 03 — The Services</Eyebrow>
           <h2
             id="services-heading"
-            className="font-display text-chapter font-normal text-ivory will-reveal"
+            className="font-display text-chapter font-semibold text-ivory will-reveal"
           >
-            What We <span className="italic text-gold-high/90">Examine</span>
+            What We <span className="accent-accent-italic text-gold-high/90">Examine</span>
           </h2>
           <p className="mt-7 max-w-xl text-lead text-ash will-reveal">
             Each service is a different kind of examination. What they share is the order of
@@ -89,7 +89,7 @@ export function Services() {
                     ) : (
                       <ServicePlate index={index} />
                     )}
-                    <span className="absolute left-5 top-5 font-display text-6xl font-normal text-gold-antique/75">
+                    <span className="absolute left-5 top-5 font-display text-6xl font-semibold text-gold-antique/75">
                       {service.index}
                     </span>
                   </div>
@@ -105,11 +105,11 @@ export function Services() {
                       </p>
                     ) : null}
 
-                    <h3 className="font-display text-4xl font-normal text-ivory lg:text-5xl">
+                    <h3 className="font-display text-4xl font-semibold text-ivory lg:text-5xl">
                       {service.title}
                     </h3>
 
-                    <p className="mt-5 max-w-xl text-lead text-gold-high/75 italic">
+                    <p className="mt-5 max-w-xl text-lead text-gold-high/75 accent-italic">
                       {service.summary}
                     </p>
 

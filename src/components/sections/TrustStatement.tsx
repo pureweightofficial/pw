@@ -25,11 +25,11 @@ export function TrustStatement() {
 
             <h2
               id="trust-heading"
-              className="font-display text-statement font-normal text-ivory will-reveal"
+              className="font-display text-statement font-semibold text-ivory will-reveal"
             >
               Every gram carries value.
               <br />
-              <span className="italic text-gold-high/90">Every exchange deserves clarity.</span>
+              <span className="accent-accent-italic text-gold-high/90">Every exchange deserves clarity.</span>
             </h2>
           </div>
 

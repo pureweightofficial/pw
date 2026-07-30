@@ -83,10 +83,10 @@ export function Hero() {
 
           <h1
             id="hero-heading"
-            className="font-display text-hero font-normal text-ivory will-reveal"
+            className="font-display text-hero font-semibold text-ivory will-reveal"
           >
             <span className="block">Where Gold Finds</span>
-            <span className="gold-leaf block italic">Its True Weight.</span>
+            <span className="gold-leaf accent-italic block">Its True Weight.</span>
           </h1>
 
           <p className="mt-8 max-w-xl text-lead text-ivory/72 will-reveal">

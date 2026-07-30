@@ -35,55 +35,40 @@ Tailwind CSS v4 · Zod
 
 ## Typography
 
-**Playfair Display** (display) + **Manrope** (body) — matching the Aurora
-reference, which pairs exactly these two. Self-hosted by `next/font`, so there
-is no third-party request and a metric-matched fallback prevents layout shift.
+Four faces, each with one job.
 
-Playfair ships no 300 weight and its thin strokes vanish on near-black, so
-display type sits at **400**, not the 300 the layout was originally tuned
-around. Headlines read heavier and more theatrical than the previous Cormorant
-Garamond — that is the Aurora character, chosen deliberately.
+| Face | Role |
+| --- | --- |
+| **Cinzel** 600 | Upright display — engraved Roman capitals |
+| **Playfair Display** italic | Accent counterpoint only |
+| **Manrope** | Body, navigation, forms |
+| **Geist Mono** 500 | Micro-labels at 10px / 0.42em tracking |
+
+**Why Cinzel and not the reference site's face.** The supplied logo sets
+PUREWEIGHT in a heavy Victorian display serif — blunt flared serifs, high stroke
+contrast, engraved-label character. Playfair Display, which the Aurora reference
+uses, is a fashion-editorial serif and reads as a different brand beside that
+mark. Cinzel is drawn from Roman inscriptional capitals, so it reads as *struck
+into metal*, which is the idea the whole site is built on.
+
+It is a capitals design: lowercase renders as small capitals, so mixed-case
+headlines become caps-and-small-caps. That is deliberate — it is how an assay
+stamp is lettered.
+
+**Why Playfair is still here.** No vintage display face on Google Fonts ships an
+italic, and this design uses italic serif accents in 21 places. Rather than lose
+them, the italic counterpoint stays calligraphic via `.accent-italic`. An
+engraved roman against a calligraphic italic is a pairing, not an accident.
+
+**To try a different vintage face** the import in `layout.tsx` and the
+`--font-vintage` token are the only two places to change. The nearest free
+alternatives are **Rye** (Victorian slab, closer serif shape, more
+saloon-poster) and **Yeseva One** (heavier, softer, true lowercase).
 
 > **The build must be Turbopack.** `next/font`'s automatic preloading depends on
-> `next-font-manifest.json`, and the webpack build was populating it with *zero*
-> route entries — so the site shipped no font preload links at all. Turbopack
-> populates it correctly and emits three. Fonts still loaded under webpack, but
-> only after CSS parse, which costs an LCP that is a text headline.
-> See [docs/plans/2026-07-29-aurora-typography-design.md](docs/plans/2026-07-29-aurora-typography-design.md).
-
----
-
-## The two decisions that shaped everything
-
-### 1. No 3D assets. At all.
-
-There is no GLB, no DRACO decoder, no KTX2 transcoder, no HDRI. The balance is
-built at runtime from turned lathe profiles and extruded sculpted outlines
-(`geometry.ts`); every surface map — polish scratches, forged-iron pitting,
-filigree engraving, struck hallmarks, the graduation arc — is drawn to a 2D
-canvas and uploaded as a texture (`textures.ts`); the lighting is a rig of drei
-`Lightformer`s baked once into a 256px cubemap (`Studio.tsx`).
-
-This started as an art-direction decision rather than a performance one. Stock
-gold textures are the fastest way to make a luxury site look cheap, and a
-downloaded scale model would have to be fought into the silhouette the logo
-implies. Generating it means every chamfer, every collar and every scratch is
-authored against this one light rig.
-
-The performance result came free: **the entire 3D layer is zero binary bytes.**
-
-### 2. Gold is a material, not a colour.
-
-The rule that carries the whole look: **most of a polished gold surface is
-reflected darkness.** Flood it and it turns into flat yellow plastic. So the
-room is black, and the gold is described by a handful of small, precisely placed
-bright shapes that it reflects — a broad warm key, a hot specular core, a
-narrow *cool* rim (the desaturated counter-light is what stops the frame going
-monochrome-amber), and a dim bounce ring for the pan undersides.
-
-The same five-stop light path — shadow → body → highlight → pale reflection →
-shadow — is used for the CSS `.gold-leaf` gradient, so metal reads consistently
-whether it is rendered by the GPU or by the type engine.
+> `next-font-manifest.json`, and the webpack build populates it with *zero* route
+> entries — so the site ships no font preload links at all. See
+> [docs/plans/2026-07-29-aurora-typography-design.md](docs/plans/2026-07-29-aurora-typography-design.md).
 
 ---
 
@@ -91,8 +76,8 @@ whether it is rendered by the GPU or by the type engine.
 
 | | |
 | --- | --- |
-| Homepage First Load JS | **189 kB** |
-| Shared baseline | 103 kB |
+| Homepage First Load JS | **212 kB** |
+| Shared baseline | 196 kB |
 | 3D layer | **0 bytes until requested** |
 
 three.js, R3F and drei are reachable only through

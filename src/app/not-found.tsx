@@ -16,9 +16,9 @@ export default function NotFound() {
 
         <Eyebrow className="mt-10 mb-6">Error 404</Eyebrow>
 
-        <h1 className="font-display text-chapter font-normal text-ivory">
+        <h1 className="font-display text-chapter font-semibold text-ivory">
           This page could not
-          <span className="italic text-gold-high/90"> be found.</span>
+          <span className="accent-accent-italic text-gold-high/90"> be found.</span>
         </h1>
 
         <p className="mx-auto mt-7 max-w-md text-lead text-ash">

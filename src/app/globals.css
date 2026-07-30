@@ -44,7 +44,11 @@
   --color-ash: #a2977f;
 
   /* --- Type ------------------------------------------------------------- */
-  --font-display: var(--font-playfair), 'Playfair Display', Georgia, 'Times New Roman', serif;
+  /* Upright display: engraved Roman capitals, matched to the logo's lettering. */
+  --font-display: var(--font-vintage), 'Cinzel', 'Playfair Display', Georgia, serif;
+  /* Italic counterpoint: no vintage display face ships an italic, so the accent
+     lines keep a calligraphic serif. The contrast is intentional. */
+  --font-accent: var(--font-playfair), 'Playfair Display', Georgia, serif;
   --font-sans: var(--font-manrope), 'Manrope', ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono-label), ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
@@ -116,8 +120,13 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    font-weight: 400;
-    letter-spacing: -0.015em;
+    /* 600, not 400. The logo's lettering is heavy, and Cinzel at 400 reads as a
+       different, lighter brand standing next to it. 600 carries comparable mass
+       without tipping into poster-weight. */
+    font-weight: 600;
+    /* Capitals need air. The previous -0.015em was tuned for Playfair's
+       lowercase and closes Roman caps up until they touch. */
+    letter-spacing: 0.005em;
     text-wrap: balance;
     margin: 0;
   }
@@ -269,6 +278,15 @@
     text-shadow:
       0 1px 0 rgba(232, 224, 210, 0.09),
       0 -1px 1px rgba(0, 0, 0, 0.95);
+  }
+
+  /* The italic accent line. Switches back to the calligraphic serif, because the
+     engraved display face has no italic — and a browser-synthesised oblique of
+     Roman capitals looks like a mistake rather than an emphasis. */
+  .accent-italic {
+    font-family: var(--font-accent);
+    font-style: italic;
+    letter-spacing: -0.01em;
   }
 
   /* Small uppercase label with wide tracking — the site's connective tissue. */

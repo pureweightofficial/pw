@@ -338,7 +338,7 @@ function ValuationFormInner() {
       <div className="inset-panel p-9 lg:p-14" role="status" aria-live="polite">
         <p className="label mb-7">Enquiry received</p>
 
-        <h2 className="font-display text-4xl font-normal text-ivory lg:text-5xl">
+        <h2 className="font-display text-4xl font-semibold text-ivory lg:text-5xl">
           Thank you — your details are with us.
         </h2>
 
@@ -460,7 +460,7 @@ function ValuationFormInner() {
         <legend
           ref={legendRef}
           tabIndex={-1}
-          className="mb-8 font-display text-3xl font-normal text-ivory outline-none lg:text-4xl"
+          className="mb-8 font-display text-3xl font-semibold text-ivory outline-none lg:text-4xl"
         >
           {step.legend}
         </legend>

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist_Mono, Manrope, Playfair_Display } from 'next/font/google';
+import { Cinzel, Geist_Mono, Manrope, Playfair_Display } from 'next/font/google';
 import { Footer } from '@/components/chrome/Footer';
 import { Loader } from '@/components/chrome/Loader';
 import { Nav } from '@/components/chrome/Nav';
@@ -11,19 +11,61 @@ import './globals.css';
 /**
  * ROOT LAYOUT
  *
- * Type pairing: Playfair Display for display, Manrope for everything
- * functional — matching the Aurora reference, which pairs exactly these two.
+ * TYPE PAIRING — four faces, each with one job.
  *
- * ONE CONSEQUENCE WORTH KNOWING: Playfair is a high-contrast transitional and
- * ships no 300 weight. Its thin strokes are the first thing to vanish on a
- * near-black ground, so display type sits at 400 rather than the 300 the layout
- * was originally tuned around. Headlines read heavier and more theatrical than
- * before — that is the Aurora character, not a regression.
+ *   CINZEL           upright display. Engraved Roman capitals, chosen to sit
+ *                    with the logo's heavy Victorian lettering rather than
+ *                    against it. Set at 600, because the mark is heavy and a
+ *                    lighter weight reads as a different brand beside it.
+ *   PLAYFAIR ITALIC  the accent counterpoint. No vintage display face on Google
+ *                    Fonts ships an italic, and the design uses italic serif
+ *                    accents in 21 places, so the italic stays calligraphic.
+ *                    Engraved roman against calligraphic italic is a deliberate
+ *                    pairing, not a leftover.
+ *   MANROPE          body, navigation, forms. Everything that must simply read.
+ *   GEIST MONO       micro-labels only, at 10px with 0.42em tracking.
  *
- * Both are self-hosted at build time by next/font: no render-blocking request
- * to a third party, and a metric-matched fallback so nothing shifts on arrival.
+ * All self-hosted at build time by next/font: no third-party request, and a
+ * metric-matched fallback so nothing shifts when they arrive.
  */
 
+/**
+ * THE VINTAGE DISPLAY FACE — matched to the logo, not to the reference site.
+ *
+ * The supplied mark sets PUREWEIGHT in a heavy Victorian display serif: blunt
+ * flared serifs, high stroke contrast, engraved-label character. Playfair
+ * Display — which the Aurora reference uses, and which this site adopted when
+ * matching Aurora was the brief — is a fashion-editorial serif and reads as a
+ * different brand entirely beside that mark.
+ *
+ * Cinzel is drawn from Roman inscriptional capitals, so it reads as *struck into
+ * metal* rather than printed. That is the same idea the whole site is built on,
+ * and it sits with the logo instead of arguing with it.
+ *
+ * Note it is a capitals design: lowercase renders as small capitals. That is a
+ * deliberate part of the choice, not a limitation — mixed-case headlines become
+ * caps-and-small-caps, which is precisely how an assay stamp is lettered.
+ *
+ * To try a different vintage face, this import and the --font-vintage token are
+ * the only two places to change. Rye (Victorian slab, closer serif shape but
+ * more saloon-poster) and Yeseva One (heavier, softer, true lowercase) are the
+ * two nearest free alternatives.
+ */
+const cinzel = Cinzel({
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  variable: '--font-vintage',
+  display: 'swap',
+  preload: true,
+});
+
+/**
+ * Retained ONLY for italic accent lines. No vintage display face on Google
+ * Fonts ships an italic, and this design uses italic serif accents in 21
+ * places — so rather than lose them, the italic counterpoint stays Playfair.
+ * An engraved roman against a calligraphic italic is a deliberate pairing, not
+ * a leftover.
+ */
 const playfair = Playfair_Display({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
@@ -136,7 +178,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const jsonLd = buildLocalBusinessJsonLd();
 
   return (
-    <html lang="en-GB" className={`${playfair.variable} ${manrope.variable} ${geistMono.variable}`}>
+    <html lang="en-GB" className={`${cinzel.variable} ${playfair.variable} ${manrope.variable} ${geistMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: REVEAL_BOOTSTRAP }} />
 

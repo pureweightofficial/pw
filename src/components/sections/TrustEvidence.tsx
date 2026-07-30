@@ -63,9 +63,9 @@ export function TrustEvidence() {
             <Eyebrow className="mb-8 will-reveal">Evidence</Eyebrow>
             <h2
               id="evidence-heading"
-              className="font-display text-chapter font-normal text-ivory will-reveal"
+              className="font-display text-chapter font-semibold text-ivory will-reveal"
             >
-              Checkable, <span className="italic text-gold-high/90">not claimed</span>
+              Checkable, <span className="accent-accent-italic text-gold-high/90">not claimed</span>
             </h2>
             <p className="mt-7 max-w-md text-lead text-ash will-reveal">
               Anything below that is not filled in has not been verified, and is shown as an open
