@@ -1,9 +1,9 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import { assetPath } from '@/lib/asset';
-import { BeamDivider, Eyebrow, Section } from '@/components/ui/primitives';
-import { services } from '@/lib/site';
-import { AmbientGlow } from '@/components/ui/AmbientGlow';
+import Image from "next/image";
+import Link from "next/link";
+import { assetPath } from "@/lib/asset";
+import { BeamDivider, Eyebrow, Section } from "@/components/ui/primitives";
+import { services } from "@/lib/site";
+import { AmbientGlow } from "@/components/ui/AmbientGlow";
 
 /**
  * SERVICES
@@ -12,36 +12,51 @@ import { AmbientGlow } from '@/components/ui/AmbientGlow';
  * A grid flattens four quite different propositions into one visual weight; the
  * alternating layout lets each one have a full spread and its own rhythm.
  *
- * ON THE IMAGERY: the first three panels now carry licensed photography
- * (Unsplash License — commercial use, no attribution required; provenance and
- * selection rules in public/img/CREDITS.md). Each is desaturated and warmed by
- * a gold overlay so stock photography sits inside the brand's light rather than
- * next to it — untreated stock is the fastest way to break a bespoke palette.
+ * ON THE IMAGERY: two of the four panels carry photography — Gold Jewellery and
+ * Coins. Each is desaturated and warmed by a gold overlay so a stock photograph
+ * sits inside the brand's light rather than next to it; untreated stock is the
+ * fastest way to break a bespoke palette.
  *
- * The fourth panel keeps its engraved plate on purpose. Every stock image of a
- * "private consultation" reads as generic corporate office and would cheapen
- * the section; only photography of the real premises will serve it.
+ * Silver and Bars & Bullion keep the engraved plate, and both are decisions
+ * rather than gaps. Bullion's photograph was REMOVED: it showed another refiner's
+ * trademark, its crest, "1 KILO / 999.9 FINE GOLD" and three bar serial numbers,
+ * and no crop cleared them. Silver has no photograph because two rounds through
+ * the CC0 pool produced WPA watercolours, a costume bangle on white, and a museum
+ * shot with the colour calibration card still in frame. A plate beats all of
+ * those. public/img/CREDITS.md has the full record and what would unlock them.
  *
- * Every service is marked `confirmed: false` in `site.ts` until the client
- * confirms the offering, and renders with a visible pending marker until then.
+ * The four categories are now `confirmed: true` — the client confirmed they buy
+ * gold and silver jewellery, coins and bullion — so the pending markers no longer
+ * render. They remain wired up for anything added later that is not yet agreed.
  */
 
 export function Services() {
   return (
-    <Section id="services" material="steel" labelledBy="services-heading" className="py-24 lg:py-36">
+    <Section
+      id="services"
+      material="steel"
+      labelledBy="services-heading"
+      className="py-24 lg:py-36"
+    >
       <AmbientGlow intensity="soft" placement="left" />
       <div className="shell">
         <div className="max-w-3xl">
-          <Eyebrow className="mb-8 will-reveal">Chapter 03 — The Services</Eyebrow>
+          {/* Was "Chapter 03 — The Services" against a chapter list and a nav
+              that both say "What We Buy". Three labels for one section. */}
+          <Eyebrow className="mb-8 will-reveal">
+            Chapter 03 — What We Buy
+          </Eyebrow>
           <h2
             id="services-heading"
             className="font-display text-chapter font-normal text-ivory will-reveal"
           >
-            What We <span className="accent-italic text-gold-high/90">Examine</span>
+            Gold, silver, coins{" "}
+            <span className="accent-italic text-gold-high/90">and bullion</span>
           </h2>
           <p className="mt-7 max-w-xl text-lead text-ash will-reveal">
-            Each service is a different kind of examination. What they share is the order of
-            operations: measure, verify, explain, and only then discuss value.
+            Four categories, one order of operations: weigh it, establish what
+            it actually is, show you the working, and only then talk about
+            money.
           </p>
         </div>
       </div>
@@ -57,7 +72,7 @@ export function Services() {
             >
               <div
                 className={`grid items-center gap-12 lg:grid-cols-12 lg:gap-20 ${
-                  reversed ? 'lg:[&>*:first-child]:order-2' : ''
+                  reversed ? "lg:[&>*:first-child]:order-2" : ""
                 }`}
               >
                 {/* --- Plate --------------------------------------- */}
@@ -70,11 +85,19 @@ export function Services() {
                       <>
                         <Image
                           src={assetPath(service.image)}
-                          alt=""
+                          // Describes the photograph, not the heading. Empty alt
+                          // was defensible — the heading and bullets carry every
+                          // fact — but these are the nearest thing here to product
+                          // imagery, and a real description costs nothing in
+                          // accessibility terms while being all image search has.
+                          alt={service.imageAlt ?? ""}
                           fill
                           sizes="(max-width: 1024px) 100vw, 40vw"
                           className="object-cover"
-                          style={{ filter: 'saturate(0.55) contrast(1.08) brightness(0.72)' }}
+                          style={{
+                            filter:
+                              "saturate(0.55) contrast(1.08) brightness(0.72)",
+                          }}
                         />
                         {/* Warm the image into the palette and sink its edges
                             into the section, so it reads as lit by the same
@@ -115,7 +138,9 @@ export function Services() {
                       {service.summary}
                     </p>
 
-                    <p className="mt-6 max-w-xl text-lead text-ivory/70">{service.body}</p>
+                    <p className="mt-6 max-w-xl text-lead text-ivory/70">
+                      {service.body}
+                    </p>
 
                     <ul className="mt-8 flex flex-wrap gap-x-8 gap-y-3">
                       {service.points.map((point) => (
@@ -123,7 +148,10 @@ export function Services() {
                           key={point}
                           className="flex items-center gap-2.5 text-[0.72rem] tracking-[0.13em] text-ash uppercase"
                         >
-                          <span aria-hidden="true" className="h-px w-5 bg-gold-antique/60" />
+                          <span
+                            aria-hidden="true"
+                            className="h-px w-5 bg-gold-antique/60"
+                          />
                           {point}
                         </li>
                       ))}
@@ -246,8 +274,20 @@ function GraduationMotif({ uid }: { uid: string }) {
         strokeOpacity="0.35"
         strokeWidth="1.2"
       />
-      <circle cx="104" cy="330" r="8" fill="none" stroke={`url(#${uid}-gold)`} strokeWidth="1.6" />
-      <path d="M 104 330 L 236 214" stroke={`url(#${uid}-gold)`} strokeWidth="2.2" opacity="0.85" />
+      <circle
+        cx="104"
+        cy="330"
+        r="8"
+        fill="none"
+        stroke={`url(#${uid}-gold)`}
+        strokeWidth="1.6"
+      />
+      <path
+        d="M 104 330 L 236 214"
+        stroke={`url(#${uid}-gold)`}
+        strokeWidth="2.2"
+        opacity="0.85"
+      />
     </g>
   );
 }
@@ -280,7 +320,15 @@ function BullionMotif({ uid }: { uid: string }) {
           </g>
         );
       })}
-      <line x1="150" y1="118" x2="250" y2="118" stroke={`url(#${uid}-gold)`} strokeOpacity="0.5" strokeWidth="1" />
+      <line
+        x1="150"
+        y1="118"
+        x2="250"
+        y2="118"
+        stroke={`url(#${uid}-gold)`}
+        strokeOpacity="0.5"
+        strokeWidth="1"
+      />
     </g>
   );
 }
@@ -316,7 +364,13 @@ function BandMotif({ uid }: { uid: string }) {
           />
         );
       })}
-      <circle cx="200" cy="250" r="17" fill={`url(#${uid}-gold)`} opacity="0.85" />
+      <circle
+        cx="200"
+        cy="250"
+        r="17"
+        fill={`url(#${uid}-gold)`}
+        opacity="0.85"
+      />
     </g>
   );
 }
@@ -340,9 +394,27 @@ function ArchMotif({ uid }: { uid: string }) {
         strokeWidth="1"
       />
       {/* Light falling through the opening. */}
-      <path d="M 160 400 L 200 236 L 240 400 Z" fill={`url(#${uid}-gold)`} opacity="0.07" />
-      <line x1="116" y1="400" x2="284" y2="400" stroke={`url(#${uid}-gold)`} strokeOpacity="0.7" strokeWidth="2" />
-      <circle cx="200" cy="196" r="6" fill={`url(#${uid}-gold)`} opacity="0.9" />
+      <path
+        d="M 160 400 L 200 236 L 240 400 Z"
+        fill={`url(#${uid}-gold)`}
+        opacity="0.07"
+      />
+      <line
+        x1="116"
+        y1="400"
+        x2="284"
+        y2="400"
+        stroke={`url(#${uid}-gold)`}
+        strokeOpacity="0.7"
+        strokeWidth="2"
+      />
+      <circle
+        cx="200"
+        cy="196"
+        r="6"
+        fill={`url(#${uid}-gold)`}
+        opacity="0.9"
+      />
       {/* Filigree spandrels. */}
       <path
         d="M 118 216 q 20 -14 30 -34 M 282 216 q -20 -14 -30 -34"

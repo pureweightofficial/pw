@@ -20,11 +20,12 @@
  */
 
 export type Verifiable<T> =
-  | { status: 'verified'; value: T }
-  | { status: 'placeholder'; label: string };
+  { status: "verified"; value: T } | { status: "placeholder"; label: string };
 
-export function isVerified<T>(f: Verifiable<T>): f is { status: 'verified'; value: T } {
-  return f.status === 'verified';
+export function isVerified<T>(
+  f: Verifiable<T>,
+): f is { status: "verified"; value: T } {
+  return f.status === "verified";
 }
 
 /** Reads a verified value, or `null` when the field is still a placeholder. */
@@ -32,23 +33,26 @@ export function verifiedValue<T>(f: Verifiable<T>): T | null {
   return isVerified(f) ? f.value : null;
 }
 
-const pending = (label: string): Verifiable<never> => ({ status: 'placeholder', label });
+const pending = (label: string): Verifiable<never> => ({
+  status: "placeholder",
+  label,
+});
 
 /* -------------------------------------------------------------------------- */
 /* BRAND                                                                      */
 /* -------------------------------------------------------------------------- */
 
 export const brand = {
-  name: 'Pureweight Gold Exchange',
-  shortName: 'Pureweight',
-  monogram: 'PW',
+  name: "Pureweight Gold Exchange",
+  shortName: "Pureweight",
+  monogram: "PW",
   /**
    * Positioning line. This is brand voice, not a factual claim — it describes
    * the intent of the service rather than asserting a credential.
    */
-  positioning: 'We buy gold and silver, weighed and valued in front of you.',
+  positioning: "We buy gold and silver, weighed and valued in front of you.",
   /** Update once the production domain is confirmed. */
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.pureweight.example',
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.pureweight.example",
 } as const;
 
 /**
@@ -65,7 +69,7 @@ export const brand = {
  * sets `NEXT_PUBLIC_ALLOW_INDEXING=true`, which should only happen once
  * CONTENT-PLACEHOLDERS.md is cleared and the real domain is live.
  */
-export const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING === 'true';
+export const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true";
 
 /* -------------------------------------------------------------------------- */
 /* BUSINESS FACTS — all pending client verification                           */
@@ -103,28 +107,30 @@ export type BusinessFacts = {
 };
 
 export const business: BusinessFacts = {
-  legalName: pending('[INSERT REGISTERED LEGAL NAME]'),
-  registrationNumber: pending('[INSERT VERIFIED BUSINESS REGISTRATION NUMBER]'),
-  vatNumber: pending('[INSERT VAT / TAX NUMBER, IF APPLICABLE]'),
-  yearEstablished: pending('[INSERT CONFIRMED YEAR ESTABLISHED]'),
-  address: pending('[INSERT CONFIRMED TRADING ADDRESS]'),
-  serviceArea: pending('[INSERT CONFIRMED SERVICE AREA]'),
-  telephone: pending('[INSERT VERIFIED TELEPHONE NUMBER]'),
-  email: pending('[INSERT VERIFIED ENQUIRY EMAIL ADDRESS]'),
-  openingHours: pending('[INSERT CONFIRMED OPENING HOURS]'),
-  appointmentProcess: pending('[INSERT VERIFIED APPOINTMENT PROCESS]'),
-  settlementMethods: pending('[INSERT CONFIRMED SETTLEMENT / PAYMENT METHODS]'),
-  priceReferenceSource: pending('[INSERT APPROVED GOLD-PRICE REFERENCE SOURCE]'),
-  insurance: pending('[INSERT VERIFIED INSURANCE DETAILS]'),
-  memberships: pending('[INSERT VERIFIED PROFESSIONAL MEMBERSHIPS]'),
-  certifications: pending('[INSERT VERIFIED CERTIFICATIONS]'),
-  licences: pending('[INSERT VERIFIED LICENCES]'),
-  securityProcedures: pending('[INSERT CONFIRMED SECURITY PROCEDURES]'),
-  weighingEquipment: pending('[INSERT CONFIRMED WEIGHING / ASSAY EQUIPMENT]'),
-  reviewScore: pending('[INSERT GENUINE AGGREGATE REVIEW SCORE + SOURCE]'),
-  founderMessage: pending('[INSERT FOUNDER MESSAGE]'),
-  foundingStory: pending('[INSERT VERIFIED FOUNDING STORY]'),
-  social: pending('[INSERT CONFIRMED SOCIAL CHANNELS]'),
+  legalName: pending("[INSERT REGISTERED LEGAL NAME]"),
+  registrationNumber: pending("[INSERT VERIFIED BUSINESS REGISTRATION NUMBER]"),
+  vatNumber: pending("[INSERT VAT / TAX NUMBER, IF APPLICABLE]"),
+  yearEstablished: pending("[INSERT CONFIRMED YEAR ESTABLISHED]"),
+  address: pending("[INSERT CONFIRMED TRADING ADDRESS]"),
+  serviceArea: pending("[INSERT CONFIRMED SERVICE AREA]"),
+  telephone: pending("[INSERT VERIFIED TELEPHONE NUMBER]"),
+  email: pending("[INSERT VERIFIED ENQUIRY EMAIL ADDRESS]"),
+  openingHours: pending("[INSERT CONFIRMED OPENING HOURS]"),
+  appointmentProcess: pending("[INSERT VERIFIED APPOINTMENT PROCESS]"),
+  settlementMethods: pending("[INSERT CONFIRMED SETTLEMENT / PAYMENT METHODS]"),
+  priceReferenceSource: pending(
+    "[INSERT APPROVED GOLD-PRICE REFERENCE SOURCE]",
+  ),
+  insurance: pending("[INSERT VERIFIED INSURANCE DETAILS]"),
+  memberships: pending("[INSERT VERIFIED PROFESSIONAL MEMBERSHIPS]"),
+  certifications: pending("[INSERT VERIFIED CERTIFICATIONS]"),
+  licences: pending("[INSERT VERIFIED LICENCES]"),
+  securityProcedures: pending("[INSERT CONFIRMED SECURITY PROCEDURES]"),
+  weighingEquipment: pending("[INSERT CONFIRMED WEIGHING / ASSAY EQUIPMENT]"),
+  reviewScore: pending("[INSERT GENUINE AGGREGATE REVIEW SCORE + SOURCE]"),
+  founderMessage: pending("[INSERT FOUNDER MESSAGE]"),
+  foundingStory: pending("[INSERT VERIFIED FOUNDING STORY]"),
+  social: pending("[INSERT CONFIRMED SOCIAL CHANNELS]"),
 };
 
 /* -------------------------------------------------------------------------- */
@@ -132,14 +138,14 @@ export const business: BusinessFacts = {
 /* -------------------------------------------------------------------------- */
 
 export const primaryNav = [
-  { label: 'Live Prices', href: '/#rates' },
-  { label: 'What We Buy', href: '/#services' },
-  { label: 'How It Works', href: '/#journey' },
-  { label: 'Purity & Weight', href: '/#assay' },
-  { label: 'About', href: '/#story' },
-  { label: 'Insights', href: '/insights' },
-  { label: 'FAQ', href: '/faq' },
-  { label: 'Contact', href: '/contact' },
+  { label: "Live Prices", href: "/#rates" },
+  { label: "What We Buy", href: "/#services" },
+  { label: "How It Works", href: "/#journey" },
+  { label: "Purity & Weight", href: "/#assay" },
+  { label: "About", href: "/#story" },
+  { label: "Insights", href: "/insights" },
+  { label: "FAQ", href: "/faq" },
+  { label: "Contact", href: "/contact" },
 ] as const;
 
 /**
@@ -149,8 +155,8 @@ export const primaryNav = [
  * unconfirmed fact and must not be implied here.
  */
 export const navCta = {
-  label: 'Visit the Shop',
-  href: '/contact',
+  label: "Visit the Shop",
+  href: "/contact",
 } as const;
 
 /* -------------------------------------------------------------------------- */
@@ -158,12 +164,12 @@ export const navCta = {
 /* -------------------------------------------------------------------------- */
 
 export const chapters = [
-  { id: 'trust', index: '01', title: 'True Value' },
-  { id: 'journey', index: '02', title: 'How It Works' },
-  { id: 'services', index: '03', title: 'What We Buy' },
-  { id: 'assay', index: '04', title: 'Purity & Weight' },
-  { id: 'pillars', index: '05', title: 'Built on Trust' },
-  { id: 'appointment', index: '06', title: 'Come and See Us' },
+  { id: "trust", index: "01", title: "True Value" },
+  { id: "journey", index: "02", title: "How It Works" },
+  { id: "services", index: "03", title: "What We Buy" },
+  { id: "assay", index: "04", title: "Purity & Weight" },
+  { id: "pillars", index: "05", title: "Built on Trust" },
+  { id: "appointment", index: "06", title: "Come and See Us" },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -188,35 +194,35 @@ export const chapters = [
  */
 export const journey = [
   {
-    step: '01',
-    title: 'Bring It In',
-    body: 'Come to the shop with whatever you have — jewellery, coins, bars, or a drawer of odds and ends.',
+    step: "01",
+    title: "Bring It In",
+    body: "Come to the shop with whatever you have — jewellery, coins, bars, or a drawer of odds and ends.",
     detail:
-      'Nothing needs sorting, cleaning or valuing beforehand. Broken chains, single earrings and pieces with the stones still in them are all perfectly normal, and there is no minimum worth bringing.',
+      "Nothing needs sorting, cleaning or valuing beforehand. Broken chains, single earrings and pieces with the stones still in them are all perfectly normal, and there is no minimum worth bringing.",
     tilt: -2.4,
   },
   {
-    step: '02',
-    title: 'Weighed In Front of You',
-    body: 'Each item is examined and weighed at the counter while you watch, not taken away.',
+    step: "02",
+    title: "Weighed In Front of You",
+    body: "Each item is examined and weighed at the counter while you watch, not taken away.",
     detail:
-      'Hallmarks are read under magnification, and where a mark is worn or absent the metal is tested rather than assumed. The scale stays where you can see it and the weight is read out as it is taken.',
+      "Hallmarks are read under magnification, and where a mark is worn or absent the metal is tested rather than assumed. The scale stays where you can see it and the weight is read out as it is taken.",
     tilt: -1.4,
   },
   {
-    step: '03',
-    title: 'An Offer Against the Market',
-    body: 'You are told what the metal weighs, how pure it is, and what we can pay for it.',
+    step: "03",
+    title: "An Offer Against the Market",
+    body: "You are told what the metal weighs, how pure it is, and what we can pay for it.",
     detail:
-      'Precious metal prices move through the trading day, so the figure relates to the market at that moment. How it is arrived at is shown rather than summarised — weight, fineness, and the market reference it is measured against.',
+      "Precious metal prices move through the trading day, so the figure relates to the market at that moment. How it is arrived at is shown rather than summarised — weight, fineness, and the market reference it is measured against.",
     tilt: -0.5,
   },
   {
-    step: '04',
-    title: 'Accept, or Take It Home',
-    body: 'If the figure suits you the sale completes there and then. If it does not, your items go back in your pocket.',
+    step: "04",
+    title: "Accept, or Take It Home",
+    body: "If the figure suits you the sale completes there and then. If it does not, your items go back in your pocket.",
     detail:
-      'There is no obligation at any point and no charge for having looked. Declining is an ordinary outcome and is treated as one.',
+      "There is no obligation at any point and no charge for having looked. Declining is an ordinary outcome and is treated as one.",
     tilt: 0,
   },
 ] as const;
@@ -246,9 +252,25 @@ export type Service = {
   /**
    * Panel photograph. Omitted where no honest image exists — the panel then
    * falls back to its engraved plate rather than to generic stock.
-   * Provenance: public/img/CREDITS.md
+   *
+   * Two panels are deliberately without one. Provenance, the selection rubric,
+   * and the record of two images REMOVED for showing another refiner's trademark
+   * and serial numbers are all in public/img/CREDITS.md. Read it before adding
+   * anything here.
    */
   image?: string;
+  /**
+   * Alt text for that photograph. Required whenever `image` is set.
+   *
+   * Describes the PHOTOGRAPH, not the heading. The panels previously shipped
+   * `alt=""`, which is defensible — the heading, summary and bullets already
+   * carry every fact, so the image is decorative in the strict sense. But these
+   * are the nearest thing this site has to product imagery, and a real
+   * description costs nothing in accessibility terms while being the only thing
+   * image search has to work with. Repeating the heading here would be the
+   * redundancy an empty alt exists to avoid.
+   */
+  imageAlt?: string;
   /** false => rendered with a visible "pending confirmation" marker. */
   confirmed: boolean;
 };
@@ -269,45 +291,72 @@ export type Service = {
  */
 export const services: readonly Service[] = [
   {
-    index: '01',
-    title: 'Gold Jewellery',
-    summary: 'Worn, broken, inherited or unwanted — in any condition.',
-    body: 'Chains, rings, bracelets, earrings and pendants, whether whole or in pieces. Nothing needs to be a matching pair, in working order, or worth anything in particular before it is worth bringing in.',
-    points: ['Any carat, 9ct to 24ct', 'Broken and single pieces', 'Stones and settings allowed for'],
-    cta: 'Bring Jewellery In',
-    image: '/img/jewellery.jpg',
-    enquiryHref: '/contact',
+    index: "01",
+    title: "Gold Jewellery",
+    summary: "Worn, broken, inherited or unwanted — in any condition.",
+    body: "Chains, rings, bracelets, earrings and pendants, whether whole or in pieces. Nothing needs to be a matching pair, in working order, or worth anything in particular before it is worth bringing in.",
+    points: [
+      "Any carat, 9ct to 24ct",
+      "Broken and single pieces",
+      "Stones and settings allowed for",
+    ],
+    cta: "Bring Jewellery In",
+    image: "/img/jewellery.jpg",
+    imageAlt:
+      "A wide diamond-set gold bangle photographed against black, its stones catching a single warm light.",
+    enquiryHref: "/contact",
     confirmed: true,
   },
   {
-    index: '02',
-    title: 'Silver',
-    summary: 'Hallmarked silver, from jewellery to tableware.',
-    body: 'Silver is weighed and assessed on the same basis as gold, against its own market price. Plated items contain very little recoverable silver, and we will tell you plainly when that is what you have.',
-    points: ['Sterling and 800 silver', 'Jewellery, cutlery, tableware', 'Plate identified honestly'],
-    cta: 'Bring Silver In',
-    enquiryHref: '/contact',
+    index: "02",
+    title: "Silver",
+    summary: "Hallmarked silver, from jewellery to tableware.",
+    body: "Silver is weighed and assessed on the same basis as gold, against its own market price. Plated items contain very little recoverable silver, and we will tell you plainly when that is what you have.",
+    points: [
+      "Sterling and 800 silver",
+      "Jewellery, cutlery, tableware",
+      "Plate identified honestly",
+    ],
+    cta: "Bring Silver In",
+    enquiryHref: "/contact",
     confirmed: true,
   },
   {
-    index: '03',
-    title: 'Coins',
-    summary: 'Precious-metal coins, whether collected or inherited.',
-    body: 'Coins are looked at twice: once for the metal in them, and once for whether the coin itself is worth more than that metal. Where the second is true you are told so, rather than paid for the weight.',
-    points: ['Sovereigns and krugerrands', 'Pre-decimal silver', 'Collections and single coins'],
-    cta: 'Bring Coins In',
-    enquiryHref: '/contact',
+    index: "03",
+    title: "Coins",
+    summary: "Precious-metal coins, whether collected or inherited.",
+    body: "Coins are looked at twice: once for the metal in them, and once for whether the coin itself is worth more than that metal. Where the second is true you are told so, rather than paid for the weight.",
+    points: [
+      "Sovereigns and krugerrands",
+      "Pre-decimal silver",
+      "Collections and single coins",
+    ],
+    cta: "Bring Coins In",
+    image: "/img/coins.jpg",
+    imageAlt:
+      "A hammered gold sovereign, its shield-and-Tudor-rose reverse struck in deep relief, lit against a dark ground.",
+    enquiryHref: "/contact",
     confirmed: true,
   },
   {
-    index: '04',
-    title: 'Bars & Bullion',
-    summary: 'Investment bars and coins, assessed on weight and stated fineness.',
-    body: 'Refiner marks and stated fineness are checked against the physical weight of the piece. Recognised bullion is handled on its own terms rather than treated as scrap metal.',
-    points: ['Refiner mark checked', 'Weight verified at the counter', 'Bars and investment coins'],
-    cta: 'Bring Bullion In',
-    image: '/img/bullion.jpg',
-    enquiryHref: '/contact',
+    index: "04",
+    title: "Bars & Bullion",
+    summary:
+      "Investment bars and coins, assessed on weight and stated fineness.",
+    body: "Refiner marks and stated fineness are checked against the physical weight of the piece. Recognised bullion is handled on its own terms rather than treated as scrap metal.",
+    points: [
+      "Refiner mark checked",
+      "Weight verified at the counter",
+      "Bars and investment coins",
+    ],
+    cta: "Bring Bullion In",
+    // NO PHOTOGRAPH, deliberately. The image that was here showed another
+    // refiner's trademark and crest, "1 KILO / 999.9 FINE GOLD", and three bar
+    // serial numbers — and the marks are spread across the frame, so no crop
+    // clears them. It breached this project's own image rubric and re-introduced
+    // the exact purity claim the hero film was cut to remove. See CREDITS.md.
+    // The panel falls back to the engraved plate, as Silver already does.
+    enquiryHref: "/contact",
     confirmed: true,
   },
 ] as const;
@@ -318,34 +367,34 @@ export const services: readonly Service[] = [
 
 export const assayFactors = [
   {
-    key: 'weight',
-    label: 'Weight',
-    reading: 'Measured',
-    body: 'Gold is weighed in grams or troy ounces. One troy ounce is 31.1035 grams — a different unit from the ounce used for everyday goods, and the reason two scales can disagree.',
+    key: "weight",
+    label: "Weight",
+    reading: "Measured",
+    body: "Gold is weighed in grams or troy ounces. One troy ounce is 31.1035 grams — a different unit from the ounce used for everyday goods, and the reason two scales can disagree.",
   },
   {
-    key: 'purity',
-    label: 'Purity',
-    reading: 'Verified',
-    body: 'Purity is expressed in carats out of 24, or as parts per thousand. 22ct is 916 parts gold per thousand; 18ct is 750; 9ct is 375. The balance is alloy, and it is not gold.',
+    key: "purity",
+    label: "Purity",
+    reading: "Verified",
+    body: "Purity is expressed in carats out of 24, or as parts per thousand. 22ct is 916 parts gold per thousand; 18ct is 750; 9ct is 375. The balance is alloy, and it is not gold.",
   },
   {
-    key: 'condition',
-    label: 'Condition',
-    reading: 'Examined',
-    body: 'Solder, plating, stones, clasps and previous repairs all change how much gold a piece actually contains. Condition is examined under magnification, not estimated from appearance.',
+    key: "condition",
+    label: "Condition",
+    reading: "Examined",
+    body: "Solder, plating, stones, clasps and previous repairs all change how much gold a piece actually contains. Condition is examined under magnification, not estimated from appearance.",
   },
   {
-    key: 'reference',
-    label: 'Market Reference',
-    reading: 'Applied',
-    body: 'Verified weight and fineness are read against the market reference the business works to at the time of assessment. This site does not display live rates.',
+    key: "reference",
+    label: "Market Reference",
+    reading: "Applied",
+    body: "Verified weight and fineness are read against the market reference the business works to at the time of assessment. This site does not display live rates.",
   },
   {
-    key: 'evaluation',
-    label: 'Final Evaluation',
-    reading: 'Issued',
-    body: 'The measured factors are brought together into a single figure and explained in full. A final valuation is only ever issued in person by Pureweight, never by this website.',
+    key: "evaluation",
+    label: "Final Evaluation",
+    reading: "Issued",
+    body: "The measured factors are brought together into a single figure and explained in full. A final valuation is only ever issued in person by Pureweight, never by this website.",
   },
 ] as const;
 
@@ -368,20 +417,20 @@ export const assayFactors = [
  */
 export const pillars = [
   {
-    title: 'Weighed in front of you',
-    body: 'The scale stays where you can see it and the weight is read out as it is taken. Nothing is carried into a back room.',
+    title: "Weighed in front of you",
+    body: "The scale stays where you can see it and the weight is read out as it is taken. Nothing is carried into a back room.",
   },
   {
-    title: 'Measured against the market',
-    body: 'Precious metal has a published market price. Any figure is related back to it, at the moment you are standing there.',
+    title: "Measured against the market",
+    body: "Precious metal has a published market price. Any figure is related back to it, at the moment you are standing there.",
   },
   {
-    title: 'The working is shown',
-    body: 'Weight, the purity we have established, and how the two produce the figure — explained before you are asked to decide anything.',
+    title: "The working is shown",
+    body: "Weight, the purity we have established, and how the two produce the figure — explained before you are asked to decide anything.",
   },
   {
-    title: 'No obligation, ever',
-    body: 'Having something examined and valued costs nothing. Taking it home again is an ordinary outcome, not an awkward one.',
+    title: "No obligation, ever",
+    body: "Having something examined and valued costs nothing. Taking it home again is an ordinary outcome, not an awkward one.",
   },
 ] as const;
 
@@ -393,10 +442,10 @@ export const pillars = [
 /* -------------------------------------------------------------------------- */
 
 export const trustStrip = [
-  'Weighed at the Counter',
-  'Market-Referenced Figures',
-  'Gold, Silver, Coins, Bullion',
-  'No Obligation to Sell',
+  "Weighed at the Counter",
+  "Market-Referenced Figures",
+  "Gold, Silver, Coins, Bullion",
+  "No Obligation to Sell",
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -404,14 +453,14 @@ export const trustStrip = [
 /* -------------------------------------------------------------------------- */
 
 export const insightTopics = [
-  { title: 'How Gold Purity Is Measured', category: 'Fundamentals' },
-  { title: 'Understanding Gold Hallmarks', category: 'Fundamentals' },
-  { title: 'What Affects the Value of Gold?', category: 'Valuation' },
-  { title: 'Bullion Versus Jewellery Valuation', category: 'Valuation' },
-  { title: 'How to Prepare Gold for an Evaluation', category: 'Practical' },
-  { title: 'Understanding Gold Weight Measurements', category: 'Fundamentals' },
-  { title: 'What to Bring to a Private Valuation', category: 'Practical' },
-  { title: 'Common Gold Valuation Questions', category: 'Practical' },
+  { title: "How Gold Purity Is Measured", category: "Fundamentals" },
+  { title: "Understanding Gold Hallmarks", category: "Fundamentals" },
+  { title: "What Affects the Value of Gold?", category: "Valuation" },
+  { title: "Bullion Versus Jewellery Valuation", category: "Valuation" },
+  { title: "How to Prepare Gold for an Evaluation", category: "Practical" },
+  { title: "Understanding Gold Weight Measurements", category: "Fundamentals" },
+  { title: "What to Bring to a Private Valuation", category: "Practical" },
+  { title: "Common Gold Valuation Questions", category: "Practical" },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -433,8 +482,8 @@ export function buildLocalBusinessJsonLd(): Record<string, unknown> | null {
   if (!address || !legalName) return null;
 
   const jsonLd: Record<string, unknown> = {
-    '@context': 'https://schema.org',
-    '@type': 'LocalBusiness',
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
     name: brand.name,
     legalName,
     url: brand.url,
@@ -469,11 +518,11 @@ export function buildLocalBusinessJsonLd(): Record<string, unknown> | null {
  * built without knowing this 301'd (sitemap) or mismatched the served URL
  * (canonicals) on the Pages target. One helper, both targets correct.
  */
-const TRAILING_SLASH = process.env.GITHUB_PAGES === 'true';
+const TRAILING_SLASH = process.env.GITHUB_PAGES === "true";
 
 export function canonicalPath(path: string): string {
-  if (path === '/') return '/';
-  const clean = path.replace(/\/+$/, '');
+  if (path === "/") return "/";
+  const clean = path.replace(/\/+$/, "");
   return TRAILING_SLASH ? `${clean}/` : clean;
 }
 
@@ -496,7 +545,7 @@ export function ogFor({
   path: string;
 }) {
   return {
-    type: 'website' as const,
+    type: "website" as const,
     siteName: brand.name,
     title,
     description,
@@ -507,13 +556,15 @@ export function ogFor({
      * this helper shipped zero og:image until this line. The path resolves
      * against metadataBase; every page shares the one generated card.
      */
-    images: ['/opengraph-image'],
+    images: ["/opengraph-image"],
   };
 }
 
 /** Every outstanding placeholder, for the build-time content report. */
 export function outstandingPlaceholders(): string[] {
   return Object.entries(business)
-    .filter(([, field]) => (field as Verifiable<unknown>).status === 'placeholder')
+    .filter(
+      ([, field]) => (field as Verifiable<unknown>).status === "placeholder",
+    )
     .map(([key, field]) => `${key}: ${(field as { label: string }).label}`);
 }
