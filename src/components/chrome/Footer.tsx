@@ -143,21 +143,20 @@ export function Footer() {
                 © {year} {brand.name}. Registered business details:{" "}
                 <Fact field={business.registrationNumber} />
               </p>
-              {/* This line USED to say the site "does not display live precious-metal
-                  rates". That became false the moment the market panel shipped, and a
-                  false disclaimer is worse than none — it is the sentence a reader
-                  would rely on. Rewritten to say what is actually true: rates are
-                  shown, they are sourced and timestamped, and they are a market
-                  reference rather than an offer. */}
+              {/* This sentence has now been wrong in BOTH directions: it once
+                  claimed the site showed no rates while a market panel was live,
+                  and then described published rates after that panel was removed.
+                  A false disclaimer is worse than none, because it is the line a
+                  reader would actually rely on. It now says only what is true
+                  today: no figure here is a quotation or an offer. */}
               <p className="max-w-2xl">
                 This website provides general information about the services
-                offered by {brand.shortName}. Any precious-metal rates shown are
-                international market reference prices, published with their
-                source and the time they were retrieved. They are not a
-                valuation, a quotation, or an offer, and they are not what is
-                payable for any item — that is established only by examining and
-                weighing it. Nothing on this page should be relied upon as
-                financial advice.
+                offered by {brand.shortName}. It does not publish precious-metal
+                rates, and nothing on it is a valuation, a quotation, or an
+                offer. What is payable for any item is established only by
+                examining and weighing it at the counter, against the market at
+                that moment. Nothing here should be relied upon as financial
+                advice.
               </p>
             </div>
 

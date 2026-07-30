@@ -138,7 +138,6 @@ export const business: BusinessFacts = {
 /* -------------------------------------------------------------------------- */
 
 export const primaryNav = [
-  { label: "Live Prices", href: "/#rates" },
   { label: "What We Buy", href: "/#services" },
   { label: "How It Works", href: "/#journey" },
   { label: "Purity & Weight", href: "/#assay" },

@@ -2,7 +2,7 @@
   "name": "pureweight-gold-exchange",
   "version": "0.1.0",
   "private": true,
-  "description": "Pureweight Gold Exchange — immersive WebGL brand experience.",
+  "description": "Pureweight Gold Exchange \u2014 immersive WebGL brand experience.",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
@@ -10,11 +10,10 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "check:geometry": "node --experimental-strip-types scripts/check-geometry.mjs",
-    "verify": "npm run typecheck && npm run lint && npm run check:geometry && npm run check:contrast && npm run check:budget && npm run check:rates",
+    "verify": "npm run typecheck && npm run lint && npm run check:geometry && npm run check:contrast && npm run check:budget",
     "check:contrast": "node scripts/check-contrast.mjs",
     "check:budget": "node --experimental-strip-types scripts/check-budget.mjs",
     "make:craquelure": "node scripts/make-craquelure.mjs",
-    "check:rates": "node --experimental-strip-types scripts/check-rates.mjs",
     "check:scene-contrast": "node scripts/check-section-scene-contrast.mjs"
   },
   "dependencies": {

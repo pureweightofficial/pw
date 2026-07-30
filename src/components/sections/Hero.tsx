@@ -130,10 +130,10 @@ export function Hero() {
             <CTA
               variant="ghost"
               magnetic={false}
-              onClick={() => scrollTo("#rates")}
-              aria-label="See today's gold and silver prices"
+              onClick={() => scrollTo("#services")}
+              aria-label="See what we buy"
             >
-              Today&rsquo;s Prices
+              What We Buy
               <span aria-hidden="true" className="text-gold-antique">
                 ↓
               </span>
