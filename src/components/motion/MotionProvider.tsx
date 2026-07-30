@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Lenis from 'lenis';
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Lenis from "lenis";
 import {
   createContext,
   useCallback,
@@ -10,8 +10,8 @@ import {
   useEffect,
   useRef,
   type ReactNode,
-} from 'react';
-import { clamp, resetScroll, setScroll } from '@/lib/scroll-store';
+} from "react";
+import { clamp, resetScroll, setScroll } from "@/lib/scroll-store";
 
 /**
  * MOTION PROVIDER
@@ -42,7 +42,10 @@ import { clamp, resetScroll, setScroll } from '@/lib/scroll-store';
  */
 
 type MotionContextValue = {
-  scrollTo: (target: string | number, options?: { offset?: number; immediate?: boolean }) => void;
+  scrollTo: (
+    target: string | number,
+    options?: { offset?: number; immediate?: boolean },
+  ) => void;
   stop: () => void;
   start: () => void;
 };
@@ -61,7 +64,9 @@ export function MotionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
     let lenis: Lenis | null = null;
 
@@ -80,7 +85,7 @@ export function MotionProvider({ children }: { children: ReactNode }) {
 
       lenisRef.current = lenis;
 
-      lenis.on('scroll', (instance: { velocity: number }) => {
+      lenis.on("scroll", (instance: { velocity: number }) => {
         setScroll({ velocity: instance.velocity });
         ScrollTrigger.update();
       });
@@ -101,49 +106,58 @@ export function MotionProvider({ children }: { children: ReactNode }) {
       // Whole-document progress.
       ScrollTrigger.create({
         trigger: document.documentElement,
-        start: 'top top',
-        end: 'bottom bottom',
+        start: "top top",
+        end: "bottom bottom",
         onUpdate: (self) => setScroll({ progress: self.progress }),
       });
 
-      const section = (name: string, key: 'hero' | 'journey' | 'assay' | 'finale') => {
-        const el = document.querySelector<HTMLElement>(`[data-scroll-section="${name}"]`);
+      const section = (
+        name: string,
+        key: "hero" | "journey" | "assay" | "finale",
+      ) => {
+        const el = document.querySelector<HTMLElement>(
+          `[data-scroll-section="${name}"]`,
+        );
         if (!el) return;
 
         ScrollTrigger.create({
           trigger: el,
-          start: 'top bottom',
-          end: 'bottom top',
+          start: "top bottom",
+          end: "bottom top",
           onUpdate: (self) => setScroll({ [key]: self.progress } as never),
         });
       };
 
       // The hero measures from its own top so the camera push tracks the
       // section leaving the viewport, not entering it.
-      const hero = document.querySelector<HTMLElement>('[data-scroll-section="hero"]');
+      const hero = document.querySelector<HTMLElement>(
+        '[data-scroll-section="hero"]',
+      );
       if (hero) {
         ScrollTrigger.create({
           trigger: hero,
-          start: 'top top',
-          end: 'bottom top',
+          start: "top top",
+          end: "bottom top",
           onUpdate: (self) => setScroll({ hero: self.progress }),
         });
       }
 
-      section('journey', 'journey');
-      section('assay', 'assay');
-      section('finale', 'finale');
+      section("journey", "journey");
+      section("assay", "assay");
+      section("finale", "finale");
 
       /* -------------------------------------------------------------- */
       /* BALANCE — the spine                                             */
       /* -------------------------------------------------------------- */
 
-      const journey = document.querySelector<HTMLElement>('[data-scroll-section="journey"]');
+      const journey = document.querySelector<HTMLElement>(
+        '[data-scroll-section="journey"]',
+      );
       if (journey) {
         ScrollTrigger.create({
           trigger: journey,
-          start: 'top 80%',
-          end: 'bottom 60%',
+          start: "top 80%",
+          end: "bottom 60%",
           onUpdate: (self) => {
             const balance = clamp(self.progress);
             setScroll({ balance });
@@ -152,7 +166,7 @@ export function MotionProvider({ children }: { children: ReactNode }) {
             // One write to a custom property; CSS does the rest, so this stays
             // off the main thread's layout path.
             document.documentElement.style.setProperty(
-              '--beam-tilt',
+              "--beam-tilt",
               `${(-2.6 * (1 - balance)).toFixed(3)}deg`,
             );
           },
@@ -163,30 +177,34 @@ export function MotionProvider({ children }: { children: ReactNode }) {
       /* ACTIVE STAGE / FACTOR                                           */
       /* -------------------------------------------------------------- */
 
-      document.querySelectorAll<HTMLElement>('[data-journey-stage]').forEach((el) => {
-        const index = Number(el.dataset.journeyStage);
-        ScrollTrigger.create({
-          trigger: el,
-          start: 'top 62%',
-          end: 'bottom 38%',
-          onToggle: (self) => {
-            if (self.isActive) setScroll({ journeyStage: index });
-          },
+      document
+        .querySelectorAll<HTMLElement>("[data-journey-stage]")
+        .forEach((el) => {
+          const index = Number(el.dataset.journeyStage);
+          ScrollTrigger.create({
+            trigger: el,
+            start: "top 62%",
+            end: "bottom 38%",
+            onToggle: (self) => {
+              if (self.isActive) setScroll({ journeyStage: index });
+            },
+          });
         });
-      });
 
-      document.querySelectorAll<HTMLElement>('[data-assay-factor]').forEach((el) => {
-        const index = Number(el.dataset.assayFactor);
-        ScrollTrigger.create({
-          trigger: el,
-          start: 'top 65%',
-          end: 'bottom 35%',
-          onToggle: (self) => {
-            if (self.isActive) setScroll({ assayFactor: index });
-            el.dataset.active = self.isActive ? 'true' : 'false';
-          },
+      document
+        .querySelectorAll<HTMLElement>("[data-assay-factor]")
+        .forEach((el) => {
+          const index = Number(el.dataset.assayFactor);
+          ScrollTrigger.create({
+            trigger: el,
+            start: "top 65%",
+            end: "bottom 35%",
+            onToggle: (self) => {
+              if (self.isActive) setScroll({ assayFactor: index });
+              el.dataset.active = self.isActive ? "true" : "false";
+            },
+          });
         });
-      });
 
       /* -------------------------------------------------------------- */
       /* REVEALS                                                         */
@@ -195,45 +213,53 @@ export function MotionProvider({ children }: { children: ReactNode }) {
       if (!reduced) {
         // Tells the watchdog in the head script that reveals are armed, so it
         // does not un-hide everything three seconds from now.
-        document.documentElement.dataset.revealsReady = '1';
+        document.documentElement.dataset.revealsReady = "1";
 
-        ScrollTrigger.batch('.will-reveal', {
-          start: 'top 88%',
+        ScrollTrigger.batch(".will-reveal", {
+          start: "top 88%",
           once: true,
           onEnter: (batch) => {
             gsap.to(batch, {
               opacity: 1,
               y: 0,
               duration: 1.15,
-              ease: 'power3.out',
+              ease: "power3.out",
               // A short stagger reads as considered; a long one reads as slow.
               stagger: 0.09,
               overwrite: true,
-              onComplete: () => batch.forEach((el) => el.classList.add('reveal-done')),
+              onComplete: () =>
+                batch.forEach((el) => el.classList.add("reveal-done")),
             });
           },
         });
 
         // Ornamental parallax. Restricted to elements explicitly opted in, and
         // capped at 60px of travel so nothing drifts out of its own section.
-        document.querySelectorAll<HTMLElement>('[data-parallax]').forEach((el) => {
-          const distance = Number(el.dataset.parallax) || 40;
-          gsap.fromTo(
-            el,
-            { y: -distance / 2 },
-            {
-              y: distance / 2,
-              ease: 'none',
-              scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 1.1 },
-            },
-          );
-        });
+        document
+          .querySelectorAll<HTMLElement>("[data-parallax]")
+          .forEach((el) => {
+            const distance = Number(el.dataset.parallax) || 40;
+            gsap.fromTo(
+              el,
+              { y: -distance / 2 },
+              {
+                y: distance / 2,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: el,
+                  start: "top bottom",
+                  end: "bottom top",
+                  scrub: 1.1,
+                },
+              },
+            );
+          });
       } else {
         // Reduced motion: everything is simply present.
         document
-          .querySelectorAll<HTMLElement>('.will-reveal')
-          .forEach((el) => el.classList.add('reveal-done'));
-        document.documentElement.style.setProperty('--beam-tilt', '0deg');
+          .querySelectorAll<HTMLElement>(".will-reveal")
+          .forEach((el) => el.classList.add("reveal-done"));
+        document.documentElement.style.setProperty("--beam-tilt", "0deg");
         setScroll({ balance: 1 });
       }
     });
@@ -255,20 +281,22 @@ export function MotionProvider({ children }: { children: ReactNode }) {
     };
 
     const onPointerMove = (event: PointerEvent) => {
-      if (event.pointerType !== 'mouse') return;
+      if (event.pointerType !== "mouse") return;
       pendingX = (event.clientX / window.innerWidth) * 2 - 1;
       pendingY = -((event.clientY / window.innerHeight) * 2 - 1);
       if (!pointerRaf) pointerRaf = requestAnimationFrame(flushPointer);
     };
 
-    if (!reduced) window.addEventListener('pointermove', onPointerMove, { passive: true });
+    if (!reduced)
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
 
     return () => {
       ctx.revert();
-      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener("pointermove", onPointerMove);
       if (pointerRaf) cancelAnimationFrame(pointerRaf);
 
-      const raf = (lenis as unknown as { __raf?: (t: number) => void } | null)?.__raf;
+      const raf = (lenis as unknown as { __raf?: (t: number) => void } | null)
+        ?.__raf;
       if (raf) gsap.ticker.remove(raf);
       lenis?.destroy();
       lenisRef.current = null;
@@ -280,21 +308,28 @@ export function MotionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const scrollTo = useCallback(
-    (target: string | number, options?: { offset?: number; immediate?: boolean }) => {
+    (
+      target: string | number,
+      options?: { offset?: number; immediate?: boolean },
+    ) => {
       const offset = options?.offset ?? -84; // clears the fixed navigation
 
       if (lenisRef.current) {
-        lenisRef.current.scrollTo(target, { offset, immediate: options?.immediate });
+        lenisRef.current.scrollTo(target, {
+          offset,
+          immediate: options?.immediate,
+        });
         return;
       }
 
       // Reduced motion / no Lenis: native, instant, no smooth behaviour.
-      const el = typeof target === 'string' ? document.querySelector(target) : null;
+      const el =
+        typeof target === "string" ? document.querySelector(target) : null;
       if (el) {
         const top = el.getBoundingClientRect().top + window.scrollY + offset;
-        window.scrollTo({ top, behavior: 'auto' });
-      } else if (typeof target === 'number') {
-        window.scrollTo({ top: target, behavior: 'auto' });
+        window.scrollTo({ top, behavior: "auto" });
+      } else if (typeof target === "number") {
+        window.scrollTo({ top: target, behavior: "auto" });
       }
     },
     [],
@@ -304,6 +339,8 @@ export function MotionProvider({ children }: { children: ReactNode }) {
   const start = useCallback(() => lenisRef.current?.start(), []);
 
   return (
-    <MotionContext.Provider value={{ scrollTo, stop, start }}>{children}</MotionContext.Provider>
+    <MotionContext.Provider value={{ scrollTo, stop, start }}>
+      {children}
+    </MotionContext.Provider>
   );
 }

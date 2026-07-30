@@ -1,9 +1,13 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react';
-import { useMagnetic } from '@/lib/hooks';
-import { isVerified, type Verifiable } from '@/lib/site';
+import Link from "next/link";
+import type {
+  AnchorHTMLAttributes,
+  ButtonHTMLAttributes,
+  ReactNode,
+} from "react";
+import { useMagnetic } from "@/lib/hooks";
+import { isVerified, type Verifiable } from "@/lib/site";
 
 /* -------------------------------------------------------------------------- */
 /* PLACEHOLDER                                                                */
@@ -18,17 +22,23 @@ import { isVerified, type Verifiable } from '@/lib/site';
  * omission is how a missing licence number turns into a page that quietly
  * implies there is one.
  */
-export function Placeholder({ label, inline = false }: { label: string; inline?: boolean }) {
-  const Tag = inline ? 'span' : 'p';
+export function Placeholder({
+  label,
+  inline = false,
+}: {
+  label: string;
+  inline?: boolean;
+}) {
+  const Tag = inline ? "span" : "p";
 
   return (
     <Tag
       className={[
-        'inline-flex items-center gap-2 border border-dashed border-gold-antique/35',
-        'bg-gold-antique/5 px-3 py-1.5 font-sans text-[0.66rem] tracking-[0.14em]',
-        'text-gold-antique uppercase',
-        inline ? '' : 'my-2',
-      ].join(' ')}
+        "inline-flex items-center gap-2 border border-dashed border-gold-antique/35",
+        "bg-gold-antique/5 px-3 py-1.5 font-sans text-[0.66rem] tracking-[0.14em]",
+        "text-gold-antique uppercase",
+        inline ? "" : "my-2",
+      ].join(" ")}
       data-content-placeholder="true"
     >
       <span aria-hidden="true" className="text-gold-antique">
@@ -56,13 +66,14 @@ export function Fact<T extends ReactNode>({
    * formatting for the href; 'mailto' uses the value verbatim. Applied only
    * once the field is verified — placeholders never become links.
    */
-  link?: 'tel' | 'mailto';
+  link?: "tel" | "mailto";
 }) {
   if (!isVerified(field)) return <Placeholder label={field.label} inline />;
 
   if (link) {
     const raw = String(field.value);
-    const href = link === 'tel' ? `tel:${raw.replace(/[^+\d]/g, '')}` : `mailto:${raw}`;
+    const href =
+      link === "tel" ? `tel:${raw.replace(/[^+\d]/g, "")}` : `mailto:${raw}`;
     return (
       <a className="underline-offset-4 hover:underline" href={href}>
         {field.value}
@@ -79,20 +90,20 @@ export function Fact<T extends ReactNode>({
 
 export function Eyebrow({
   children,
-  className = '',
-  tone = 'gold',
-  align = 'left',
+  className = "",
+  tone = "gold",
+  align = "left",
 }: {
   children: ReactNode;
   className?: string;
-  tone?: 'gold' | 'ash';
+  tone?: "gold" | "ash";
   /** Centred labels carry a struck rule on both sides, so they stay symmetrical. */
-  align?: 'left' | 'center';
+  align?: "left" | "center";
 }) {
   // The struck rule is opt-in (.label-rule), so bare .label usages elsewhere
   // keep plain typography and their existing baseline alignment.
-  const base = tone === 'gold' ? 'label label-rule' : 'label-ash';
-  const centered = tone === 'gold' && align === 'center' ? 'label-center' : '';
+  const base = tone === "gold" ? "label label-rule" : "label-ash";
+  const centered = tone === "gold" && align === "center" ? "label-center" : "";
   return <p className={`${base} ${centered} ${className}`}>{children}</p>;
 }
 
@@ -103,7 +114,7 @@ export function Eyebrow({
 export function ChapterMark({
   index,
   title,
-  className = '',
+  className = "",
 }: {
   index: string;
   title: string;
@@ -129,7 +140,7 @@ export function ChapterMark({
  * the page's own structure resolves alongside the object.
  */
 export function BeamDivider({
-  className = '',
+  className = "",
   fixed = false,
 }: {
   className?: string;
@@ -137,13 +148,13 @@ export function BeamDivider({
 }) {
   return (
     <div className={`relative w-full ${className}`} aria-hidden="true">
-      <div className={`beam ${fixed ? 'beam-fixed' : ''}`} />
+      <div className={`beam ${fixed ? "beam-fixed" : ""}`} />
     </div>
   );
 }
 
 /** A plain hairline, for use inside components where the motif would be noise. */
-export function Rule({ className = '' }: { className?: string }) {
+export function Rule({ className = "" }: { className?: string }) {
   return <div className={`rule-gold ${className}`} aria-hidden="true" />;
 }
 
@@ -155,10 +166,13 @@ type CTAProps = {
   children: ReactNode;
   href?: string;
   className?: string;
-  variant?: 'primary' | 'ghost';
+  variant?: "primary" | "ghost";
   magnetic?: boolean;
-} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'children'> &
-  Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'className' | 'children' | 'href'>;
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className" | "children"> &
+  Omit<
+    AnchorHTMLAttributes<HTMLAnchorElement>,
+    "className" | "children" | "href"
+  >;
 
 /**
  * The site's action. Magnetic attraction is capped at 6px inside `useMagnetic`
@@ -168,16 +182,19 @@ type CTAProps = {
 export function CTA({
   children,
   href,
-  className = '',
-  variant = 'primary',
+  className = "",
+  variant = "primary",
   magnetic = true,
   ...rest
 }: CTAProps) {
   const magnetRef = useMagnetic<HTMLElement>(magnetic ? 6 : 0);
-  const classes = `${variant === 'primary' ? 'btn-primary' : 'btn-ghost'} ${className}`;
+  const classes = `${variant === "primary" ? "btn-primary" : "btn-ghost"} ${className}`;
 
   if (href) {
-    const external = href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('tel:');
+    const external =
+      href.startsWith("http") ||
+      href.startsWith("mailto:") ||
+      href.startsWith("tel:");
 
     if (external) {
       return (
@@ -221,12 +238,12 @@ export function CTA({
 /* -------------------------------------------------------------------------- */
 
 const MATERIALS = {
-  steel: 'mat-steel',
-  stone: 'mat-stone',
-  glass: 'mat-glass',
-  walnut: 'mat-walnut',
-  bronze: 'mat-bronze',
-  none: '',
+  steel: "mat-steel",
+  stone: "mat-stone",
+  glass: "mat-glass",
+  walnut: "mat-walnut",
+  bronze: "mat-bronze",
+  none: "",
 } as const;
 
 /**
@@ -239,8 +256,8 @@ const MATERIALS = {
 export function Section({
   id,
   children,
-  material = 'none',
-  className = '',
+  material = "none",
+  className = "",
   labelledBy,
   scrollSection,
 }: {
@@ -256,7 +273,7 @@ export function Section({
       id={id}
       aria-labelledby={labelledBy}
       data-scroll-section={scrollSection}
-      className={`relative isolate overflow-hidden ${MATERIALS[material]} ${material !== 'none' ? 'grain' : ''} ${className}`}
+      className={`relative isolate overflow-hidden ${MATERIALS[material]} ${material !== "none" ? "grain" : ""} ${className}`}
     >
       {children}
     </section>

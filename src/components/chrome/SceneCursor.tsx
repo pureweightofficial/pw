@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 /**
  * SCENE CURSOR
@@ -24,20 +24,21 @@ import { useEffect, useRef } from 'react';
  *  - if this component never mounts, nothing about the page changes.
  */
 
-const INTERACTIVE = 'a, button, input, textarea, select, label, summary, [role="button"]';
+const INTERACTIVE =
+  'a, button, input, textarea, select, label, summary, [role="button"]';
 
 export function SceneCursor() {
   const ringRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fine = window.matchMedia('(pointer: fine)');
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const fine = window.matchMedia("(pointer: fine)");
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (!fine.matches || reduced.matches) return;
 
     const ring = ringRef.current;
     if (!ring) return;
 
-    const label = ring.querySelector<HTMLSpanElement>('[data-ring-label]');
+    const label = ring.querySelector<HTMLSpanElement>("[data-ring-label]");
 
     let raf = 0;
     let targetX = 0;
@@ -50,9 +51,9 @@ export function SceneCursor() {
     const hide = () => {
       if (!visible) return;
       visible = false;
-      ring.style.opacity = '0';
+      ring.style.opacity = "0";
       ring.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) scale(0.6)`;
-      document.documentElement.style.cursor = '';
+      document.documentElement.style.cursor = "";
     };
 
     const tick = () => {
@@ -67,12 +68,15 @@ export function SceneCursor() {
     };
 
     const onMove = (event: PointerEvent) => {
-      if (event.pointerType !== 'mouse') return;
+      if (event.pointerType !== "mouse") return;
 
       const element = event.target as HTMLElement | null;
 
       // Real controls and marked copy keep the native cursor.
-      if (element?.closest(INTERACTIVE) || element?.closest('[data-cursor-normal]')) {
+      if (
+        element?.closest(INTERACTIVE) ||
+        element?.closest("[data-cursor-normal]")
+      ) {
         hide();
         return;
       }
@@ -80,7 +84,9 @@ export function SceneCursor() {
       // Hit-test against the registered surfaces by rectangle, because the
       // canvases sit behind their own overlays and would rarely be the event
       // target directly.
-      const surfaces = document.querySelectorAll<HTMLElement>('[data-webgl-surface]');
+      const surfaces = document.querySelectorAll<HTMLElement>(
+        "[data-webgl-surface]",
+      );
       let match: HTMLElement | null = null;
 
       for (const surface of surfaces) {
@@ -114,15 +120,15 @@ export function SceneCursor() {
 
       if (!visible) {
         visible = true;
-        ring.style.opacity = '1';
-        document.documentElement.style.cursor = 'none';
+        ring.style.opacity = "1";
+        document.documentElement.style.cursor = "none";
         if (!raf) raf = requestAnimationFrame(tick);
       }
 
       if (label) {
-        const next = match.dataset.webglLabel ?? '';
+        const next = match.dataset.webglLabel ?? "";
         if (label.textContent !== next) label.textContent = next;
-        label.style.opacity = next ? '1' : '0';
+        label.style.opacity = next ? "1" : "0";
       }
     };
 
@@ -131,18 +137,18 @@ export function SceneCursor() {
       hide();
     };
 
-    window.addEventListener('pointermove', onMove, { passive: true });
-    document.addEventListener('pointerleave', onLeave);
-    window.addEventListener('blur', onLeave);
-    window.addEventListener('scroll', hide, { passive: true });
+    window.addEventListener("pointermove", onMove, { passive: true });
+    document.addEventListener("pointerleave", onLeave);
+    window.addEventListener("blur", onLeave);
+    window.addEventListener("scroll", hide, { passive: true });
 
     return () => {
-      window.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointerleave', onLeave);
-      window.removeEventListener('blur', onLeave);
-      window.removeEventListener('scroll', hide);
+      window.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("blur", onLeave);
+      window.removeEventListener("scroll", hide);
       if (raf) cancelAnimationFrame(raf);
-      document.documentElement.style.cursor = '';
+      document.documentElement.style.cursor = "";
     };
   }, []);
 
@@ -151,7 +157,7 @@ export function SceneCursor() {
       ref={ringRef}
       aria-hidden="true"
       className="pointer-events-none fixed left-0 top-0 z-[90] hidden opacity-0 transition-opacity duration-300 lg:block"
-      style={{ willChange: 'transform, opacity' }}
+      style={{ willChange: "transform, opacity" }}
     >
       <div className="relative -translate-x-1/2 -translate-y-1/2">
         <div className="h-9 w-9 rounded-full border border-gold-rich/70" />

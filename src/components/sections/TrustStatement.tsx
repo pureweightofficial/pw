@@ -1,6 +1,9 @@
-import { BeamDivider, Eyebrow, Section } from '@/components/ui/primitives';
-import { trustStrip } from '@/lib/site';
-import { AmbientGlow } from '@/components/ui/AmbientGlow';
+"use client";
+
+import { BeamDivider, Eyebrow, Section } from "@/components/ui/primitives";
+import { trustStrip } from "@/lib/site";
+import { AmbientGlow } from "@/components/ui/AmbientGlow";
+import { SectionScene } from "@/components/ui/SectionScene";
 
 /**
  * IMMEDIATE TRUST
@@ -18,12 +21,20 @@ import { AmbientGlow } from '@/components/ui/AmbientGlow';
 
 export function TrustStatement() {
   return (
-    <Section id="trust" material="steel" labelledBy="trust-heading" className="py-24 lg:py-36">
+    <Section
+      id="trust"
+      material="steel"
+      labelledBy="trust-heading"
+      className="py-24 lg:py-36"
+    >
+      <SectionScene variant="motes" />
       <AmbientGlow intensity="normal" placement="left" />
       <div className="shell">
         <div className="grid gap-14 lg:grid-cols-12 lg:gap-16">
           <div className="lg:col-span-7">
-            <Eyebrow className="mb-8 will-reveal">Chapter 01 — True Value</Eyebrow>
+            <Eyebrow className="mb-8 will-reveal">
+              Chapter 01 — True Value
+            </Eyebrow>
 
             <h2
               id="trust-heading"
@@ -31,19 +42,21 @@ export function TrustStatement() {
             >
               Every gram carries value.
               <br />
-              <span className="accent-italic text-gold-high/90">Every exchange deserves clarity.</span>
+              <span className="accent-italic text-gold-high/90">
+                Every exchange deserves clarity.
+              </span>
             </h2>
           </div>
 
           <div className="lg:col-span-5 lg:pt-20">
             <p className="text-lead text-ivory/70 will-reveal">
-              Pureweight buys gold and silver through accurate measurement, transparent
-              communication and professional handling.
+              Pureweight buys gold and silver through accurate measurement,
+              transparent communication and professional handling.
             </p>
             <p className="mt-6 text-lead text-ash will-reveal">
-              You are shown the weight. You are shown the fineness. You are shown how those two
-              figures produce the number in front of you — before you are asked to decide anything
-              at all.
+              You are shown the weight. You are shown the fineness. You are
+              shown how those two figures produce the number in front of you —
+              before you are asked to decide anything at all.
             </p>
           </div>
         </div>
@@ -57,7 +70,7 @@ export function TrustStatement() {
               className="group relative flex items-center gap-4 bg-char px-7 py-8 will-reveal"
             >
               <span className="font-sans text-[0.6rem] tracking-[0.22em] text-gold-antique">
-                {String(index + 1).padStart(2, '0')}
+                {String(index + 1).padStart(2, "0")}
               </span>
               <span className="text-[0.78rem] font-medium tracking-[0.14em] text-ivory/85 uppercase">
                 {item}
@@ -73,9 +86,9 @@ export function TrustStatement() {
         </ul>
 
         <p className="mt-6 text-xs leading-relaxed text-ash">
-          These describe how the service is conducted. Registrations, certifications, memberships
-          and insurance are listed separately under Verified Trust Evidence, and only once
-          confirmed.
+          These describe how the service is conducted. Registrations,
+          certifications, memberships and insurance are listed separately under
+          Verified Trust Evidence, and only once confirmed.
         </p>
       </div>
     </Section>

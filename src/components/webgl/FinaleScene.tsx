@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useFrame } from '@react-three/fiber';
-import { useRef } from 'react';
-import * as THREE from 'three';
-import type { Capability } from '@/lib/capability';
-import { clamp, scrollState, smoothstep } from '@/lib/scroll-store';
-import { BalanceScale } from './BalanceScale';
-import { CameraRig } from './CameraRig';
-import { Dust } from './Dust';
-import { Studio } from './Studio';
+import { useFrame } from "@react-three/fiber";
+import { useRef } from "react";
+import * as THREE from "three";
+import type { Capability } from "@/lib/capability";
+import { clamp, scrollState, smoothstep } from "@/lib/scroll-store";
+import { BalanceScale } from "./BalanceScale";
+import { CameraRig } from "./CameraRig";
+import { Dust } from "./Dust";
+import { Studio } from "./Studio";
 
 /**
  * FINALE SCENE — the resolution
@@ -103,7 +103,11 @@ export function FinaleScene({ capability }: { capability: Capability }) {
 
       {/* Half the hero's dust: this frame is tighter, and the same density
           would read as smoke rather than atmosphere. */}
-      <Dust count={Math.round(capability.particles * 0.5)} opacity={0.36} sigma={1.15} />
+      <Dust
+        count={Math.round(capability.particles * 0.5)}
+        opacity={0.36}
+        sigma={1.15}
+      />
     </group>
   );
 }

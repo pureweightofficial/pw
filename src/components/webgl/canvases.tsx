@@ -1,10 +1,15 @@
-'use client';
+"use client";
 
-import { AssayScene } from './AssayScene';
-import { FinaleScene } from './FinaleScene';
-import { HeroScene } from './HeroScene';
-import { ScalePoster } from './ScalePoster';
-import { SceneShell } from './SceneShell';
+import {
+  AmbientPoster,
+  AmbientScene,
+  type AmbientVariant,
+} from "./AmbientScene";
+import { AssayScene } from "./AssayScene";
+import { FinaleScene } from "./FinaleScene";
+import { HeroScene } from "./HeroScene";
+import { ScalePoster } from "./ScalePoster";
+import { SceneShell } from "./SceneShell";
 
 /**
  * CANVAS ENTRY POINTS
@@ -18,6 +23,38 @@ import { SceneShell } from './SceneShell';
  * Each export is a thin binding of one scene to the shell's fallback, gating
  * and disposal policy. All the interesting work is in the scenes themselves.
  */
+
+/**
+ * The ambient backdrop, bound for any section that wants one.
+ *
+ * A wider field of view and a camera further back than the subject scenes: this
+ * is depth behind copy, not an object being presented. `showFallbackNotice` is
+ * off deliberately — if the context fails there is nothing the visitor has lost,
+ * so telling them a scene failed would be manufacturing a problem.
+ */
+export function AmbientCanvas({
+  variant,
+  channel,
+}: {
+  variant: AmbientVariant;
+  channel?: "progress" | "journey" | "assay" | "finale";
+}) {
+  return (
+    <SceneShell
+      camera={{ position: [0, 0.2, 5.4], fov: 42 }}
+      exposure={0.86}
+      poster={<AmbientPoster />}
+    >
+      {(capability) => (
+        <AmbientScene
+          capability={capability}
+          variant={variant}
+          channel={channel}
+        />
+      )}
+    </SceneShell>
+  );
+}
 
 export function HeroCanvas() {
   return (
@@ -71,7 +108,7 @@ function AssayPoster() {
       preserveAspectRatio="xMidYMid meet"
       aria-hidden="true"
       focusable="false"
-      style={{ width: '100%', height: '100%' }}
+      style={{ width: "100%", height: "100%" }}
     >
       <defs>
         <linearGradient id="assay-gold" x1="12%" y1="0%" x2="88%" y2="100%">
@@ -92,7 +129,15 @@ function AssayPoster() {
       <rect width="800" height="800" fill="url(#assay-glow)" />
 
       {/* Measurement ring and struck ticks. */}
-      <circle cx="400" cy="410" r="286" fill="none" stroke="#f2ce72" strokeOpacity="0.28" strokeWidth="1.4" />
+      <circle
+        cx="400"
+        cy="410"
+        r="286"
+        fill="none"
+        stroke="#f2ce72"
+        strokeOpacity="0.28"
+        strokeWidth="1.4"
+      />
       {Array.from({ length: 48 }, (_, i) => {
         const a = (i / 48) * Math.PI * 2;
         const major = i % 6 === 0;
@@ -113,12 +158,38 @@ function AssayPoster() {
       })}
 
       {/* The band. */}
-      <ellipse cx="400" cy="430" rx="176" ry="168" fill="none" stroke="url(#assay-gold)" strokeWidth="72" />
-      <ellipse cx="400" cy="430" rx="176" ry="168" fill="none" stroke="#000" strokeOpacity="0.28" strokeWidth="8" />
+      <ellipse
+        cx="400"
+        cy="430"
+        rx="176"
+        ry="168"
+        fill="none"
+        stroke="url(#assay-gold)"
+        strokeWidth="72"
+      />
+      <ellipse
+        cx="400"
+        cy="430"
+        rx="176"
+        ry="168"
+        fill="none"
+        stroke="#000"
+        strokeOpacity="0.28"
+        strokeWidth="8"
+      />
 
       {/* The bezel, with the struck fineness mark. */}
       <ellipse cx="400" cy="256" rx="102" ry="52" fill="url(#assay-gold)" />
-      <ellipse cx="400" cy="252" rx="86" ry="42" fill="none" stroke="#5c3f10" strokeOpacity="0.85" strokeWidth="3" />
+      <ellipse
+        cx="400"
+        cy="252"
+        rx="86"
+        ry="42"
+        fill="none"
+        stroke="#5c3f10"
+        strokeOpacity="0.85"
+        strokeWidth="3"
+      />
       <text
         x="400"
         y="264"
@@ -126,7 +197,7 @@ function AssayPoster() {
         fontSize="42"
         letterSpacing="3"
         fill="#4d3515"
-        style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}
+        style={{ fontFamily: "var(--font-display)", fontWeight: 600 }}
       >
         916
       </text>

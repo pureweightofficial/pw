@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Eyebrow, Section } from '@/components/ui/primitives';
+import { useState } from "react";
+import { Eyebrow, Section } from "@/components/ui/primitives";
+import { SectionScene } from "@/components/ui/SectionScene";
 
 /**
  * TESTIMONIALS
@@ -38,8 +39,11 @@ export function Testimonials() {
       labelledBy="testimonials-heading"
       className="py-24 lg:py-36"
     >
+      <SectionScene variant="motes" />
       <div className="shell-narrow text-center">
-        <Eyebrow align="center" className="mb-8 will-reveal">In Their Words</Eyebrow>
+        <Eyebrow align="center" className="mb-8 will-reveal">
+          In Their Words
+        </Eyebrow>
 
         <h2 id="testimonials-heading" className="sr-only">
           Customer testimonials
@@ -55,7 +59,9 @@ export function Testimonials() {
                 <p className="text-[0.74rem] font-medium tracking-[0.2em] text-gold-antique uppercase">
                   {current.name}
                 </p>
-                <p className="mt-2 text-xs tracking-[0.1em] text-ash">{current.context}</p>
+                <p className="mt-2 text-xs tracking-[0.1em] text-ash">
+                  {current.context}
+                </p>
               </footer>
             </blockquote>
           ) : (
@@ -68,9 +74,10 @@ export function Testimonials() {
                 Genuine client testimonial required
               </p>
               <p className="mx-auto mt-6 max-w-md text-sm leading-relaxed text-ash">
-                No testimonials are shown because none have been supplied and approved. This section
-                will display them exactly as written, with the customer&apos;s name and context, once
-                the client provides them.
+                No testimonials are shown because none have been supplied and
+                approved. This section will display them exactly as written,
+                with the customer&apos;s name and context, once the client
+                provides them.
               </p>
             </div>
           )}
@@ -90,7 +97,8 @@ export function Testimonials() {
           </button>
 
           <p className="text-[0.62rem] tracking-[0.24em] text-ash uppercase tabular-nums">
-            {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+            {String(index + 1).padStart(2, "0")} /{" "}
+            {String(total).padStart(2, "0")}
           </p>
 
           <button

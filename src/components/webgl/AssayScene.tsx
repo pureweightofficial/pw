@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useFrame } from '@react-three/fiber';
-import { useEffect, useMemo, useRef } from 'react';
-import * as THREE from 'three';
-import type { Capability } from '@/lib/capability';
-import { damp, mapRange, scrollState, smoothstep } from '@/lib/scroll-store';
-import { CameraRig } from './CameraRig';
-import { metal } from './materials';
-import { signetFaceGeometry, signetRingGeometry } from './geometry';
-import { goldRoughnessMap, hallmarkNormalMap } from './textures';
-import { Studio } from './Studio';
+import { useFrame } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import * as THREE from "three";
+import type { Capability } from "@/lib/capability";
+import { damp, mapRange, scrollState, smoothstep } from "@/lib/scroll-store";
+import { CameraRig } from "./CameraRig";
+import { metal } from "./materials";
+import { signetFaceGeometry, signetRingGeometry } from "./geometry";
+import { goldRoughnessMap, hallmarkNormalMap } from "./textures";
+import { Studio } from "./Studio";
 
 /**
  * ASSAY SCENE — "Value is not guessed. It is measured."
@@ -117,7 +117,11 @@ function MeasurementTicks({ forced }: { forced: boolean }) {
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[geometry, undefined, count]} frustumCulled={false}>
+    <instancedMesh
+      ref={meshRef}
+      args={[geometry, undefined, count]}
+      frustumCulled={false}
+    >
       <meshBasicMaterial
         ref={matRef}
         color="#d7a83d"
@@ -172,7 +176,7 @@ export function AssayScene({ capability }: { capability: Capability }) {
   const ringMaterial = useMemo(
     () =>
       metal({
-        color: new THREE.Color('#cf9f36'),
+        color: new THREE.Color("#cf9f36"),
         metalness: 1,
         roughness: 0.26,
         roughnessMap: goldRoughnessMap(),
@@ -185,7 +189,7 @@ export function AssayScene({ capability }: { capability: Capability }) {
   const faceMaterial = useMemo(
     () =>
       metal({
-        color: new THREE.Color('#cf9f36'),
+        color: new THREE.Color("#cf9f36"),
         metalness: 1,
         roughness: 0.31,
         roughnessMap: goldRoughnessMap(),
@@ -221,12 +225,19 @@ export function AssayScene({ capability }: { capability: Capability }) {
     // The mark faces the viewer squarely during PURITY, then the piece
     // continues turning slowly through the remaining factors.
     const markFacing =
-      scrollState.assayFactor === 1 ? 0 : mapRange(scrollState.assay, 0, 1, -0.5, Math.PI * 1.15);
+      scrollState.assayFactor === 1
+        ? 0
+        : mapRange(scrollState.assay, 0, 1, -0.5, Math.PI * 1.15);
     ring.rotation.y = damp(ring.rotation.y, markFacing, 1.9, dt);
 
     // Tips toward the viewer as the section is entered, so the flat bezel and
     // the curved band are both legible at once.
-    ring.rotation.x = damp(ring.rotation.x, -0.34 + smoothstep(scrollState.assay) * 0.16, 2, dt);
+    ring.rotation.x = damp(
+      ring.rotation.x,
+      -0.34 + smoothstep(scrollState.assay) * 0.16,
+      2,
+      dt,
+    );
 
     // A very slow idle turn, so a paused reader never faces a freeze-frame.
     ring.rotation.z += dt * 0.035;
@@ -235,10 +246,19 @@ export function AssayScene({ capability }: { capability: Capability }) {
   return (
     <group>
       <Studio capability={capability} intimate />
-      <CameraRig mode="assay" capability={capability} compact={capability.coarsePointer} />
+      <CameraRig
+        mode="assay"
+        capability={capability}
+        compact={capability.coarsePointer}
+      />
 
       <group ref={ringRef}>
-        <mesh geometry={signetRingGeometry()} material={ringMaterial} castShadow receiveShadow />
+        <mesh
+          geometry={signetRingGeometry()}
+          material={ringMaterial}
+          castShadow
+          receiveShadow
+        />
         {/* The bezel carrying the struck fineness mark. */}
         <mesh
           geometry={signetFaceGeometry()}

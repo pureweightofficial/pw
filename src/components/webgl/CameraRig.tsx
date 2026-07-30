@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useFrame, useThree } from '@react-three/fiber';
-import { useRef } from 'react';
-import * as THREE from 'three';
-import type { Capability } from '@/lib/capability';
-import { damp, scrollState } from '@/lib/scroll-store';
+import { useFrame, useThree } from "@react-three/fiber";
+import { useRef } from "react";
+import * as THREE from "three";
+import type { Capability } from "@/lib/capability";
+import { damp, scrollState } from "@/lib/scroll-store";
 
 /**
  * CAMERA RIG
@@ -62,11 +62,20 @@ const ASSAY_PATH: Keyframe[] = [
   { at: 1.0, position: [0.16, -0.06, 2.5], target: [0, 0, 0], fov: 28 },
 ];
 
-const PATHS = { hero: HERO_PATH, finale: FINALE_PATH, assay: ASSAY_PATH } as const;
+const PATHS = {
+  hero: HERO_PATH,
+  finale: FINALE_PATH,
+  assay: ASSAY_PATH,
+} as const;
 
 export type RigMode = keyof typeof PATHS;
 
-function sample(path: Keyframe[], t: number, outPos: THREE.Vector3, outTarget: THREE.Vector3) {
+function sample(
+  path: Keyframe[],
+  t: number,
+  outPos: THREE.Vector3,
+  outTarget: THREE.Vector3,
+) {
   const clamped = Math.max(0, Math.min(1, t));
 
   let a = path[0];
@@ -109,7 +118,11 @@ export type CameraRigProps = {
   compact?: boolean;
 };
 
-export function CameraRig({ mode, capability, compact = false }: CameraRigProps) {
+export function CameraRig({
+  mode,
+  capability,
+  compact = false,
+}: CameraRigProps) {
   const { camera } = useThree();
 
   const desired = useRef(new THREE.Vector3());
@@ -121,9 +134,18 @@ export function CameraRig({ mode, capability, compact = false }: CameraRigProps)
     const path = PATHS[mode];
 
     const progress =
-      mode === 'hero' ? scrollState.hero : mode === 'finale' ? scrollState.finale : scrollState.assay;
+      mode === "hero"
+        ? scrollState.hero
+        : mode === "finale"
+          ? scrollState.finale
+          : scrollState.assay;
 
-    const fov = sample(path, capability.reducedMotion ? 0 : progress, desired.current, target.current);
+    const fov = sample(
+      path,
+      capability.reducedMotion ? 0 : progress,
+      desired.current,
+      target.current,
+    );
 
     if (compact) {
       // Mobile: closer crop, subject pushed down and slightly right so the
@@ -145,9 +167,24 @@ export function CameraRig({ mode, capability, compact = false }: CameraRigProps)
     camera.position.y = damp(camera.position.y, desired.current.y, lambda, dt);
     camera.position.z = damp(camera.position.z, desired.current.z, lambda, dt);
 
-    smoothTarget.current.x = damp(smoothTarget.current.x, target.current.x, lambda, dt);
-    smoothTarget.current.y = damp(smoothTarget.current.y, target.current.y, lambda, dt);
-    smoothTarget.current.z = damp(smoothTarget.current.z, target.current.z, lambda, dt);
+    smoothTarget.current.x = damp(
+      smoothTarget.current.x,
+      target.current.x,
+      lambda,
+      dt,
+    );
+    smoothTarget.current.y = damp(
+      smoothTarget.current.y,
+      target.current.y,
+      lambda,
+      dt,
+    );
+    smoothTarget.current.z = damp(
+      smoothTarget.current.z,
+      target.current.z,
+      lambda,
+      dt,
+    );
 
     camera.lookAt(smoothTarget.current);
 

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { CTA } from '@/components/ui/primitives';
-import { business, isVerified } from '@/lib/site';
+import { CTA } from "@/components/ui/primitives";
+import { business, isVerified } from "@/lib/site";
 
 /**
  * THE CONVERSION PATH — and there is now only one.
@@ -47,7 +47,10 @@ export type VisitCtaProps = {
   primaryOnly?: boolean;
 };
 
-export function VisitCta({ className = '', primaryOnly = false }: VisitCtaProps) {
+export function VisitCta({
+  className = "",
+  primaryOnly = false,
+}: VisitCtaProps) {
   const phone = business.telephone;
   const callable = isVerified(phone);
 
@@ -57,7 +60,7 @@ export function VisitCta({ className = '', primaryOnly = false }: VisitCtaProps)
     >
       {callable ? (
         <CTA
-          href={`tel:${String(phone.value).replace(/[^+\d]/g, '')}`}
+          href={`tel:${String(phone.value).replace(/[^+\d]/g, "")}`}
           className="w-full justify-center sm:w-auto"
         >
           Call {phone.value}
@@ -70,7 +73,7 @@ export function VisitCta({ className = '', primaryOnly = false }: VisitCtaProps)
 
       {primaryOnly ? null : (
         <CTA href="/contact" variant="ghost" magnetic={false}>
-          {callable ? 'Find the shop' : 'Opening hours & directions'}
+          {callable ? "Find the shop" : "Opening hours & directions"}
           <span aria-hidden="true" className="text-gold-antique">
             →
           </span>

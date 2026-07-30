@@ -48,19 +48,19 @@ export type AmbientGlowProps = {
    *   normal  the default
    *   warm    the most this palette can carry before text contrast is affected
    */
-  intensity?: 'soft' | 'normal' | 'warm';
+  intensity?: "soft" | "normal" | "warm";
   /**
    * Which corners the two pools favour. Varying this between adjacent sections is
    * what stops the page looking like the same gradient repeated down the screen.
    */
-  placement?: 'left' | 'right' | 'split' | 'centre';
+  placement?: "left" | "right" | "split" | "centre";
   className?: string;
 };
 
 export function AmbientGlow({
-  intensity = 'normal',
-  placement = 'split',
-  className = '',
+  intensity = "normal",
+  placement = "split",
+  className = "",
 }: AmbientGlowProps) {
   return (
     <div

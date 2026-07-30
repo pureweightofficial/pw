@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useFrame } from '@react-three/fiber';
-import { useLayoutEffect, useMemo, useRef } from 'react';
-import * as THREE from 'three';
-import type { Capability } from '@/lib/capability';
-import { clamp, damp, scrollState } from '@/lib/scroll-store';
-import * as G from './geometry';
-import * as M from './materials';
+import { useFrame } from "@react-three/fiber";
+import { useLayoutEffect, useMemo, useRef } from "react";
+import * as THREE from "three";
+import type { Capability } from "@/lib/capability";
+import { clamp, damp, scrollState } from "@/lib/scroll-store";
+import * as G from "./geometry";
+import * as M from "./materials";
 
 /**
  * THE BALANCE
@@ -45,7 +45,7 @@ const REST_TILT = THREE.MathUtils.degToRad(-2.6);
 const GRADUATION_Z = 0.26;
 const POINTER_Z = 0.31;
 
-export type ScaleMode = 'hero' | 'finale' | 'still';
+export type ScaleMode = "hero" | "finale" | "still";
 
 /* -------------------------------------------------------------------------- */
 /* SHARED BEAM STATE                                                          */
@@ -86,7 +86,11 @@ function Chains({ links = 10 }: { links?: number }) {
 
     for (let c = 0; c < 3; c += 1) {
       const theta = (c / 3) * Math.PI * 2 + Math.PI / 6;
-      end.set(Math.cos(theta) * CHAIN_RADIUS, -HANGER_DROP, Math.sin(theta) * CHAIN_RADIUS);
+      end.set(
+        Math.cos(theta) * CHAIN_RADIUS,
+        -HANGER_DROP,
+        Math.sin(theta) * CHAIN_RADIUS,
+      );
       dir.copy(end).sub(start).normalize();
       quat.setFromUnitVectors(axis, dir);
 
@@ -174,9 +178,18 @@ function BullionStack() {
 function SealBlock() {
   return (
     <group position={[0, 0.024, 0]}>
-      <mesh geometry={G.sealBlockGeometry()} material={M.sealStone()} castShadow receiveShadow />
+      <mesh
+        geometry={G.sealBlockGeometry()}
+        material={M.sealStone()}
+        castShadow
+        receiveShadow
+      />
       {/* Banding, struck around the block like a bullion strap. */}
-      <mesh geometry={G.sealBandGeometry()} material={M.engravedGold()} position={[0, 0.062, 0]} />
+      <mesh
+        geometry={G.sealBandGeometry()}
+        material={M.engravedGold()}
+        position={[0, 0.062, 0]}
+      />
       <mesh
         geometry={G.sealBandGeometry()}
         material={M.engravedGold()}
@@ -202,7 +215,7 @@ function SealBlock() {
 
 type HangerProps = {
   side: -1 | 1;
-  cargo: 'bullion' | 'seal';
+  cargo: "bullion" | "seal";
   beam: BeamState;
   capability: Capability;
 };
@@ -276,7 +289,7 @@ function Hanger({ side, cargo, beam, capability }: HangerProps) {
 
       <group ref={swingRef}>
         <group ref={chainLagRef}>
-          <Chains links={capability.tier === 'low' ? 7 : 10} />
+          <Chains links={capability.tier === "low" ? 7 : 10} />
         </group>
 
         <group position={[0, -HANGER_DROP - 0.02, 0]}>
@@ -288,11 +301,20 @@ function Hanger({ side, cargo, beam, capability }: HangerProps) {
           />
           {/* Engraved rim band — the ornament from the emblem, at pan scale. */}
           <mesh position={[0, 0.118, 0]}>
-            <cylinderGeometry args={[PAN_RADIUS * 0.995, PAN_RADIUS * 0.995, 0.026, 64, 1, true]} />
+            <cylinderGeometry
+              args={[
+                PAN_RADIUS * 0.995,
+                PAN_RADIUS * 0.995,
+                0.026,
+                64,
+                1,
+                true,
+              ]}
+            />
             <primitive object={M.engravedGold()} attach="material" />
           </mesh>
 
-          {cargo === 'bullion' ? <BullionStack /> : <SealBlock />}
+          {cargo === "bullion" ? <BullionStack /> : <SealBlock />}
         </group>
       </group>
     </group>
@@ -310,12 +332,19 @@ export type BalanceScaleProps = {
   tiltScale?: number;
 };
 
-export function BalanceScale({ capability, mode = 'hero', tiltScale = 1 }: BalanceScaleProps) {
+export function BalanceScale({
+  capability,
+  mode = "hero",
+  tiltScale = 1,
+}: BalanceScaleProps) {
   const beamRef = useRef<THREE.Group>(null);
   const rootRef = useRef<THREE.Group>(null);
 
   // Shared, mutable, read every frame by both hangers.
-  const beam = useMemo<BeamState>(() => ({ tilt: REST_TILT * tiltScale, settled: false }), [tiltScale]);
+  const beam = useMemo<BeamState>(
+    () => ({ tilt: REST_TILT * tiltScale, settled: false }),
+    [tiltScale],
+  );
 
   useFrame((_, rawDelta) => {
     const dt = Math.min(rawDelta, 0.05);
@@ -324,10 +353,10 @@ export function BalanceScale({ capability, mode = 'hero', tiltScale = 1 }: Balan
 
     let target: number;
 
-    if (capability.reducedMotion || mode === 'still') {
+    if (capability.reducedMotion || mode === "still") {
       // Reduced motion is shown the resolved state of the story: level, at rest.
       target = 0;
-    } else if (mode === 'finale') {
+    } else if (mode === "finale") {
       // The finale opens fractionally out and closes to true as it scrolls in,
       // then holds. It does not re-run while the section stays on screen.
       target = REST_TILT * 0.34 * tiltScale * (1 - scrollState.finale);
@@ -352,7 +381,12 @@ export function BalanceScale({ capability, mode = 'hero', tiltScale = 1 }: Balan
   return (
     <group ref={rootRef} name="balance">
       {/* --- Plinth ------------------------------------------------------ */}
-      <mesh geometry={G.plinthGeometry()} material={M.forgedIron()} castShadow receiveShadow />
+      <mesh
+        geometry={G.plinthGeometry()}
+        material={M.forgedIron()}
+        castShadow
+        receiveShadow
+      />
       <mesh
         geometry={G.plinthBandGeometry()}
         material={M.engravedGold()}
@@ -366,7 +400,12 @@ export function BalanceScale({ capability, mode = 'hero', tiltScale = 1 }: Balan
 
       {/* --- Column ------------------------------------------------------ */}
       <group position={[0, 0.3, 0]}>
-        <mesh geometry={G.columnGeometry()} material={M.forgedIron()} castShadow receiveShadow />
+        <mesh
+          geometry={G.columnGeometry()}
+          material={M.forgedIron()}
+          castShadow
+          receiveShadow
+        />
         {/* Turned gold collars. Three, at descending sizes — the ornamental
             rhythm lifted from the emblem's frame. */}
         <mesh position={[0, 0.148, 0]}>
@@ -392,7 +431,10 @@ export function BalanceScale({ capability, mode = 'hero', tiltScale = 1 }: Balan
         in the README.
       */}
       <group position={[0, PIVOT_Y, GRADUATION_Z]}>
-        <mesh geometry={G.graduationPlateGeometry()} material={M.instrumentPlate()} />
+        <mesh
+          geometry={G.graduationPlateGeometry()}
+          material={M.instrumentPlate()}
+        />
         <mesh
           geometry={G.graduationFaceGeometry()}
           material={M.graduationFace()}
@@ -416,7 +458,11 @@ export function BalanceScale({ capability, mode = 'hero', tiltScale = 1 }: Balan
 
       {/* --- Beam and everything it carries ------------------------------ */}
       <group ref={beamRef} position={[0, PIVOT_Y, 0]}>
-        <mesh geometry={G.beamGeometry(BEAM_HALF)} material={M.polishedGold()} castShadow />
+        <mesh
+          geometry={G.beamGeometry(BEAM_HALF)}
+          material={M.polishedGold()}
+          castShadow
+        />
 
         {/* Central boss over the pivot. */}
         <mesh rotation={[Math.PI / 2, 0, 0]}>
@@ -425,11 +471,18 @@ export function BalanceScale({ capability, mode = 'hero', tiltScale = 1 }: Balan
         </mesh>
 
         {/* Finial, capping the assembly. */}
-        <mesh geometry={G.finialGeometry()} material={M.polishedGold()} position={[0, 0.07, 0]} />
+        <mesh
+          geometry={G.finialGeometry()}
+          material={M.polishedGold()}
+          position={[0, 0.07, 0]}
+        />
 
         {/* The boss carrying the pointer forward off the beam. Without it the
             pointer reads as floating in front of the instrument. */}
-        <mesh position={[0, -0.005, POINTER_Z / 2]} rotation={[Math.PI / 2, 0, 0]}>
+        <mesh
+          position={[0, -0.005, POINTER_Z / 2]}
+          rotation={[Math.PI / 2, 0, 0]}
+        >
           <cylinderGeometry args={[0.021, 0.021, POINTER_Z, 16]} />
           <primitive object={M.antiqueGold()} attach="material" />
         </mesh>

@@ -1,6 +1,9 @@
-import { Eyebrow, Section } from '@/components/ui/primitives';
-import { pillars } from '@/lib/site';
-import { AmbientGlow } from '@/components/ui/AmbientGlow';
+"use client";
+
+import { Eyebrow, Section } from "@/components/ui/primitives";
+import { pillars } from "@/lib/site";
+import { AmbientGlow } from "@/components/ui/AmbientGlow";
+import { SectionScene } from "@/components/ui/SectionScene";
 
 /**
  * WHY PUREWEIGHT
@@ -25,11 +28,19 @@ import { AmbientGlow } from '@/components/ui/AmbientGlow';
 
 export function WhyPureweight() {
   return (
-    <Section id="pillars" material="stone" labelledBy="pillars-heading" className="py-24 lg:py-40">
+    <Section
+      id="pillars"
+      material="stone"
+      labelledBy="pillars-heading"
+      className="py-24 lg:py-40"
+    >
+      <SectionScene variant="seal" />
       <AmbientGlow intensity="normal" placement="split" />
       <div className="shell">
         <div className="mx-auto max-w-2xl text-center">
-          <Eyebrow align="center" className="mb-8 will-reveal">Chapter 05 — Built on Trust</Eyebrow>
+          <Eyebrow align="center" className="mb-8 will-reveal">
+            Chapter 05 — Built on Trust
+          </Eyebrow>
           <h2
             id="pillars-heading"
             className="font-display text-chapter font-normal text-ivory will-reveal"
@@ -37,7 +48,10 @@ export function WhyPureweight() {
             {/* Not "three things" any more — the heading used to hardcode the count
                 and would have silently gone wrong when the pillars became four. */}
             What you can check
-            <span className="accent-italic text-gold-high/90"> for yourself</span>
+            <span className="accent-italic text-gold-high/90">
+              {" "}
+              for yourself
+            </span>
           </h2>
         </div>
 
@@ -45,7 +59,10 @@ export function WhyPureweight() {
             lone orphan on the second row once the pillars went from three to four. */}
         <div className="mt-20 grid gap-16 sm:grid-cols-2 sm:gap-10 lg:mt-28 lg:grid-cols-4 lg:gap-12">
           {pillars.map((pillar, index) => (
-            <article key={pillar.title} className="group flex flex-col items-center text-center">
+            <article
+              key={pillar.title}
+              className="group flex flex-col items-center text-center"
+            >
               <div className="will-reveal">
                 <Medallion index={index} label={pillar.title} />
               </div>
@@ -54,7 +71,9 @@ export function WhyPureweight() {
                 {pillar.title}
               </h3>
 
-              <p className="mt-5 max-w-xs text-lead text-ash will-reveal">{pillar.body}</p>
+              <p className="mt-5 max-w-xs text-lead text-ash will-reveal">
+                {pillar.body}
+              </p>
             </article>
           ))}
         </div>
@@ -74,9 +93,20 @@ function Medallion({ index, label }: { index: number; label: string }) {
 
   return (
     <div className="relative">
-      <svg viewBox="0 0 200 200" className="w-32 lg:w-40" role="img" aria-label={`${label} emblem`}>
+      <svg
+        viewBox="0 0 200 200"
+        className="w-32 lg:w-40"
+        role="img"
+        aria-label={`${label} emblem`}
+      >
         <defs>
-          <linearGradient id={`${uid}-gold`} x1="10%" y1="0%" x2="90%" y2="100%">
+          <linearGradient
+            id={`${uid}-gold`}
+            x1="10%"
+            y1="0%"
+            x2="90%"
+            y2="100%"
+          >
             <stop offset="0%" stopColor="#5c3f10" />
             <stop offset="26%" stopColor="#b98220" />
             <stop offset="46%" stopColor="#ffe9a8" />
@@ -90,8 +120,23 @@ function Medallion({ index, label }: { index: number; label: string }) {
         </defs>
 
         <circle cx="100" cy="100" r="94" fill={`url(#${uid}-face)`} />
-        <circle cx="100" cy="100" r="94" fill="none" stroke={`url(#${uid}-gold)`} strokeWidth="1.3" />
-        <circle cx="100" cy="100" r="80" fill="none" stroke={`url(#${uid}-gold)`} strokeWidth="0.7" opacity="0.55" />
+        <circle
+          cx="100"
+          cy="100"
+          r="94"
+          fill="none"
+          stroke={`url(#${uid}-gold)`}
+          strokeWidth="1.3"
+        />
+        <circle
+          cx="100"
+          cy="100"
+          r="80"
+          fill="none"
+          stroke={`url(#${uid}-gold)`}
+          strokeWidth="0.7"
+          opacity="0.55"
+        />
 
         {/* Beading, from the emblem's frame. */}
         <g fill={`url(#${uid}-gold)`} opacity="0.8">
@@ -144,8 +189,19 @@ function ReturnMark({ uid }: { uid: string }) {
       {/* The head, turned back on itself. */}
       <path d="M 100 62 L 112 54 M 100 62 L 110 74" strokeWidth="2.4" />
       {/* An open palm line beneath, and the hairline the other marks all carry. */}
-      <path d="M 74 128 A 26 12 0 0 0 126 128" strokeWidth="1.6" strokeOpacity="0.7" />
-      <line x1="70" y1="142" x2="130" y2="142" strokeWidth="1" strokeOpacity="0.4" />
+      <path
+        d="M 74 128 A 26 12 0 0 0 126 128"
+        strokeWidth="1.6"
+        strokeOpacity="0.7"
+      />
+      <line
+        x1="70"
+        y1="142"
+        x2="130"
+        y2="142"
+        strokeWidth="1"
+        strokeOpacity="0.4"
+      />
     </g>
   );
 }
@@ -170,7 +226,13 @@ function PrecisionMark({ uid }: { uid: string }) {
         );
       })}
       <circle cx="100" cy="100" r="10" strokeWidth="1.6" strokeOpacity="0.9" />
-      <circle cx="100" cy="100" r="2.6" fill={`url(#${uid}-gold)`} stroke="none" />
+      <circle
+        cx="100"
+        cy="100"
+        r="2.6"
+        fill={`url(#${uid}-gold)`}
+        stroke="none"
+      />
     </g>
   );
 }
@@ -180,13 +242,38 @@ function TransparencyMark({ uid }: { uid: string }) {
   return (
     <g stroke={`url(#${uid}-gold)`} fill="none" strokeLinecap="round">
       <line x1="46" y1="92" x2="154" y2="92" strokeWidth="2.4" />
-      <path d="M 94 94 L 100 106 L 106 94 Z" fill={`url(#${uid}-gold)`} stroke="none" />
-      <line x1="46" y1="92" x2="46" y2="118" strokeWidth="1.2" strokeOpacity="0.6" />
-      <line x1="154" y1="92" x2="154" y2="118" strokeWidth="1.2" strokeOpacity="0.6" />
+      <path
+        d="M 94 94 L 100 106 L 106 94 Z"
+        fill={`url(#${uid}-gold)`}
+        stroke="none"
+      />
+      <line
+        x1="46"
+        y1="92"
+        x2="46"
+        y2="118"
+        strokeWidth="1.2"
+        strokeOpacity="0.6"
+      />
+      <line
+        x1="154"
+        y1="92"
+        x2="154"
+        y2="118"
+        strokeWidth="1.2"
+        strokeOpacity="0.6"
+      />
       <path d="M 32 118 A 14 9 0 0 0 60 118 Z" strokeWidth="1.6" />
       <path d="M 140 118 A 14 9 0 0 0 168 118 Z" strokeWidth="1.6" />
       <line x1="100" y1="70" x2="100" y2="92" strokeWidth="1.8" />
-      <line x1="70" y1="134" x2="130" y2="134" strokeWidth="1" strokeOpacity="0.4" />
+      <line
+        x1="70"
+        y1="134"
+        x2="130"
+        y2="134"
+        strokeWidth="1"
+        strokeOpacity="0.4"
+      />
     </g>
   );
 }
@@ -201,12 +288,24 @@ function TrustMark({ uid }: { uid: string }) {
         textAnchor="middle"
         fontSize="56"
         fill={`url(#${uid}-gold)`}
-        style={{ fontFamily: 'var(--font-display)', fontWeight: 500 }}
+        style={{ fontFamily: "var(--font-display)", fontWeight: 500 }}
       >
         PW
       </text>
-      <line x1="66" y1="132" x2="134" y2="132" stroke={`url(#${uid}-gold)`} strokeWidth="1.1" strokeOpacity="0.7" />
-      <path d="M 96 133 L 100 140 L 104 133 Z" fill={`url(#${uid}-gold)`} opacity="0.75" />
+      <line
+        x1="66"
+        y1="132"
+        x2="134"
+        y2="132"
+        stroke={`url(#${uid}-gold)`}
+        strokeWidth="1.1"
+        strokeOpacity="0.7"
+      />
+      <path
+        d="M 96 133 L 100 140 L 104 133 Z"
+        fill={`url(#${uid}-gold)`}
+        opacity="0.75"
+      />
     </g>
   );
 }

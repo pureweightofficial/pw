@@ -14,7 +14,8 @@
     "check:contrast": "node scripts/check-contrast.mjs",
     "check:budget": "node --experimental-strip-types scripts/check-budget.mjs",
     "make:craquelure": "node scripts/make-craquelure.mjs",
-    "check:rates": "node --experimental-strip-types scripts/check-rates.mjs"
+    "check:rates": "node --experimental-strip-types scripts/check-rates.mjs",
+    "check:scene-contrast": "node scripts/check-section-scene-contrast.mjs"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.3.6",

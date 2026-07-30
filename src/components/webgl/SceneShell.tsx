@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { PerformanceMonitor } from '@react-three/drei';
-import { Canvas, useThree } from '@react-three/fiber';
+import { PerformanceMonitor } from "@react-three/drei";
+import { Canvas, useThree } from "@react-three/fiber";
 import {
   Component,
   Suspense,
@@ -10,16 +10,16 @@ import {
   useRef,
   useState,
   type ReactNode,
-} from 'react';
-import * as THREE from 'three';
-import type { Capability } from '@/lib/capability';
-import { markHeroReady } from '@/lib/readiness';
-import { useCapability, useDocumentVisible, useInViewport } from '@/lib/hooks';
-import { disposeGeometry } from './geometry';
-import { disposeMaterials } from './materials';
-import { setSceneQuality } from './quality';
-import { ScalePoster } from './ScalePoster';
-import { disposeTextures } from './textures';
+} from "react";
+import * as THREE from "three";
+import type { Capability } from "@/lib/capability";
+import { markHeroReady } from "@/lib/readiness";
+import { useCapability, useDocumentVisible, useInViewport } from "@/lib/hooks";
+import { disposeGeometry } from "./geometry";
+import { disposeMaterials } from "./materials";
+import { setSceneQuality } from "./quality";
+import { ScalePoster } from "./ScalePoster";
+import { disposeTextures } from "./textures";
 
 /**
  * SCENE SHELL
@@ -68,7 +68,11 @@ function releaseSharedResources() {
 /* ERROR BOUNDARY                                                             */
 /* -------------------------------------------------------------------------- */
 
-type BoundaryProps = { children: ReactNode; fallback: ReactNode; onError: () => void };
+type BoundaryProps = {
+  children: ReactNode;
+  fallback: ReactNode;
+  onError: () => void;
+};
 
 class WebGLBoundary extends Component<BoundaryProps, { failed: boolean }> {
   state = { failed: false };
@@ -79,8 +83,8 @@ class WebGLBoundary extends Component<BoundaryProps, { failed: boolean }> {
 
   componentDidCatch(error: Error) {
     // Surface for diagnostics, never for the visitor.
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('[pureweight] WebGL scene failed, showing poster:', error);
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[pureweight] WebGL scene failed, showing poster:", error);
     }
     this.props.onError();
   }
@@ -148,21 +152,22 @@ export type SceneShellProps = {
 export function SceneShell({
   children,
   poster,
-  className = '',
+  className = "",
   eager = false,
   camera = { position: [0.55, 2.28, 7], fov: 34 },
   exposure = 1.06,
   showFallbackNotice = false,
 }: SceneShellProps) {
   const capability = useCapability();
-  const [wrapperRef, inViewport] = useInViewport<HTMLDivElement>('300px');
+  const [wrapperRef, inViewport] = useInViewport<HTMLDivElement>("300px");
   const documentVisible = useDocumentVisible();
 
   const [failed, setFailed] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
   const canvasElRef = useRef<HTMLCanvasElement | null>(null);
 
-  const supported = Boolean(capability?.webgl) && capability?.tier !== 'none' && !failed;
+  const supported =
+    Boolean(capability?.webgl) && capability?.tier !== "none" && !failed;
   const shouldMount = supported && (eager || inViewport);
   const active = shouldMount && inViewport && documentVisible;
 
@@ -217,7 +222,7 @@ export function SceneShell({
         });
       };
 
-      canvas.addEventListener('webglcontextlost', onLost);
+      canvas.addEventListener("webglcontextlost", onLost);
       // Two frames: the first creates the context, the second is the earliest
       // one that has actually been composited. Only then is the scene worth
       // revealing, and only then does the opening sequence get to lift.
@@ -246,7 +251,7 @@ export function SceneShell({
         className="absolute inset-0"
         style={{
           opacity: sceneReady && active ? 0 : 1,
-          transition: 'opacity 1100ms cubic-bezier(0.16,1,0.3,1)',
+          transition: "opacity 1100ms cubic-bezier(0.16,1,0.3,1)",
         }}
       >
         {poster ?? <ScalePoster />}
@@ -259,12 +264,17 @@ export function SceneShell({
             aria-hidden="true"
             tabIndex={-1}
             dpr={[1, capability.dprCap]}
-            frameloop={active ? 'always' : 'never'}
+            frameloop={active ? "always" : "never"}
             shadows={capability.shadows}
-            camera={{ position: camera.position, fov: camera.fov, near: 0.4, far: 40 }}
+            camera={{
+              position: camera.position,
+              fov: camera.fov,
+              near: 0.4,
+              far: 40,
+            }}
             gl={{
-              antialias: capability.tier === 'high',
-              powerPreference: 'high-performance',
+              antialias: capability.tier === "high",
+              powerPreference: "high-performance",
               alpha: true,
               stencil: false,
               depth: true,
@@ -272,10 +282,15 @@ export function SceneShell({
               preserveDrawingBuffer: false,
             }}
             onCreated={handleCreated}
-            style={{ opacity: sceneReady ? 1 : 0, transition: 'opacity 1100ms cubic-bezier(0.16,1,0.3,1)' }}
+            style={{
+              opacity: sceneReady ? 1 : 0,
+              transition: "opacity 1100ms cubic-bezier(0.16,1,0.3,1)",
+            }}
           >
             <RendererSettings exposure={exposure} />
-            {capability.tier !== 'low' ? <AdaptiveQuality cap={capability.dprCap} /> : null}
+            {capability.tier !== "low" ? (
+              <AdaptiveQuality cap={capability.dprCap} />
+            ) : null}
             <Suspense fallback={null}>{children(capability)}</Suspense>
           </Canvas>
         </WebGLBoundary>
@@ -286,7 +301,8 @@ export function SceneShell({
           className="absolute inset-x-0 bottom-6 mx-auto max-w-md px-6 text-center text-[0.7rem] tracking-[0.18em] text-ash uppercase"
           role="status"
         >
-          The interactive scene could not be loaded, but you can continue exploring Pureweight.
+          The interactive scene could not be loaded, but you can continue
+          exploring Pureweight.
         </p>
       ) : null}
     </div>

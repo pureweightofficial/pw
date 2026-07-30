@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import gsap from 'gsap';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Logo } from '@/components/brand/Logo';
-import { markHeroRevealed, whenHeroReady } from '@/lib/readiness';
+import gsap from "gsap";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Logo } from "@/components/brand/Logo";
+import { markHeroRevealed, whenHeroReady } from "@/lib/readiness";
 
 /**
  * THE OPENING
@@ -26,7 +26,7 @@ import { markHeroRevealed, whenHeroReady } from '@/lib/readiness';
  * gate: if the JS for it never runs, nothing is lost.
  */
 
-const SESSION_KEY = 'pw:loader:v1';
+const SESSION_KEY = "pw:loader:v1";
 
 export function Loader() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -40,10 +40,12 @@ export function Loader() {
   const [percent, setPercent] = useState(0);
 
   useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     let seen = false;
     try {
-      seen = sessionStorage.getItem(SESSION_KEY) === '1';
+      seen = sessionStorage.getItem(SESSION_KEY) === "1";
     } catch {
       // Private mode with storage disabled: treat as unseen, show it once.
     }
@@ -65,7 +67,7 @@ export function Loader() {
     markHeroRevealed();
 
     try {
-      sessionStorage.setItem(SESSION_KEY, '1');
+      sessionStorage.setItem(SESSION_KEY, "1");
     } catch {
       /* storage unavailable — the loader simply shows again next session */
     }
@@ -79,8 +81,17 @@ export function Loader() {
 
     gsap
       .timeline({ onComplete: () => setVisible(false) })
-      .to(emblemRef.current, { opacity: 0, scale: 1.04, duration: 0.5, ease: 'power2.inOut' })
-      .to(root, { yPercent: -100, duration: 0.95, ease: 'power3.inOut' }, '-=0.2');
+      .to(emblemRef.current, {
+        opacity: 0,
+        scale: 1.04,
+        duration: 0.5,
+        ease: "power2.inOut",
+      })
+      .to(
+        root,
+        { yPercent: -100, duration: 0.95, ease: "power3.inOut" },
+        "-=0.2",
+      );
   }, []);
 
   useEffect(() => {
@@ -92,29 +103,50 @@ export function Loader() {
     skipRef.current?.focus();
 
     const ctx = gsap.context(() => {
-      gsap.set('.pw-loader-mark', { clipPath: 'inset(0% 0% 100% 0%)', opacity: 0 });
-      gsap.set('.pw-loader-sheen', { xPercent: -130, opacity: 0 });
-      gsap.set('.pw-loader-text', { opacity: 0, y: 14, filter: 'blur(6px)' });
+      gsap.set(".pw-loader-mark", {
+        clipPath: "inset(0% 0% 100% 0%)",
+        opacity: 0,
+      });
+      gsap.set(".pw-loader-sheen", { xPercent: -130, opacity: 0 });
+      gsap.set(".pw-loader-text", { opacity: 0, y: 14, filter: "blur(6px)" });
 
       const tl = gsap.timeline();
       timelineRef.current = tl;
 
       // The mark rises out of black rather than fading uniformly — a struck
       // object catching the light from below.
-      tl.to('.pw-loader-mark', { opacity: 1, duration: 0.5, ease: 'power2.out' })
+      tl.to(".pw-loader-mark", {
+        opacity: 1,
+        duration: 0.5,
+        ease: "power2.out",
+      })
         .to(
-          '.pw-loader-mark',
-          { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'power3.inOut' },
-          '-=0.4',
+          ".pw-loader-mark",
+          {
+            clipPath: "inset(0% 0% 0% 0%)",
+            duration: 1.5,
+            ease: "power3.inOut",
+          },
+          "-=0.4",
         )
         // One highlight travels across the gold, then never again.
-        .to('.pw-loader-sheen', { opacity: 1, duration: 0.2 }, '-=0.9')
-        .to('.pw-loader-sheen', { xPercent: 130, duration: 1.1, ease: 'power2.inOut' }, '<')
-        .to('.pw-loader-sheen', { opacity: 0, duration: 0.3 }, '-=0.3')
+        .to(".pw-loader-sheen", { opacity: 1, duration: 0.2 }, "-=0.9")
         .to(
-          '.pw-loader-text',
-          { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.85, ease: 'power3.out' },
-          '-=0.8',
+          ".pw-loader-sheen",
+          { xPercent: 130, duration: 1.1, ease: "power2.inOut" },
+          "<",
+        )
+        .to(".pw-loader-sheen", { opacity: 0, duration: 0.3 }, "-=0.3")
+        .to(
+          ".pw-loader-text",
+          {
+            opacity: 1,
+            y: 0,
+            filter: "blur(0px)",
+            duration: 0.85,
+            ease: "power3.out",
+          },
+          "-=0.8",
         );
     }, root);
 
@@ -143,12 +175,16 @@ export function Loader() {
 
     const readiness = Promise.allSettled([
       document.fonts?.ready ?? Promise.resolve(),
-      document.readyState === 'complete'
+      document.readyState === "complete"
         ? Promise.resolve()
-        : new Promise<void>((resolve) => window.addEventListener('load', () => resolve(), { once: true })),
+        : new Promise<void>((resolve) =>
+            window.addEventListener("load", () => resolve(), { once: true }),
+          ),
       Promise.race([
         whenHeroReady(),
-        new Promise<void>((resolve) => window.setTimeout(resolve, HERO_WAIT_CEILING)),
+        new Promise<void>((resolve) =>
+          window.setTimeout(resolve, HERO_WAIT_CEILING),
+        ),
       ]),
     ]);
 
@@ -162,7 +198,9 @@ export function Loader() {
 
       // Ease toward 96 on the timer, and only cross it once the page really is
       // ready. A counter that hits 100 and then waits is worse than no counter.
-      const value = ready ? Math.min(100, timed * 100) : Math.min(96, timed * 96);
+      const value = ready
+        ? Math.min(100, timed * 100)
+        : Math.min(96, timed * 96);
       setPercent(Math.round(value));
 
       if (value >= 100) {
@@ -179,18 +217,18 @@ export function Loader() {
     /* ---------------------------------------------------------------- */
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') dismiss();
+      if (e.key === "Escape" || e.key === "Enter" || e.key === " ") dismiss();
     };
 
     // Absolute ceiling. If anything above goes wrong, the curtain still lifts.
     const failsafe = window.setTimeout(dismiss, 6000);
 
-    window.addEventListener('keydown', onKey);
+    window.addEventListener("keydown", onKey);
 
     return () => {
       cancelAnimationFrame(raf);
       window.clearTimeout(failsafe);
-      window.removeEventListener('keydown', onKey);
+      window.removeEventListener("keydown", onKey);
       ctx.revert();
       timelineRef.current = null;
     };
@@ -213,7 +251,10 @@ export function Loader() {
             — which suits struck metal emerging from darkness better anyway. */}
         <div className="pw-loader-mark relative w-[clamp(150px,28vw,240px)]">
           <Logo variant="full" priority />
-          <span className="pw-loader-sheen pointer-events-none absolute inset-0" aria-hidden="true" />
+          <span
+            className="pw-loader-sheen pointer-events-none absolute inset-0"
+            aria-hidden="true"
+          />
         </div>
 
         <div className="pw-loader-text mt-10 flex flex-col items-center gap-3">
@@ -225,9 +266,11 @@ export function Loader() {
               className="font-display text-3xl text-gold-pale tabular-nums"
               aria-hidden="true"
             >
-              {String(percent).padStart(3, '0')}
+              {String(percent).padStart(3, "0")}
             </span>
-            <span className="text-[0.6rem] tracking-[0.3em] text-ash uppercase">per cent</span>
+            <span className="text-[0.6rem] tracking-[0.3em] text-ash uppercase">
+              per cent
+            </span>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
-import Link from 'next/link';
-import { Logo } from '@/components/brand/Logo';
-import { Fact } from '@/components/ui/primitives';
-import { brand, business, primaryNav, services } from '@/lib/site';
+import Link from "next/link";
+import { Logo } from "@/components/brand/Logo";
+import { Fact } from "@/components/ui/primitives";
+import { brand, business, primaryNav, services } from "@/lib/site";
 
 /**
  * FOOTER
@@ -17,10 +17,10 @@ import { brand, business, primaryNav, services } from '@/lib/site';
  */
 
 const legalLinks = [
-  { label: 'Privacy Policy', href: '/legal/privacy' },
-  { label: 'Terms & Conditions', href: '/legal/terms' },
-  { label: 'Cookie Policy', href: '/legal/cookies' },
-  { label: 'Accessibility Statement', href: '/legal/accessibility' },
+  { label: "Privacy Policy", href: "/legal/privacy" },
+  { label: "Terms & Conditions", href: "/legal/terms" },
+  { label: "Cookie Policy", href: "/legal/cookies" },
+  { label: "Accessibility Statement", href: "/legal/accessibility" },
 ];
 
 export function Footer() {
@@ -40,8 +40,8 @@ export function Footer() {
           <div className="lg:col-span-4">
             <Logo variant="full" className="w-44" />
             <p className="mt-7 max-w-xs text-sm leading-relaxed text-ash">
-              {brand.positioning} Jewellery, coins and bullion, examined at the counter with the
-              figure explained before anything is agreed.
+              {brand.positioning} Jewellery, coins and bullion, examined at the
+              counter with the figure explained before anything is agreed.
             </p>
 
             <div className="mt-7 space-y-2 text-sm text-ash">
@@ -112,7 +112,9 @@ export function Footer() {
                 </dd>
               </div>
               <div>
-                <dt className="label-ash mb-1.5 text-[0.58rem]">Opening Hours</dt>
+                <dt className="label-ash mb-1.5 text-[0.58rem]">
+                  Opening Hours
+                </dt>
                 <dd className="text-ivory/72">
                   <Fact field={business.openingHours} />
                 </dd>
@@ -138,7 +140,7 @@ export function Footer() {
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-3 text-xs leading-relaxed text-ash">
               <p>
-                © {year} {brand.name}. Registered business details:{' '}
+                © {year} {brand.name}. Registered business details:{" "}
                 <Fact field={business.registrationNumber} />
               </p>
               {/* This line USED to say the site "does not display live precious-metal
@@ -148,12 +150,14 @@ export function Footer() {
                   shown, they are sourced and timestamped, and they are a market
                   reference rather than an offer. */}
               <p className="max-w-2xl">
-                This website provides general information about the services offered by{' '}
-                {brand.shortName}. Any precious-metal rates shown are international market
-                reference prices, published with their source and the time they were retrieved.
-                They are not a valuation, a quotation, or an offer, and they are not what is
-                payable for any item — that is established only by examining and weighing it.
-                Nothing on this page should be relied upon as financial advice.
+                This website provides general information about the services
+                offered by {brand.shortName}. Any precious-metal rates shown are
+                international market reference prices, published with their
+                source and the time they were retrieved. They are not a
+                valuation, a quotation, or an offer, and they are not what is
+                payable for any item — that is established only by examining and
+                weighing it. Nothing on this page should be relied upon as
+                financial advice.
               </p>
             </div>
 

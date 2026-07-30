@@ -1,6 +1,6 @@
-import Link from 'next/link';
-import { Eyebrow, Section } from '@/components/ui/primitives';
-import { insightTopics } from '@/lib/site';
+import Link from "next/link";
+import { Eyebrow, Section } from "@/components/ui/primitives";
+import { insightTopics } from "@/lib/site";
 
 /**
  * INSIGHTS
@@ -19,7 +19,12 @@ import { insightTopics } from '@/lib/site';
 
 export function Insights() {
   return (
-    <Section id="insights" material="stone" labelledBy="insights-heading" className="py-24 lg:py-36">
+    <Section
+      id="insights"
+      material="stone"
+      labelledBy="insights-heading"
+      className="py-24 lg:py-36"
+    >
       <div className="shell">
         <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
@@ -29,7 +34,10 @@ export function Insights() {
               className="font-display text-chapter font-normal text-ivory will-reveal"
             >
               Know what you hold
-              <span className="accent-italic text-gold-high/90"> before you sell it</span>
+              <span className="accent-italic text-gold-high/90">
+                {" "}
+                before you sell it
+              </span>
             </h2>
           </div>
 
@@ -58,7 +66,7 @@ export function Insights() {
                       {topic.category}
                     </span>
                     <span className="font-display text-2xl font-normal text-gold-antique/75">
-                      {String(index + 1).padStart(2, '0')}
+                      {String(index + 1).padStart(2, "0")}
                     </span>
                   </div>
 

@@ -1,5 +1,5 @@
-import Image from 'next/image';
-import { assetPath } from '@/lib/asset';
+import Image from "next/image";
+import { assetPath } from "@/lib/asset";
 
 /**
  * THE REAL PUREWEIGHT LOGO
@@ -28,7 +28,7 @@ import { assetPath } from '@/lib/asset';
  * SVG would fix both and is the correct long-term asset.
  */
 
-const SRC = assetPath('/brand/pureweight-logo.webp');
+const SRC = assetPath("/brand/pureweight-logo.webp");
 /**
  * The shipped asset is a 520px WebP (63KB) generated from the 1200px original —
  * 2x of the largest render (260px), so nothing is upscaled. The original PNG
@@ -60,9 +60,9 @@ export type LogoVariant = keyof typeof CROPS;
  * width-based srcSet that never exceeds the source.
  */
 const SIZES: Record<LogoVariant, string> = {
-  full: '(max-width: 1024px) 200px, 260px',
-  wordmark: '(max-width: 1024px) 180px, 240px',
-  monogram: '64px',
+  full: "(max-width: 1024px) 200px, 260px",
+  wordmark: "(max-width: 1024px) 180px, 240px",
+  monogram: "64px",
 };
 
 export type LogoProps = {
@@ -74,9 +74,9 @@ export type LogoProps = {
 };
 
 export function Logo({
-  variant = 'full',
-  className = '',
-  alt = 'Pureweight Gold Exchange',
+  variant = "full",
+  className = "",
+  alt = "Pureweight Gold Exchange",
   priority = false,
 }: LogoProps) {
   const crop = CROPS[variant];
@@ -100,13 +100,13 @@ export function Logo({
         // Oversize and offset so only the chosen window is visible. Widths are
         // expressed relative to the frame, which is why they exceed 100%.
         style={{
-          position: 'absolute',
+          position: "absolute",
           width: `${100 / crop.w}%`,
           height: `${100 / crop.h}%`,
           left: `${(-crop.x / crop.w) * 100}%`,
           top: `${(-crop.y / crop.h) * 100}%`,
-          maxWidth: 'none',
-          objectFit: 'fill',
+          maxWidth: "none",
+          objectFit: "fill",
         }}
       />
     </span>

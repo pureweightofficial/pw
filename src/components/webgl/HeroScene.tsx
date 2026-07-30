@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { ContactShadows } from '@react-three/drei';
-import type { Capability } from '@/lib/capability';
-import { BalanceScale } from './BalanceScale';
-import { CameraRig } from './CameraRig';
-import { Dust } from './Dust';
-import { benchGeometry } from './geometry';
-import { benchSurface } from './materials';
-import { Studio } from './Studio';
+import { ContactShadows } from "@react-three/drei";
+import type { Capability } from "@/lib/capability";
+import { BalanceScale } from "./BalanceScale";
+import { CameraRig } from "./CameraRig";
+import { Dust } from "./Dust";
+import { benchGeometry } from "./geometry";
+import { benchSurface } from "./materials";
+import { Studio } from "./Studio";
 
 /**
  * HERO SCENE — the establishing shot

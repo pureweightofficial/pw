@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
-import { assetPath } from '@/lib/asset';
-import { useCapability, useDocumentVisible, useInViewport } from '@/lib/hooks';
-import { markHeroReady, whenHeroRevealed } from '@/lib/readiness';
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import { assetPath } from "@/lib/asset";
+import { useCapability, useDocumentVisible, useInViewport } from "@/lib/hooks";
+import { markHeroReady, whenHeroRevealed } from "@/lib/readiness";
 
 /**
  * HERO OPENING — the supplied brand animation, looping.
@@ -63,8 +63,8 @@ import { markHeroReady, whenHeroRevealed } from '@/lib/readiness';
  * WebM's whole justification was fewer bytes, and it lost, so there is one file.
  */
 
-const STILL = assetPath('/video/hero-still.jpg');
-const FILM = assetPath('/video/hero-atmosphere.mp4');
+const STILL = assetPath("/video/hero-still.jpg");
+const FILM = assetPath("/video/hero-atmosphere.mp4");
 
 /**
  * Longest the opening will wait for a reveal signal before starting anyway.
@@ -117,12 +117,12 @@ function whenPlayable(el: HTMLVideoElement, capMs: number): Promise<void> {
       if (settled) return;
       settled = true;
       window.clearTimeout(timer);
-      el.removeEventListener('canplaythrough', finish);
+      el.removeEventListener("canplaythrough", finish);
       resolve();
     };
 
     const timer = window.setTimeout(finish, capMs);
-    el.addEventListener('canplaythrough', finish, { once: true });
+    el.addEventListener("canplaythrough", finish, { once: true });
   });
 }
 
@@ -136,7 +136,7 @@ export type HeroVideoProps = {
 export function HeroVideo({ paused, onActiveChange }: HeroVideoProps) {
   const capability = useCapability();
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [wrapperRef, inViewport] = useInViewport<HTMLDivElement>('200px');
+  const [wrapperRef, inViewport] = useInViewport<HTMLDivElement>("200px");
   const documentVisible = useDocumentVisible();
 
   const [failed, setFailed] = useState(false);
@@ -186,7 +186,7 @@ export function HeroVideo({ paused, onActiveChange }: HeroVideoProps) {
     // does not emit the attribute, and some engines consult the attribute at
     // parse time. Verified in a real browser: property true, attribute absent.
     el.muted = true;
-    el.setAttribute('muted', '');
+    el.setAttribute("muted", "");
 
     /**
      * Buffering must not begin until window.load has fired.
@@ -201,15 +201,15 @@ export function HeroVideo({ paused, onActiveChange }: HeroVideoProps) {
     const startBuffering = () => {
       const node = videoRef.current;
       if (cancelled || !node) return;
-      node.preload = 'auto';
+      node.preload = "auto";
       node.load();
     };
 
-    if (document.readyState === 'complete') {
+    if (document.readyState === "complete") {
       startBuffering();
     } else {
       loadListener = startBuffering;
-      window.addEventListener('load', loadListener, { once: true });
+      window.addEventListener("load", loadListener, { once: true });
     }
 
     const revealed = Promise.race([
@@ -248,7 +248,7 @@ export function HeroVideo({ paused, onActiveChange }: HeroVideoProps) {
     return () => {
       cancelled = true;
       window.clearTimeout(revealTimer);
-      if (loadListener) window.removeEventListener('load', loadListener);
+      if (loadListener) window.removeEventListener("load", loadListener);
     };
   }, [playVideo]);
 
@@ -322,7 +322,7 @@ export function HeroVideo({ paused, onActiveChange }: HeroVideoProps) {
            * looking at it, because it needs a mid-playback failure to reproduce.
            */
           opacity: started && playVideo ? 0 : 1,
-          transition: 'opacity 600ms cubic-bezier(0.16, 1, 0.3, 1)',
+          transition: "opacity 600ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
       />
 
@@ -332,7 +332,7 @@ export function HeroVideo({ paused, onActiveChange }: HeroVideoProps) {
           className="hero-media absolute inset-0 h-full w-full"
           style={{
             opacity: started ? 1 : 0,
-            transition: 'opacity 600ms cubic-bezier(0.16, 1, 0.3, 1)',
+            transition: "opacity 600ms cubic-bezier(0.16, 1, 0.3, 1)",
           }}
           // Purely decorative. Everything it conveys is already said by the
           // headline, and the audio track was stripped during the cut, so there

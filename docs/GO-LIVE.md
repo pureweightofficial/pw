@@ -67,6 +67,35 @@ the headline **2.08:1**, both failing WCAG AA. The shipped values put them at
 8.21:1 and 4.64:1. Those margins are not large enough to survive an unmeasured
 change.
 
+## 4c. Manual gate — section 3D scene contrast
+
+The ambient scenes render BETWEEN a section's opaque surface and its copy, so
+text sits on lit metal under a moving key light. `npm run verify` cannot see it
+and neither can any static analysis — a specular highlight can travel anywhere in
+the frame.
+
+Re-run whenever a scene, the `.section-scene-scrim`, or a type colour changes:
+
+```bash
+npm run build
+npm i --no-save playwright-core
+npm run check:scene-contrast     # exits non-zero on failure
+```
+
+It serves the build, scrolls each scened section into view, hides the copy so the
+true backdrop is exposed, screenshots, and composites the real type colours from
+`globals.css` against the brightest pixel found.
+
+Current margins, worst first: `#appointment` 5.35:1 lead, `#journey` 6.43:1,
+everything else above 6.8. Threshold is 4.5:1.
+
+**Read the failures carefully before changing any design.** This gate produced
+three false alarms while being written, all of them sampling bugs rather than
+contrast problems: the fixed navigation overlaying the section, decorative gold
+ornaments that are legitimately aria-hidden, and a clip box that ran past the
+section into the next one. A reported failure of ~1.0:1 almost certainly means
+the sample is catching something the copy never sits on.
+
 ## 5. Verification after first deploy
 
 ```bash

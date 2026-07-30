@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import { VisitCta } from '@/components/ui/VisitCta';
-import { ScalePoster } from '@/components/webgl/ScalePoster';
-import { AmbientGlow } from '@/components/ui/AmbientGlow';
+import dynamic from "next/dynamic";
+import { VisitCta } from "@/components/ui/VisitCta";
+import { ScalePoster } from "@/components/webgl/ScalePoster";
+import { AmbientGlow } from "@/components/ui/AmbientGlow";
 
 /**
  * FINAL BALANCE
@@ -20,7 +20,7 @@ import { AmbientGlow } from '@/components/ui/AmbientGlow';
  */
 
 const FinaleCanvas = dynamic(
-  () => import('@/components/webgl/canvases').then((m) => m.FinaleCanvas),
+  () => import("@/components/webgl/canvases").then((m) => m.FinaleCanvas),
   { ssr: false, loading: () => <ScalePoster /> },
 );
 
@@ -33,7 +33,11 @@ export function FinalBalance() {
       className="relative isolate flex min-h-[92svh] items-center overflow-hidden bg-void py-24 lg:min-h-screen"
     >
       <AmbientGlow intensity="warm" placement="centre" />
-      <div className="vignette absolute inset-0 -z-10" aria-hidden="true" data-webgl-surface>
+      <div
+        className="vignette absolute inset-0 -z-10"
+        aria-hidden="true"
+        data-webgl-surface
+      >
         <FinaleCanvas />
       </div>
 
@@ -56,8 +60,8 @@ export function FinalBalance() {
           </h2>
 
           <p className="mx-auto mt-8 max-w-lg text-lead text-ivory/72 will-reveal">
-            Bring your items in. We will examine and weigh them with you, and explain every
-            figure before you decide.
+            Bring your items in. We will examine and weigh them with you, and
+            explain every figure before you decide.
           </p>
 
           <div className="mt-12 flex justify-center will-reveal">

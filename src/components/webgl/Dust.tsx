@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
-import * as THREE from 'three';
-import { dustGeometry } from './geometry';
-import { dustSprite } from './textures';
+import { useFrame } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
+import * as THREE from "three";
+import { dustGeometry } from "./geometry";
+import { dustSprite } from "./textures";
 
 /**
  * AMBIENT DUST

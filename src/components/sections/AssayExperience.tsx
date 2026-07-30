@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import { Eyebrow, Fact, Section } from '@/components/ui/primitives';
-import { assayFactors, business } from '@/lib/site';
+import dynamic from "next/dynamic";
+import { Eyebrow, Fact, Section } from "@/components/ui/primitives";
+import { assayFactors, business } from "@/lib/site";
 
 /**
  * PURITY AND WEIGHT — "Value is not guessed. It is measured."
@@ -25,7 +25,7 @@ import { assayFactors, business } from '@/lib/site';
  */
 
 const AssayCanvas = dynamic(
-  () => import('@/components/webgl/canvases').then((m) => m.AssayCanvas),
+  () => import("@/components/webgl/canvases").then((m) => m.AssayCanvas),
   { ssr: false },
 );
 
@@ -40,18 +40,23 @@ export function AssayExperience() {
     >
       <div className="shell">
         <div className="max-w-3xl">
-          <Eyebrow className="mb-8 will-reveal">Chapter 04 — Purity &amp; Weight</Eyebrow>
+          <Eyebrow className="mb-8 will-reveal">
+            Chapter 04 — Purity &amp; Weight
+          </Eyebrow>
           <h2
             id="assay-heading"
             className="font-display text-chapter font-normal text-ivory will-reveal"
           >
             Value is not guessed.
             <br />
-            <span className="accent-italic text-gold-high/90">It is measured.</span>
+            <span className="accent-italic text-gold-high/90">
+              It is measured.
+            </span>
           </h2>
           <p className="mt-7 max-w-xl text-lead text-ash will-reveal">
-            Five things decide what a piece of gold is worth. Four of them can be established with
-            an instrument. The fifth is the reference the business works to on the day.
+            Five things decide what a piece of gold is worth. Four of them can
+            be established with an instrument. The fifth is the reference the
+            business works to on the day.
           </p>
         </div>
 
@@ -68,9 +73,9 @@ export function AssayExperience() {
                 <AssayCanvas />
               </div>
               <p className="mt-5 text-xs leading-relaxed text-ash">
-                Illustrative only. The piece shown carries a millesimal fineness mark of 916, the
-                trade standard figure for 22 carat. It does not represent a specific item or a
-                specific valuation.
+                Illustrative only. The piece shown carries a millesimal fineness
+                mark of 916, the trade standard figure for 22 carat. It does not
+                represent a specific item or a specific valuation.
               </p>
             </div>
           </div>
@@ -88,7 +93,7 @@ export function AssayExperience() {
                     <div className="mb-4 flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
                         <span className="font-sans text-[0.6rem] tracking-[0.24em] text-gold-antique">
-                          {String(index + 1).padStart(2, '0')}
+                          {String(index + 1).padStart(2, "0")}
                         </span>
                         <h3 className="font-display text-2xl font-normal text-ivory lg:text-3xl">
                           {factor.label}
@@ -115,12 +120,15 @@ export function AssayExperience() {
             <div className="mt-10 inset-panel p-8">
               <h3 className="label mb-4">Important</h3>
               <p className="text-sm leading-relaxed text-ivory/72">
-                This section explains how gold is assessed in general terms. It is not a valuation
-                and does not produce one. A figure for your item can only be established by
-                Pureweight, in person, after the item has been weighed and examined.
+                This section explains how gold is assessed in general terms. It
+                is not a valuation and does not produce one. A figure for your
+                item can only be established by Pureweight, in person, after the
+                item has been weighed and examined.
               </p>
               <div className="mt-5">
-                <p className="label-ash mb-2 text-[0.58rem]">Market reference source</p>
+                <p className="label-ash mb-2 text-[0.58rem]">
+                  Market reference source
+                </p>
                 <Fact field={business.priceReferenceSource} />
               </div>
             </div>

@@ -1,0 +1,288 @@
+/**
+ * SECTION SCENE CONTRAST AUDIT
+ *
+ * The third contrast gate on this project, and the only one that has to drive a
+ * real browser.
+ *
+ *   check-contrast.mjs             text vs FLAT surface tokens
+ *   check-hero-contrast.mjs        text vs the hero film's decoded pixels
+ *   this                           text vs a LIVE WEBGL RENDER
+ *
+ * WHY IT CANNOT BE REASONED ABOUT
+ *
+ * The ambient section scenes render between a section's opaque surface and its
+ * copy. So text sits on lit metal under a moving key light, and a specular
+ * highlight can travel anywhere in the frame. There is no static value to audit
+ * — the only honest measurement is to render it and look.
+ *
+ * METHOD
+ *
+ * Serve the built export, scroll each scened section into view, wait for the
+ * canvas to actually paint, then HIDE THE COPY and screenshot. That leaves the
+ * true backdrop the text sits on, including the scrim. Every pixel in the band
+ * where copy lives is then composited against the real type colours from
+ * globals.css and the worst ratio is reported.
+ *
+ * Hiding the copy matters: sampling a screenshot that still contains the text
+ * would measure the text against itself.
+ *
+ * NOT part of `npm run verify` — it needs a built `out/` and a browser. Manual
+ * gate, listed in docs/GO-LIVE.md, to be re-run whenever a scene, a scrim or a
+ * type colour changes.
+ *
+ * USAGE
+ *   npm run build            (any target — it only needs out/)
+ *   npm i --no-save playwright-core
+ *   node scripts/check-section-scene-contrast.mjs
+ */
+
+import { createServer } from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
+import { extname, join, normalize } from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+const ROOT = 'out';
+const PORT = 4351;
+const CSS = 'src/app/globals.css';
+
+/* -------------------------------------------------------------------------- */
+/* TYPE COLOURS — read from the stylesheet, never copied                      */
+/* -------------------------------------------------------------------------- */
+
+const TOKENS = Object.fromEntries(
+  [...readFileSync(CSS, 'utf8').matchAll(/--color-([a-z-]+):\s*#([0-9a-fA-F]{6})/g)].map((m) => [
+    m[1],
+    m[2],
+  ]),
+);
+
+function rgb(name) {
+  const hex = TOKENS[name];
+  if (!hex) throw new Error(`no --color-${name} in ${CSS}`);
+  const n = parseInt(hex, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+const IVORY = rgb('ivory');
+const ASH = rgb('ash');
+
+const luminance = ([r, g, b]) => {
+  const f = (c) => {
+    c /= 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+};
+const contrast = (a, b) => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+};
+const over = (fg, alpha, bg) => fg.map((c, i) => c * alpha + bg[i] * (1 - alpha));
+
+/* -------------------------------------------------------------------------- */
+
+const TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript',
+  '.css': 'text/css',
+  '.mp4': 'video/mp4',
+  '.jpg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.svg': 'image/svg+xml',
+  '.woff2': 'font/woff2',
+  '.json': 'application/json',
+};
+
+const server = createServer(async (req, res) => {
+  try {
+    let p = decodeURIComponent(req.url.split('?')[0]);
+    if (p.endsWith('/')) p += 'index.html';
+    let file = join(ROOT, normalize(p));
+    let body;
+    try {
+      body = await readFile(file);
+    } catch {
+      file += '.html';
+      body = await readFile(file);
+    }
+    res.writeHead(200, { 'Content-Type': TYPES[extname(file)] ?? 'application/octet-stream' });
+    res.end(body);
+  } catch {
+    res.writeHead(404);
+    res.end('not found');
+  }
+});
+
+await new Promise((r) => server.listen(PORT, r));
+
+const pw = await import(pathToFileURL('node_modules/playwright-core/index.js').href);
+const chromium = pw.chromium ?? pw.default?.chromium;
+const browser = await chromium.launch({ channel: 'chrome', headless: true });
+const page = await browser.newPage({
+  viewport: { width: 1440, height: 900 },
+  reducedMotion: 'no-preference',
+});
+
+await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
+await page.waitForTimeout(7000);
+
+// Every section that adopted a scene, discovered from the DOM rather than
+// hardcoded — so a section added later cannot silently escape the audit.
+// Discovered from the SCRIM WRAPPER, not from mounted canvases. Canvases are
+// viewport-gated, so querying them at page load finds only whichever one happens
+// to be near the fold — the first run of this audit found 1 section of 7.
+const sections = await page.evaluate(() =>
+  [...document.querySelectorAll('section')]
+    .filter((s) => s.querySelector('.section-scene-scrim'))
+    .map((s) => s.id)
+    .filter(Boolean),
+);
+
+console.log(`\nSECTION SCENE CONTRAST — live render, ${sections.length} scened section(s)`);
+console.log(`  type: ivory rgb(${IVORY.join(',')})  ash rgb(${ASH.join(',')})\n`);
+
+let failures = 0;
+
+for (const id of sections) {
+  // Scroll it into view the way a person does, so Lenis and ScrollTrigger run
+  // and the canvas actually mounts and paints.
+  let guard = 0;
+  while (guard++ < 200) {
+    const done = await page.evaluate((sel) => {
+      const el = document.getElementById(sel);
+      if (!el) return true;
+      const r = el.getBoundingClientRect();
+      if (r.top < 80 && r.bottom > 200) return true;
+      window.scrollBy(0, r.top > 0 ? 340 : -340);
+      return false;
+    }, id);
+    if (done) break;
+    await page.waitForTimeout(55);
+  }
+  await page.waitForTimeout(2600);
+
+  // Hide the copy — sampling a shot that still contains text would measure the
+  // text against itself — AND the fixed chrome. The navigation is
+  // position:fixed, so it paints over every section; the first run of this audit
+  // reported rgb(251,249,215) and a 1.28:1 failure that turned out to be the
+  // nav's white button label, not the scene at all.
+  await page.evaluate((sel) => {
+    const el = document.getElementById(sel);
+    if (!el) return;
+    /*
+     * Show ONLY the backdrop stack: the section's own surface, its ambient CSS
+     * glow, and the 3D scene with its scrim. Everything else is hidden.
+     *
+     * `:not([aria-hidden])` was not enough. Decorative gold rules and quote
+     * glyphs are correctly aria-hidden, so they survived that filter and became
+     * the brightest pixel — the audit reported rgb(184,121,20) on #trust and
+     * rgb(244,208,102) on #testimonials, which are exactly --color-gold-antique
+     * and --color-ivory. Both were ornaments, not surfaces text sits on. Two
+     * false alarms in two runs, both from sampling too wide.
+     */
+    el.querySelectorAll(':scope > *').forEach((n) => {
+      const isBackdrop =
+        n.classList.contains('ambient-glow') || n.querySelector('.section-scene-scrim');
+      if (isBackdrop) return;
+      n.setAttribute('data-audit-hidden', '1');
+      n.style.visibility = 'hidden';
+    });
+    document.querySelectorAll('header, nav, [role="status"]').forEach((n) => {
+      if (el.contains(n)) return;
+      n.setAttribute('data-audit-hidden', '1');
+      n.style.visibility = 'hidden';
+    });
+  }, id);
+  await page.waitForTimeout(400);
+
+  const box = await page.evaluate((sel) => {
+    const el = document.getElementById(sel);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    /*
+     * Clip strictly to the VISIBLE INTERSECTION of the section and the viewport.
+     *
+     * The previous form clamped `y` to 0 when a section had scrolled above the
+     * fold but did not shrink `height` to match, so the clip ran on to the bottom
+     * of the window and swallowed whatever section came next. That is what made
+     * #testimonials report rgb(244,208,102) — it was the Insights heading below
+     * it, not the scene.
+     */
+    const top = Math.max(0, r.top);
+    const bottom = Math.min(innerHeight, r.bottom);
+    return {
+      x: Math.max(0, r.left),
+      y: top,
+      width: Math.min(innerWidth, r.width),
+      height: Math.max(0, bottom - top),
+    };
+  }, id);
+
+  if (!box || box.height < 60) {
+    console.log(`  SKIP  ${id} — not enough of it on screen to sample`);
+    continue;
+  }
+
+  const shot = await page.screenshot({ clip: box, type: 'png' });
+
+  // Restore the copy before moving on.
+  await page.evaluate(() => {
+    document.querySelectorAll('[data-audit-hidden]').forEach((n) => {
+      n.style.visibility = '';
+      n.removeAttribute('data-audit-hidden');
+    });
+  }, id);
+
+  // Decode the PNG in-page: the browser already has a decoder, and this avoids
+  // adding an image library just to read pixels back.
+  const worst = await page.evaluate(async (dataUrl) => {
+    const img = new Image();
+    img.src = dataUrl;
+    await img.decode();
+    const c = document.createElement('canvas');
+    c.width = img.width;
+    c.height = img.height;
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0);
+    const { data } = ctx.getImageData(0, 0, c.width, c.height);
+
+    let best = null;
+    let bestLum = -1;
+    for (let i = 0; i < data.length; i += 4) {
+      // Cheap luminance proxy for finding the brightest pixel; the accurate
+      // WCAG maths is done once, outside, on the winner.
+      const l = data[i] * 0.2126 + data[i + 1] * 0.7152 + data[i + 2] * 0.0722;
+      if (l > bestLum) {
+        bestLum = l;
+        best = [data[i], data[i + 1], data[i + 2]];
+      }
+    }
+    return best;
+  }, `data:image/png;base64,${shot.toString('base64')}`);
+
+  const lead = contrast(over(IVORY, 0.72, worst), worst);
+  const ashRatio = contrast(ASH, worst);
+  const heading = contrast(IVORY, worst);
+
+  const mark = (v, need) => `${v.toFixed(2)}:1 ${v >= need ? 'PASS' : 'FAIL'}`;
+  const bad = lead < 4.5 || ashRatio < 4.5 || heading < 3;
+  if (bad) failures += 1;
+
+  console.log(`  ${bad ? 'FAIL' : 'PASS'}  #${id}`);
+  console.log(`         brightest backdrop pixel rgb(${worst.join(',')})`);
+  console.log(`         lead ivory/72  ${mark(lead, 4.5)}`);
+  console.log(`         label ash      ${mark(ashRatio, 4.5)}`);
+  console.log(`         heading ivory  ${mark(heading, 3)}`);
+}
+
+await browser.close();
+server.close();
+
+console.log('');
+if (failures) {
+  console.log(`SECTION SCENE CONTRAST FAILED — ${failures} section(s)\n`);
+  process.exit(1);
+}
+console.log('SECTION SCENE CONTRAST PASSED — copy clears AA over every live scene\n');

@@ -1,7 +1,10 @@
-import { Eyebrow, Fact, Section } from '@/components/ui/primitives';
-import { VisitCta } from '@/components/ui/VisitCta';
-import { business } from '@/lib/site';
-import { AmbientGlow } from '@/components/ui/AmbientGlow';
+"use client";
+
+import { Eyebrow, Fact, Section } from "@/components/ui/primitives";
+import { VisitCta } from "@/components/ui/VisitCta";
+import { business } from "@/lib/site";
+import { AmbientGlow } from "@/components/ui/AmbientGlow";
+import { SectionScene } from "@/components/ui/SectionScene";
 
 /**
  * VISIT THE SHOP
@@ -43,20 +46,20 @@ import { AmbientGlow } from '@/components/ui/AmbientGlow';
 
 const BEFORE_YOU_COME = [
   {
-    title: 'Bring the pieces, not the paperwork',
-    body: 'Jewellery worn or broken, odd earrings, chains, coins, bars. Hallmarks help but are not needed — we establish purity ourselves.',
+    title: "Bring the pieces, not the paperwork",
+    body: "Jewellery worn or broken, odd earrings, chains, coins, bars. Hallmarks help but are not needed — we establish purity ourselves.",
   },
   {
-    title: 'Nothing is cleaned, cut or altered',
-    body: 'Your items are examined and weighed as they are, in front of you, and handed straight back if you would rather keep them.',
+    title: "Nothing is cleaned, cut or altered",
+    body: "Your items are examined and weighed as they are, in front of you, and handed straight back if you would rather keep them.",
   },
   {
-    title: 'You see the scale and the working',
-    body: 'The weight, the purity we have established, and how the offer relates to the market price of the day are all shown to you before you decide.',
+    title: "You see the scale and the working",
+    body: "The weight, the purity we have established, and how the offer relates to the market price of the day are all shown to you before you decide.",
   },
   {
-    title: 'There is no obligation to sell',
-    body: 'An examination and a figure cost nothing. Walking out with your gold is a perfectly normal outcome.',
+    title: "There is no obligation to sell",
+    body: "An examination and a figure cost nothing. Walking out with your gold is a perfectly normal outcome.",
   },
 ];
 
@@ -68,33 +71,47 @@ export function Appointment() {
       labelledBy="appointment-heading"
       className="py-24 lg:py-36"
     >
+      <SectionScene variant="ingots" />
       <AmbientGlow intensity="soft" placement="right" />
       <div className="shell">
         <div className="grid gap-14 lg:grid-cols-12 lg:gap-16">
           {/* --- Framing ------------------------------------------------ */}
           <div className="lg:col-span-6">
-            <Eyebrow className="mb-8 will-reveal">Chapter 06 — Come and See Us</Eyebrow>
+            <Eyebrow className="mb-8 will-reveal">
+              Chapter 06 — Come and See Us
+            </Eyebrow>
 
             <h2
               id="appointment-heading"
               className="font-display text-chapter font-normal text-ivory will-reveal"
             >
               Bring it in, and
-              <span className="accent-italic text-gold-high/90"> watch it weighed.</span>
+              <span className="accent-italic text-gold-high/90">
+                {" "}
+                watch it weighed.
+              </span>
             </h2>
 
             <p className="mt-8 max-w-md text-lead text-ivory/72 will-reveal">
-              There is no form to fill in and no figure to wait for. Come to the shop, and we
-              will examine and weigh your items with you at the counter.
+              There is no form to fill in and no figure to wait for. Come to the
+              shop, and we will examine and weigh your items with you at the
+              counter.
             </p>
 
             <ul className="mt-10 space-y-5 will-reveal">
               {BEFORE_YOU_COME.map((item) => (
                 <li key={item.title} className="flex gap-4">
-                  <span aria-hidden="true" className="mt-2.5 h-px w-6 shrink-0 bg-gold-antique/60" />
+                  <span
+                    aria-hidden="true"
+                    className="mt-2.5 h-px w-6 shrink-0 bg-gold-antique/60"
+                  />
                   <div>
-                    <p className="text-sm font-medium text-ivory/88">{item.title}</p>
-                    <p className="mt-1.5 text-sm leading-relaxed text-ash">{item.body}</p>
+                    <p className="text-sm font-medium text-ivory/88">
+                      {item.title}
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-ash">
+                      {item.body}
+                    </p>
                   </div>
                 </li>
               ))}
@@ -117,7 +134,9 @@ export function Appointment() {
                 </div>
 
                 <div>
-                  <dt className="label-ash mb-2 text-[0.58rem]">Opening hours</dt>
+                  <dt className="label-ash mb-2 text-[0.58rem]">
+                    Opening hours
+                  </dt>
                   <dd className="text-sm leading-relaxed text-ivory/72">
                     <Fact field={business.openingHours} />
                   </dd>
@@ -131,7 +150,9 @@ export function Appointment() {
                 </div>
 
                 <div>
-                  <dt className="label-ash mb-2 text-[0.58rem]">How you are paid</dt>
+                  <dt className="label-ash mb-2 text-[0.58rem]">
+                    How you are paid
+                  </dt>
                   <dd className="text-sm leading-relaxed text-ivory/72">
                     <Fact field={business.settlementMethods} />
                   </dd>
@@ -143,8 +164,9 @@ export function Appointment() {
               </div>
 
               <p className="mt-8 text-[0.78rem] leading-relaxed text-ash">
-                Prices move through the trading day, so any figure we discuss is against the
-                market at the moment you are standing at the counter.
+                Prices move through the trading day, so any figure we discuss is
+                against the market at the moment you are standing at the
+                counter.
               </p>
             </div>
           </div>

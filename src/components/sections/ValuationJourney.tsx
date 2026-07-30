@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { Eyebrow, Section } from '@/components/ui/primitives';
-import { scrollState } from '@/lib/scroll-store';
-import { journey } from '@/lib/site';
+import { useEffect, useRef, useState } from "react";
+import { Eyebrow, Section } from "@/components/ui/primitives";
+import { scrollState } from "@/lib/scroll-store";
+import { journey } from "@/lib/site";
+import { SectionScene } from "@/components/ui/SectionScene";
 
 /**
  * THE VALUATION JOURNEY
@@ -31,18 +32,22 @@ export function ValuationJourney() {
       labelledBy="journey-heading"
       className="py-24 lg:py-36"
     >
+      <SectionScene variant="links" channel="journey" />
       <div className="shell">
         <div className="max-w-3xl">
-          <Eyebrow className="mb-8 will-reveal">Chapter 02 — The Process</Eyebrow>
+          <Eyebrow className="mb-8 will-reveal">
+            Chapter 02 — The Process
+          </Eyebrow>
           <h2
             id="journey-heading"
             className="font-display text-chapter font-normal text-ivory will-reveal"
           >
-            From Weight to <span className="accent-italic text-gold-high/90">True Value</span>
+            From Weight to{" "}
+            <span className="accent-italic text-gold-high/90">True Value</span>
           </h2>
           <p className="mt-7 max-w-xl text-lead text-ash will-reveal">
-            Four stages, in order, with nothing agreed until the last one. Each stage produces a
-            fact that the next stage depends on.
+            Four stages, in order, with nothing agreed until the last one. Each
+            stage produces a fact that the next stage depends on.
           </p>
         </div>
 
@@ -72,8 +77,12 @@ export function ValuationJourney() {
                     </h3>
                   </div>
 
-                  <p className="mt-6 max-w-xl text-lead text-ivory/72">{stage.body}</p>
-                  <p className="mt-4 max-w-xl text-sm leading-relaxed text-ash">{stage.detail}</p>
+                  <p className="mt-6 max-w-xl text-lead text-ivory/72">
+                    {stage.body}
+                  </p>
+                  <p className="mt-4 max-w-xl text-sm leading-relaxed text-ash">
+                    {stage.detail}
+                  </p>
                 </div>
               </li>
             ))}
@@ -170,32 +179,52 @@ function BalanceIndicator() {
             y1={tick.y1}
             x2={tick.x2}
             y2={tick.y2}
-            stroke={tick.major ? '#ffe9a8' : '#d7a83d'}
+            stroke={tick.major ? "#ffe9a8" : "#d7a83d"}
             strokeOpacity={tick.major ? 0.85 : 0.4}
             strokeWidth={tick.major ? 2 : 1.1}
           />
         ))}
 
         {/* Struck zero mark, heavier than the graduations around it. */}
-        <line x1="130" y1="52" x2="130" y2="74" stroke="#fff6df" strokeWidth="2.6" />
+        <line
+          x1="130"
+          y1="52"
+          x2="130"
+          y2="74"
+          stroke="#fff6df"
+          strokeWidth="2.6"
+        />
 
         <g
           ref={needleRef}
-          style={{ transformOrigin: '130px 150px', transform: 'rotate(-14deg)' }}
+          style={{
+            transformOrigin: "130px 150px",
+            transform: "rotate(-14deg)",
+          }}
         >
-          <path d="M 127.4 150 L 132.6 150 L 131 66 L 129 66 Z" fill="url(#needle-gold)" />
+          <path
+            d="M 127.4 150 L 132.6 150 L 131 66 L 129 66 Z"
+            fill="url(#needle-gold)"
+          />
         </g>
 
-        <circle cx="130" cy="150" r="7" fill="#1a1714" stroke="#b98220" strokeWidth="1.4" />
+        <circle
+          cx="130"
+          cy="150"
+          r="7"
+          fill="#1a1714"
+          stroke="#b98220"
+          strokeWidth="1.4"
+        />
         <circle cx="130" cy="150" r="2.4" fill="#d7a83d" />
       </svg>
 
       <p
         className={`mt-6 text-[0.6rem] tracking-[0.3em] uppercase transition-colors duration-700 ${
-          level ? 'text-gold-high' : 'text-ash'
+          level ? "text-gold-high" : "text-ash"
         }`}
       >
-        {level ? 'In Balance' : 'Establishing'}
+        {level ? "In Balance" : "Establishing"}
       </p>
     </div>
   );

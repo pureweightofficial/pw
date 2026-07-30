@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useCallback, useState } from 'react';
-import { HeroVideo } from '@/components/hero/HeroVideo';
-import { useMotion } from '@/components/motion/MotionProvider';
-import { CTA } from '@/components/ui/primitives';
-import { VisitCta } from '@/components/ui/VisitCta';
+import { useCallback, useState } from "react";
+import { HeroVideo } from "@/components/hero/HeroVideo";
+import { useMotion } from "@/components/motion/MotionProvider";
+import { CTA } from "@/components/ui/primitives";
+import { VisitCta } from "@/components/ui/VisitCta";
 
 /**
  * HERO
@@ -112,12 +112,15 @@ export function Hero() {
             className="hero-rise font-display text-hero font-normal text-ivory [--rise-delay:120ms]"
           >
             <span className="block">Where Gold Finds</span>
-            <span className="gold-leaf accent-italic block">Its True Weight.</span>
+            <span className="gold-leaf accent-italic block">
+              Its True Weight.
+            </span>
           </h1>
 
           <p className="hero-rise mt-8 max-w-xl text-lead text-ivory/72 [--rise-delay:240ms]">
-            We buy gold and silver over the counter — jewellery, coins and bullion. Your items
-            examined and weighed in front of you, against the live market.
+            We buy gold and silver over the counter — jewellery, coins and
+            bullion. Your items examined and weighed in front of you, against
+            the live market.
           </p>
 
           <div className="hero-rise mt-11 flex flex-col items-start gap-4 [--rise-delay:360ms] sm:flex-row sm:items-center sm:gap-7">
@@ -127,7 +130,7 @@ export function Hero() {
             <CTA
               variant="ghost"
               magnetic={false}
-              onClick={() => scrollTo('#rates')}
+              onClick={() => scrollTo("#rates")}
               aria-label="See today's gold and silver prices"
             >
               Today&rsquo;s Prices
@@ -145,7 +148,9 @@ export function Hero() {
         className="pointer-events-none absolute inset-x-0 bottom-6 hidden justify-center lg:flex"
       >
         <div className="flex flex-col items-center gap-3">
-          <span className="text-[0.56rem] tracking-[0.34em] text-ash uppercase">Scroll</span>
+          <span className="text-[0.56rem] tracking-[0.34em] text-ash uppercase">
+            Scroll
+          </span>
           {/* A chain: the hero's suspension detail, reduced to a scroll cue. */}
           <span className="relative block h-12 w-px bg-linear-to-b from-gold-antique/50 to-transparent">
             <span className="pw-scroll-dot absolute left-1/2 top-0 block h-2.5 w-2.5 rounded-full border border-gold-antique/60" />
@@ -170,13 +175,17 @@ export function Hero() {
         <button
           type="button"
           onClick={() => setFilmPaused((previous) => !previous)}
-          aria-label={filmPaused ? 'Play the background film' : 'Pause the background film'}
+          aria-label={
+            filmPaused
+              ? "Play the background film"
+              : "Pause the background film"
+          }
           className="absolute bottom-4 right-4 inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-bronze/50 bg-void/85 px-4 text-[0.58rem] tracking-[0.26em] text-ash uppercase backdrop-blur-sm transition-colors duration-300 hover:border-gold-antique/70 hover:text-gold-high focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-antique sm:bottom-6 sm:right-6"
         >
           <span aria-hidden="true" className="text-[0.7rem] leading-none">
-            {filmPaused ? '▶' : '‖'}
+            {filmPaused ? "▶" : "‖"}
           </span>
-          {filmPaused ? 'Play' : 'Pause'}
+          {filmPaused ? "Play" : "Pause"}
         </button>
       ) : null}
     </section>

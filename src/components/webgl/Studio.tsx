@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Environment, Lightformer } from '@react-three/drei';
-import { BackSide } from 'three';
-import type { Capability } from '@/lib/capability';
+import { Environment, Lightformer } from "@react-three/drei";
+import { BackSide } from "three";
+import type { Capability } from "@/lib/capability";
 
 /**
  * THE LIGHTING RIG — a private assay room, not a product studio
@@ -32,12 +32,12 @@ type StudioProps = {
 
 export function Studio({ capability, intimate = false }: StudioProps) {
   const shadows = capability.shadows;
-  const shadowRes = capability.tier === 'high' ? 1024 : 512;
+  const shadowRes = capability.tier === "high" ? 1024 : 512;
 
   return (
     <>
       {/* Depth: everything past the instrument dissolves into the room. */}
-      <fog attach="fog" args={['#030303', 5.4, intimate ? 12 : 17]} />
+      <fog attach="fog" args={["#030303", 5.4, intimate ? 12 : 17]} />
 
       {/* Just enough ambient to keep deep shadows from clipping to pure black. */}
       <ambientLight intensity={0.16} color="#1c1611" />
@@ -125,10 +125,20 @@ export function Studio({ capability, intimate = false }: StudioProps) {
 
       {/* Cool counter-light. Non-shadowing, cheap, and does half the work of
           making the gold read as metal rather than as a warm gradient. */}
-      <directionalLight position={[5.2, 2.6, -4.4]} intensity={0.55} color="#8ea0b8" />
+      <directionalLight
+        position={[5.2, 2.6, -4.4]}
+        intensity={0.55}
+        color="#8ea0b8"
+      />
 
       {/* A low warm kick from the front-right to keep the near edge alive. */}
-      <pointLight position={[2.6, 0.4, 2.8]} intensity={7} decay={2} distance={9} color="#b98220" />
+      <pointLight
+        position={[2.6, 0.4, 2.8]}
+        intensity={7}
+        decay={2}
+        distance={9}
+        color="#b98220"
+      />
     </>
   );
 }
