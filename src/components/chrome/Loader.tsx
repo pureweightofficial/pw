@@ -3,7 +3,7 @@
 import gsap from 'gsap';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Logo } from '@/components/brand/Logo';
-import { whenHeroReady } from '@/lib/readiness';
+import { markHeroRevealed, whenHeroReady } from '@/lib/readiness';
 
 /**
  * THE OPENING
@@ -48,11 +48,22 @@ export function Loader() {
       // Private mode with storage disabled: treat as unseen, show it once.
     }
 
-    setVisible(!seen && !reduced);
+    const show = !seen && !reduced;
+    setVisible(show);
+
+    // No curtain means nothing will ever lift, so release the hero's opening
+    // right away rather than making it wait out its own timeout.
+    if (!show) markHeroRevealed();
   }, []);
 
   const dismiss = useCallback(() => {
     const root = rootRef.current;
+
+    // Fired as the lift BEGINS, not on completion — see readiness.ts. The hero
+    // video's first second is near-black, so it plays under the rising curtain
+    // as one shot.
+    markHeroRevealed();
+
     try {
       sessionStorage.setItem(SESSION_KEY, '1');
     } catch {

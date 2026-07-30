@@ -40,6 +40,33 @@ NEXT_PUBLIC_ALLOW_INDEXING=true   # ONLY after step 1 is complete — this is th
                                   # switch that lets search engines in
 ```
 
+## 4b. Manual gate — hero film contrast
+
+`npm run verify` **cannot** check this one, and that is not an oversight: the
+hero's backdrop is a moving image, and the check needs ffmpeg to decode it.
+ffmpeg is not a project dependency, so this stays a deliberate manual step
+rather than a silent skip inside `verify`.
+
+Re-run it whenever **the film is re-cut or the `.hero-scrim` / `.hero-media`
+values change**:
+
+```bash
+npm i --no-save ffmpeg-static
+node_modules/ffmpeg-static/ffmpeg.exe -i public/video/hero-atmosphere.mp4 \
+  -vf "fps=4,scale=320:180" -pix_fmt rgb24 -f rawvideo frames.raw -y
+node scripts/check-hero-contrast.mjs frames.raw   # exits non-zero on failure
+```
+
+It samples every frame, composites the real scrim over the real pixels, and
+reports the worst ratio the hero copy can meet. It parses the scrim stops and
+film dim out of `globals.css`, so it cannot drift from what ships.
+
+Why it matters: the film peaks at `rgb(247,231,171)` — brighter than the ivory
+text over it. Undimmed and unscrimmed, the lead paragraph measures **3.33:1** and
+the headline **2.08:1**, both failing WCAG AA. The shipped values put them at
+8.21:1 and 4.64:1. Those margins are not large enough to survive an unmeasured
+change.
+
 ## 5. Verification after first deploy
 
 ```bash

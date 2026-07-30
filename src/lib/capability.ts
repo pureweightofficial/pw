@@ -15,6 +15,13 @@ export type Capability = {
   reducedMotion: boolean;
   coarsePointer: boolean;
   saveData: boolean;
+  /**
+   * A metered or genuinely slow connection, reported by the Network Information
+   * API. Separate from `saveData` and from `tier` on purpose: the hero video is
+   * gated on bandwidth, not on GPU, so a device with no WebGL at all still gets
+   * the full moving hero as long as its connection can carry half a megabyte.
+   */
+  slowNetwork: boolean;
   /** Device pixel ratio ceiling for the renderer. */
   dprCap: number;
   /** Whether to render real-time shadows. */
@@ -31,6 +38,7 @@ const SSR_DEFAULT: Capability = {
   reducedMotion: false,
   coarsePointer: false,
   saveData: false,
+  slowNetwork: false,
   dprCap: 1,
   shadows: false,
   particles: 0,
@@ -108,7 +116,13 @@ export function detectCapability(): Capability {
     tier = 'high';
   }
 
-  const byTier: Record<QualityTier, Omit<Capability, 'tier' | 'webgl' | 'reducedMotion' | 'coarsePointer' | 'saveData'>> = {
+  const byTier: Record<
+    QualityTier,
+    Omit<
+      Capability,
+      'tier' | 'webgl' | 'reducedMotion' | 'coarsePointer' | 'saveData' | 'slowNetwork'
+    >
+  > = {
     high: { dprCap: 1.75, shadows: true, particles: 140, chainPhysics: true },
     medium: { dprCap: 1.5, shadows: true, particles: 60, chainPhysics: true },
     low: { dprCap: 1, shadows: false, particles: 0, chainPhysics: false },
@@ -123,6 +137,7 @@ export function detectCapability(): Capability {
     reducedMotion,
     coarsePointer,
     saveData,
+    slowNetwork,
     ...base,
     // Reduced motion keeps the scene but stills it: no drifting particles, no
     // swinging chains. The object is presented already at rest.

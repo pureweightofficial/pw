@@ -49,3 +49,46 @@ export function whenHeroReady(): Promise<void> {
 export function isHeroReady(): boolean {
   return settled;
 }
+
+/* -------------------------------------------------------------------------- */
+/* THE RETURN SIGNAL                                                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * HERO REVEALED — the opposite direction to the pair above.
+ *
+ * `heroReady` runs hero -> loader ("I am worth showing"). This runs
+ * loader -> hero ("you are now visible"), and exists because the hero's opening
+ * is a 4.5-second video that plays exactly once.
+ *
+ * Without it the video would autoplay the instant it buffered, which is while
+ * the curtain is still covering the screen — so the visitor would arrive part
+ * way through, or after the end, having seen none of it. Nothing about that is
+ * recoverable later, because there is no second play.
+ *
+ * Resolved at the START of the curtain lift rather than the end. The lift takes
+ * ~1.25s and uncovers the page from the bottom, and the clip opens on near
+ * darkness, so beginning underneath the moving curtain reads as one continuous
+ * shot instead of two cues in sequence.
+ *
+ * Also resolved immediately when there is no curtain at all — a repeat visit in
+ * the same session, or reduced motion, where the loader returns null.
+ */
+let resolveRevealed: (() => void) | null = null;
+let revealed = false;
+
+const heroRevealed: Promise<void> = new Promise<void>((resolve) => {
+  resolveRevealed = resolve;
+});
+
+/** Called by the opening as it starts to lift, or if it never shows. */
+export function markHeroRevealed(): void {
+  if (revealed) return;
+  revealed = true;
+  resolveRevealed?.();
+}
+
+/** Awaited by the hero before it begins its one-shot opening. Never rejects. */
+export function whenHeroRevealed(): Promise<void> {
+  return heroRevealed;
+}

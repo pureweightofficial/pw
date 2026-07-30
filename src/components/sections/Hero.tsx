@@ -1,9 +1,8 @@
 'use client';
 
-import dynamic from 'next/dynamic';
+import { HeroVideo } from '@/components/hero/HeroVideo';
 import { useMotion } from '@/components/motion/MotionProvider';
 import { CTA } from '@/components/ui/primitives';
-import { ScalePoster } from '@/components/webgl/ScalePoster';
 
 /**
  * HERO
@@ -22,24 +21,33 @@ import { ScalePoster } from '@/components/webgl/ScalePoster';
  * each other's way rather than layered on top of one another:
  *
  *  - the headline occupies the upper-left, over empty room;
- *  - the scale is seated low and right, where the composition has weight;
+ *  - the instrument is nudged right of centre, where the composition has weight;
  *  - a gradient scrim runs left-to-right behind the text block only, so the
  *    copy always clears its contrast threshold without dimming the subject.
  *
- * All of the text is real, server-rendered HTML sitting *outside* the canvas.
- * The hero reads identically to a crawler, a screen reader and a visitor whose
- * GPU refused the scene.
+ * THE SUBJECT IS THE SUPPLIED FILM, NOT THE PROCEDURAL SCALE. Both are a gold
+ * balance on black, and two of them in one frame read as a mistake, so the
+ * WebGL instrument was withdrawn from the hero and kept where it is genuinely
+ * interactive — the assay panel and the closing section.
+ *
+ * That removes the only EAGER WebGL mount on the site: the hero used to create a
+ * context, upload procedural textures and compile shaders while it was the thing
+ * the visitor was looking at. Nothing above the fold waits on three.js now.
+ *
+ * It does NOT remove three.js from the page. The assay and closing sections
+ * still reach it through next/dynamic at module scope, and those components
+ * render on load, so the chunk is still fetched — deferred and non-blocking, but
+ * fetched. Gating that import on viewport proximity is a separate open item on
+ * the performance list, and is not claimed here.
+ *
+ * The scrim is heavier here than a WebGL hero needed. The film's backdrop is a
+ * mid-grey studio sweep rather than near-black, so the copy column has to be
+ * darkened further to hold its contrast ratio.
+ *
+ * All of the text is real, server-rendered HTML sitting *outside* the media.
+ * The hero reads identically to a crawler, a screen reader, a visitor on a
+ * metered connection and a visitor who has asked for no motion.
  */
-
-const HeroCanvas = dynamic(
-  () => import('@/components/webgl/canvases').then((m) => m.HeroCanvas),
-  {
-    ssr: false,
-    // Shown while three.js downloads. Identical composition, so the transition
-    // to the live scene is a change of fidelity, not a change of layout.
-    loading: () => <ScalePoster />,
-  },
-);
 
 export function Hero() {
   const { scrollTo } = useMotion();
@@ -51,20 +59,18 @@ export function Hero() {
       className="relative isolate flex min-h-[100svh] flex-col justify-end overflow-hidden bg-void pb-16 pt-28 sm:pb-20 lg:min-h-screen lg:justify-center lg:[justify-content:safe_center] lg:pb-0 lg:pt-[calc(var(--nav-h)+2.5rem)]"
     >
       {/* --- The scene ------------------------------------------------- */}
-      <div
-        className="vignette absolute inset-0 -z-10"
-        aria-hidden="true"
-        data-webgl-surface
-        data-webgl-label="Explore"
-      >
-        <HeroCanvas />
+      {/* No data-webgl-surface here any more: the hero is a film, and the scene
+          cursor's "Explore" affordance would be promising an interaction that
+          does not exist. It still applies to the assay and closing scenes. */}
+      <div className="vignette absolute inset-0 -z-10" aria-hidden="true">
+        <HeroVideo />
       </div>
 
-      {/* Directional scrim: heaviest behind the copy, clear over the subject. */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-linear-to-r from-void/92 via-void/45 to-transparent lg:from-void/88 lg:via-void/25"
-      />
+      {/* Directional scrim: heaviest behind the copy, clear over the subject.
+          Moved out to a CSS class because the wide-viewport ramp needs six stops
+          to hold WCAG AA against the film's specular highlights — the numbers
+          are a measured result and are documented at .hero-scrim. */}
+      <div aria-hidden="true" className="hero-scrim absolute inset-0 -z-10" />
       <div
         aria-hidden="true"
         className="absolute inset-x-0 bottom-0 -z-10 h-48 bg-linear-to-t from-void to-transparent"

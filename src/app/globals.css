@@ -797,6 +797,76 @@
     );
   }
 
+  /* Hero opening media.
+     The video and the still frame it falls back to share this one rule, so
+     every path — motion, reduced motion, metered connection, decode failure —
+     lands on an identical composition. */
+  .hero-media {
+    /* Portrait and short landscape. Cropping a 16:9 frame to fill a tall
+       viewport leaves nothing but the centre column, so the whole instrument is
+       fitted into the upper band instead and the copy takes the dark space
+       beneath it — which is where the mobile hero already aligns its text. */
+    object-fit: contain;
+    object-position: center 18%;
+  }
+
+  @media (min-width: 1024px) and (min-aspect-ratio: 4 / 3) {
+    .hero-media {
+      /* Wide viewports get a filled frame. The instrument sits dead centre in
+         the source, which is where the headline is, so it is nudged right. The
+         scale-up exists only to supply overflow for that nudge to pan into:
+         at 1.14 there is 7% spare on each side and the shift is 6%, so no
+         background edge can ever be exposed. Kept deliberately small — this is
+         a 1280-wide source and every extra percent is visible softness. */
+      object-fit: cover;
+      object-position: center;
+      transform: scale(1.14) translateX(6%);
+      /* MEASURED, NOT CHOSEN. The film throws specular sparkles that peak at
+         rgb(247,231,171) — brighter than the ivory text laid over them. Sampled
+         across the clip at 4fps, an undimmed film puts the lead paragraph at
+         3.33:1 and the headline at 2.08:1, both failing WCAG AA. 0.82 is the
+         lightest dim that clears every threshold once combined with the scrim
+         ramp below; it lands the same worst-case pixel at 8.21 / 5.66 / 4.64.
+         Re-measure if the film is ever re-cut: docs/GO-LIVE.md has the command. */
+      filter: brightness(0.82);
+    }
+  }
+
+  /* Hero copy scrim.
+     Portrait keeps the simple three-stop ramp it always had, because there the
+     film is letterboxed into the upper band and the copy sits below it over
+     bare void — the two never overlap, so there is nothing to defend against. */
+  .hero-scrim {
+    background-image: linear-gradient(
+      to right,
+      rgba(5, 4, 6, 0.96) 0%,
+      rgba(5, 4, 6, 0.72) 50%,
+      rgba(5, 4, 6, 0) 100%
+    );
+  }
+
+  @media (min-width: 1024px) and (min-aspect-ratio: 4 / 3) {
+    /* Wide viewports fill the frame, so the copy genuinely sits on top of the
+       film and the ramp has to hold a contrast ratio rather than just set a
+       mood. It stays near-opaque out to 52% — the right edge of the widest
+       small-text block, max-w-xl on a 1280 desktop — then releases quickly so
+       the instrument is not buried with it. The consequence is a real one and
+       it is intended: the left pan sits in deep shadow and the frame lights
+       from the right. Raising the 0.84 stop is what brightens the film; it is
+       also what breaks the 4.5:1 the lead paragraph depends on. */
+    .hero-scrim {
+      background-image: linear-gradient(
+        to right,
+        rgba(5, 4, 6, 0.96) 0%,
+        rgba(5, 4, 6, 0.92) 34%,
+        rgba(5, 4, 6, 0.84) 52%,
+        rgba(5, 4, 6, 0.5) 72%,
+        rgba(5, 4, 6, 0.16) 88%,
+        rgba(5, 4, 6, 0) 100%
+      );
+    }
+  }
+
   /* Reveal primitives.
      The DEFAULT state is revealed. Elements are only hidden once a blocking
      inline script in <head> has confirmed that JS is running and that motion is

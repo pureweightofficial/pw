@@ -16,24 +16,43 @@ unconfirmed value as fact.
 
 | Item | Status | Where it is used |
 | --- | --- | --- |
-| **The Pureweight logo file** | ❌ **Not supplied** | Loader, nav, footer, favicon, brand story |
+| **The Pureweight logo file** | ✅ Supplied, in use | Loader, nav, footer, brand story |
+| **A vector (SVG) logo** | ⚠️ **Still wanted** | Everywhere the above is used |
+| **The hero brand film** | ✅ Supplied, partially usable — see §3 | Homepage hero |
 
-**The supplied logo was not available when this was built.** The marks in
-[`src/components/brand/Marks.tsx`](src/components/brand/Marks.tsx) are an
-original interpretation drawn from the written description of it — ornamental
-circular frame, vintage balance scale, engraved serif lettering, filigree
-detail, PW monogram.
+The supplied logo is live at
+[`public/brand/pureweight-logo.webp`](public/brand/pureweight-logo.webp) and is
+cropped into its three roles by
+[`src/components/brand/Logo.tsx`](src/components/brand/Logo.tsx).
 
-They are production-quality, internally consistent and correctly sized for each
-context, but they are **placeholders**. Replace the artwork inside the three
-components; keep the component structure, sizing rules and usage split:
+**It is a 256-colour indexed raster, not a vector.** That is visible: the gold
+gradients band, and the filigree softens at small sizes and in the loader's
+wipe. An SVG would fix both and is the one brand asset still outstanding.
 
-- `PWEmblem` — loader, brand story, footer, 404. Never rendered below 120px.
-- `PWWordmark` — desktop navigation, page headers.
-- `PWMonogram` — mobile navigation, favicon, compact buttons.
-- `BeamRule` — the divider ornament (derived from the emblem's beam).
+Also still holding a placeholder mark:
+[`src/app/icon.svg`](src/app/icon.svg) — replace with the real monogram.
 
-Also replace [`src/app/icon.svg`](src/app/icon.svg) with the real monogram.
+---
+
+## 1b. The hero brand film — four claims to confirm
+
+The supplied animation is the homepage hero, but **only its first 4.55 seconds
+ship**. The rest asserts things about the business that nothing on file supports,
+so it was cut. Confirming any of the following releases more of the clip:
+
+| # | What the film asserts | Confirm this | If confirmed |
+| --- | --- | --- | --- |
+| 1 | A bar struck **`999.9 FINE GOLD` / `1 KILO GOLD`** | That Pureweight handles kilo bars at that fineness | ~1.5 s of bullion footage becomes usable |
+| 2 | Stacks of **US dollar bills** | The settlement currency, and that cash settlement is offered at all | ~1 s becomes usable — but the brief also directs away from literal cash imagery, so this is an art-direction decision as well as a factual one |
+| 3 | The **`®`** on `PUREWEIGHT` | That the mark is **registered**, and in which jurisdiction | The lockup becomes usable. An unregistered `®` is a misrepresentation in many jurisdictions, which is why this is not a styling question |
+| 4 | A **`CALL TO NOW`** button | The telephone number (see §2, `telephone`) | Nothing. This stays cut regardless: the wording is not English, it duplicates the page's real CTAs, and baked-in raster text cannot be read by a screen reader, resized, or translated |
+
+Cutting the film is a one-command job once these are answered — see
+[`media/masters/README.md`](media/masters/README.md).
+
+**After any re-cut, the hero contrast gate must be re-run.** The film's specular
+highlights are brighter than the ivory text laid over them, and a different cut
+can break WCAG AA without any visible warning. The command is in the same file.
 
 ---
 
