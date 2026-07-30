@@ -141,12 +141,19 @@ export function Footer() {
                 © {year} {brand.name}. Registered business details:{' '}
                 <Fact field={business.registrationNumber} />
               </p>
+              {/* This line USED to say the site "does not display live precious-metal
+                  rates". That became false the moment the market panel shipped, and a
+                  false disclaimer is worse than none — it is the sentence a reader
+                  would rely on. Rewritten to say what is actually true: rates are
+                  shown, they are sourced and timestamped, and they are a market
+                  reference rather than an offer. */}
               <p className="max-w-2xl">
                 This website provides general information about the services offered by{' '}
-                {brand.shortName}. It does not display live precious-metal rates and does not
-                constitute a valuation, quotation or offer. Any figure is established only through
-                the business&apos;s own assessment process. Nothing on this page should be relied
-                upon as financial advice.
+                {brand.shortName}. Any precious-metal rates shown are international market
+                reference prices, published with their source and the time they were retrieved.
+                They are not a valuation, a quotation, or an offer, and they are not what is
+                payable for any item — that is established only by examining and weighing it.
+                Nothing on this page should be relied upon as financial advice.
               </p>
             </div>
 
