@@ -325,6 +325,9 @@ export const services: readonly Service[] = [
       "Plate identified honestly",
     ],
     cta: "Bring Silver In",
+    image: "/img/silver.jpg",
+    imageAlt:
+      "A silver filigree butterfly pendant among fine chains and carved shell blossoms, on black.",
     enquiryHref: "/contact",
     confirmed: true,
   },

@@ -6,8 +6,9 @@ Every photograph served from this directory, its licence, and why it was chosen.
 | --- | --- | --- | --- |
 | `jewellery.jpg` | [Unsplash](https://unsplash.com/photos/LQdSOAw13KE) | [Unsplash License](https://unsplash.com/license) | Gold Jewellery panel |
 | `coins.jpg` | Openverse → rawpixel, public-domain museum work | **CC0 1.0** | Coins panel |
+| `silver.jpg` | [Pixabay](https://pixabay.com/photos/jewellery-2006/) — `cdn.pixabay.com/photo/2010/12/13/09/57/jewellery-2006_1280.jpg` | [Pixabay Content License](https://pixabay.com/service/license-summary/) — free commercial use, no attribution required | Silver panel |
 
-Both are served **pre-cropped to 900×1125 (4:5)** — the exact aspect the panels
+All three are served **pre-cropped to 900×1125 (4:5)** — the exact aspect the panels
 render. Cropping at source rather than with `object-cover` matters because the
 static build sets `images.unoptimized`, which disables Next's responsive
 `srcSet` entirely: every visitor downloads one fixed file, so any pixel outside
@@ -89,31 +90,39 @@ assumed.
 
 ---
 
-## Panels deliberately using the engraved plate, not a photograph
+## `silver.jpg` — treatment
 
-**Silver** and **Bars & Bullion** both fall back to the `ArchMotif` plate, and
-that is a decision rather than an omission.
+Cropped 4:5 favouring the filigree cluster, cooled slightly
+(`colorbalance rm=-0.045 bm=+0.045`) so the metal reads as SILVER rather than
+champagne — the panel's own gold overlay re-warms everything it touches — with
+the black deepened and a soft vignette. 65 KB.
 
-Two rounds of searching the CC0 pool (Openverse, across Wikimedia, rawpixel and
-museum collections) produced nothing usable for either:
+## The Bars & Bullion panel keeps the engraved plate, with evidence
 
-- silver returned **WPA watercolour illustrations** on cream paper with the
-  artists' signatures visible, a costume bangle on white, and a museum
-  documentation shot with the **colour calibration card still in frame**;
-- “gold nugget” returned a **mango cultivar** and a **fish**.
+Four search rounds now (Openverse CC0, Openverse CC-BY, Wikimedia, Pixabay) and
+every photographed bullion candidate fails rule 2 the same way the removed
+`bullion.jpg` did. The final Pixabay round, inspected under a grid overlay:
 
-The CC0 pool is museum and archive material. It does not contain the dark,
-moody commercial product photography this site's visual language is built on.
-An engraved plate is better than a watercolour teapot or a calibration chart.
+- `gold-295936/295938`: cast button ingots with legible maker stamps and `999.9`
+- the stacked-bars macro: `FINE GOLD`, `999.9` and serial `100476` embossed on
+  **every visible face** — there is no clean 4:5 region
+- the remaining results were a 1933 US Double Eagle coin, a treasure pile of
+  coins (wrong panel), clipart, lava, and iron pyrite — fool's gold, on the
+  bullion panel of a gold-buying business
 
-**What would unlock these two properly**, in order of preference:
+This is structural, not bad luck: commercial bullion photography exists to show
+the marks, and the marks are precisely what the rubric forbids. What unlocks the
+panel is photography of the client's own stock, or artwork commissioned without
+marks.
+
+**What would unlock the bullion panel properly**, in order of preference:
 
 1. **Real photography of the actual counter, scales and stock.** The only images
    that will genuinely serve this site, and they double as the answer for the
    Visit panel.
-2. **An Unsplash or Pexels API key.** Both have exactly this style — it is where
-   `jewellery.jpg` came from — but their search pages are client-rendered, so
-   there is no way to reach the catalogue without a key.
+2. **An Unsplash or Pexels API key.** Both have this style — `jewellery.jpg`
+   came from Unsplash — but their catalogues are unreachable without one, and
+   even there, bullion photography mostly exists to show the marks.
 3. **Client-chosen images dropped into this directory.** Anything added here must
    be checked against the three rules above first; rule 2 is the one that has
    already caught this project out.
