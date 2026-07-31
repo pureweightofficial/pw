@@ -108,7 +108,7 @@ export function Footer() {
               <div>
                 <dt className="label-ash mb-1.5 text-[0.58rem]">Address</dt>
                 <dd className="text-ivory/72">
-                  <Fact field={business.address} />
+                  <Fact field={business.address} link="map" />
                 </dd>
               </div>
               <div>

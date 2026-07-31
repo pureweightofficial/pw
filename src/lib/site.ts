@@ -111,7 +111,15 @@ export const business: BusinessFacts = {
   registrationNumber: pending("[INSERT VERIFIED BUSINESS REGISTRATION NUMBER]"),
   vatNumber: pending("[INSERT VAT / TAX NUMBER, IF APPLICABLE]"),
   yearEstablished: pending("[INSERT CONFIRMED YEAR ESTABLISHED]"),
-  address: pending("[INSERT CONFIRMED TRADING ADDRESS]"),
+  /**
+   * VERIFIED 2026-07-31, supplied by the client. The first field in this file to
+   * graduate from placeholder to fact — and the one that turns a visit-driven
+   * site from a brochure into a destination.
+   */
+  address: {
+    status: "verified",
+    value: "250 John W Morrow Jr Pkwy #121, Gainesville, GA 30501",
+  },
   serviceArea: pending("[INSERT CONFIRMED SERVICE AREA]"),
   telephone: pending("[INSERT VERIFIED TELEPHONE NUMBER]"),
   email: pending("[INSERT VERIFIED ENQUIRY EMAIL ADDRESS]"),

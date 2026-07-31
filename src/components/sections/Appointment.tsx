@@ -37,11 +37,10 @@ import { SectionScene } from "@/components/ui/SectionScene";
  * bullion, paid on acceptance. That is their statement about their own business,
  * so it can be written plainly.
  *
- * Everything a customer would need in order to actually turn up — the address,
- * the hours, the phone number, how settlement is made — is still unconfirmed and
- * therefore still rendered through `Fact`, which prints a visible placeholder
- * rather than a plausible guess. This section is the one most damaged by those
- * gaps: a visit-driven page with no address is a page with no conversion path.
+ * The ADDRESS is now a verified fact (supplied 2026-07-31) and renders as a
+ * live directions link. The hours, the phone number and how settlement is made
+ * are still unconfirmed and still render through `Fact` as visible placeholders
+ * rather than plausible guesses.
  */
 
 const BEFORE_YOU_COME = [
@@ -129,7 +128,7 @@ export function Appointment() {
                 <div>
                   <dt className="label-ash mb-2 text-[0.58rem]">Address</dt>
                   <dd className="text-lead leading-relaxed text-ivory/85">
-                    <Fact field={business.address} />
+                    <Fact field={business.address} link="map" />
                   </dd>
                 </div>
 

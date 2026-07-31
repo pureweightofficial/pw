@@ -96,50 +96,17 @@ can break WCAG AA without any visible warning. The command is in the same file.
 
 ---
 
-## 1c. Live market rates — provider confirmed, secret still needed
+## 1c. Live market rates — REMOVED
 
-**Confirmed by the client:** provider **GoldAPI.io**, currency **USD**. Verified
-against the live endpoint — gold returned `$4,080.28`/troy oz and silver
-`$58.10`/troy oz, both inside the plausibility bounds, and `public/rates.json`
-was written from real data.
+The live gold/silver price panel was built, verified against GoldAPI with real
+data, and then **removed at the client's request** once the maths was clear:
+their free plan allows 100 requests a month, and the 30-minute refresh they
+wanted needs ~2,900. The feature required a paid data plan to exist honestly at
+that frequency.
 
-### One step left, and only you can do it
-
-The API key must never live in the repository — it is public, and a key in source
-is a key that gets used by someone else. It goes in as an encrypted repository
-secret:
-
-**Settings → Secrets and variables → Actions**
-
-| Type | Name | Value |
-| --- | --- | --- |
-| **Secret** | `RATES_API_KEY` | your GoldAPI key |
-| Variable | `RATES_PROVIDER` | `goldapi` |
-| Variable | `RATES_CURRENCY` | `USD` |
-
-Until those exist, the scheduled workflow fails on purpose and writes nothing —
-see the note at the foot of `.github/workflows/rates.yml`. A red run there is
-correct behaviour, not a fault.
-
-### The committed rates.json is a starting value, not a substitute
-
-`public/rates.json` currently holds a real reading so the panel works today. It
-carries its own timestamp and **ages out on its own**: the panel stops calling it
-live after an hour, captions it with its real age up to 36 hours, and then
-publishes nothing at all. Once the secret is in place the workflow overwrites it
-every three hours and it never reaches that state.
-
-### Two things this does NOT confirm
-
-- **`priceReferenceSource`** stays a placeholder. GoldAPI is the feed for the
-  *website's* market panel. What the *business* prices against at the counter is a
-  separate fact, and it has not been stated. Conflating the two would put words in
-  the client's mouth about their own pricing basis.
-- **`settlementMethods`** stays a placeholder. Choosing a USD endpoint tells us the
-  currency the panel displays. It does not say how a customer is actually paid —
-  cash, bank transfer, cheque, limits — and that is what the field is for.
-
----
+Everything is one `git revert` of commit `bbd6064` away if a paid plan is ever
+taken out. The architecture notes live in that commit's message. The GoldAPI key
+that was used for testing should be treated as exposed and revoked.
 
 ## 2. Business facts
 
@@ -152,7 +119,7 @@ All in [`src/lib/site.ts`](src/lib/site.ts) under `business`. Change
 | `registrationNumber` | `[INSERT VERIFIED BUSINESS REGISTRATION NUMBER]` |
 | `vatNumber` | `[INSERT VAT / TAX NUMBER, IF APPLICABLE]` |
 | `yearEstablished` | `[INSERT CONFIRMED YEAR ESTABLISHED]` |
-| `address` | `[INSERT CONFIRMED TRADING ADDRESS]` |
+| ~~`address`~~ | ✅ **Verified 2026-07-31:** 250 John W Morrow Jr Pkwy #121, Gainesville, GA 30501 — renders site-wide with a live directions link |
 | `serviceArea` | `[INSERT CONFIRMED SERVICE AREA]` |
 | `telephone` | `[INSERT VERIFIED TELEPHONE NUMBER]` |
 | `email` | `[INSERT VERIFIED ENQUIRY EMAIL ADDRESS]` |
@@ -171,6 +138,10 @@ All in [`src/lib/site.ts`](src/lib/site.ts) under `business`. Change
 | `foundingStory` | `[INSERT VERIFIED FOUNDING STORY]` |
 | `social` | `[INSERT CONFIRMED SOCIAL CHANNELS]` |
 
+> **The address alone does not unlock structured data.** JSON-LD still needs
+> `legalName` verified as well — an address without a legal identity is half a
+> LocalBusiness record, and half-records are worse for search than none.
+>
 > **Structured data.** `LocalBusiness` JSON-LD is emitted **only** once
 > `legalName` and `address` are both verified. Until then the page ships no
 > structured data at all — publishing markup containing `[INSERT ADDRESS]` to a

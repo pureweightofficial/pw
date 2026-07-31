@@ -63,19 +63,32 @@ export function Fact<T extends ReactNode>({
    * boundary, and a server component handing it a function is a build error
    * ("Functions cannot be passed directly to Client Components"), which is
    * exactly how the first version of tel/mailto support failed. 'tel' strips
-   * formatting for the href; 'mailto' uses the value verbatim. Applied only
-   * once the field is verified — placeholders never become links.
+   * formatting for the href; 'mailto' uses the value verbatim; 'map' opens the
+   * address in the visitor's map application via the provider-neutral Google
+   * Maps search URL — derived entirely from the client-supplied address, so it
+   * asserts nothing the address itself does not. Applied only once the field is
+   * verified — placeholders never become links.
    */
-  link?: "tel" | "mailto";
+  link?: "tel" | "mailto" | "map";
 }) {
   if (!isVerified(field)) return <Placeholder label={field.label} inline />;
 
   if (link) {
     const raw = String(field.value);
     const href =
-      link === "tel" ? `tel:${raw.replace(/[^+\d]/g, "")}` : `mailto:${raw}`;
+      link === "tel"
+        ? `tel:${raw.replace(/[^+\d]/g, "")}`
+        : link === "mailto"
+          ? `mailto:${raw}`
+          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(raw)}`;
     return (
-      <a className="underline-offset-4 hover:underline" href={href}>
+      <a
+        className="underline-offset-4 hover:underline"
+        href={href}
+        {...(link === "map"
+          ? { target: "_blank", rel: "noopener noreferrer" }
+          : {})}
+      >
         {field.value}
       </a>
     );
