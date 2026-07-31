@@ -38,6 +38,17 @@ const AmbientCanvas = dynamic(
 
 export type SectionSceneProps = {
   variant: AmbientVariant;
+  /**
+   * How hard the scrim works.
+   *
+   *   veil    (default) heavy everywhere. Correct when the scene is pure
+   *           atmosphere and the copy may sit anywhere over it.
+   *   reveal  heavy on the LEFT where copy lives, clearing to the right so a
+   *           presented object can actually be seen. Only safe in a section
+   *           whose layout genuinely leaves that side empty — the journey
+   *           section's right column does.
+   */
+  scrim?: "veil" | "reveal";
   /** Which scroll channel drives the parallax. Defaults to page progress. */
   channel?: "progress" | "journey" | "assay" | "finale";
   className?: string;
@@ -46,6 +57,7 @@ export type SectionSceneProps = {
 export function SectionScene({
   variant,
   channel,
+  scrim = "veil",
   className = "",
 }: SectionSceneProps) {
   return (
@@ -74,7 +86,10 @@ export function SectionScene({
         which samples the rendered backdrop in a real browser rather than
         reasoning about it.
       */}
-      <div className="section-scene-scrim absolute inset-0" />
+      <div
+        className="section-scene-scrim absolute inset-0"
+        data-scrim={scrim}
+      />
     </div>
   );
 }

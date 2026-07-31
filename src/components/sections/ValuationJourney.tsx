@@ -32,7 +32,10 @@ export function ValuationJourney() {
       labelledBy="journey-heading"
       className="py-24 lg:py-36"
     >
-      <SectionScene variant="links" channel="journey" />
+      {/* The right-hand column of this section's grid is genuinely empty on
+          desktop, and `links` read as black there. A single presented gold bar
+          fills it and turns as the reader advances the four stages. */}
+      <SectionScene variant="bar" channel="journey" scrim="reveal" />
       <div className="shell">
         <div className="max-w-3xl">
           <Eyebrow className="mb-8 will-reveal">

@@ -901,6 +901,25 @@
     );
   }
 
+  /* REVEAL: heavy where the copy is, clearing to the right so a presented
+     object is actually visible. The default veil is built to HIDE a backdrop,
+     which is exactly wrong for an object the section is showing on purpose —
+     the first pass rendered the gold bar as a barely-perceptible dark shape.
+
+     Only for sections whose layout genuinely leaves the right side empty. The
+     copy-region contrast is still measured by check-section-scene-contrast.mjs,
+     which samples the real text boxes rather than the whole section. */
+  .section-scene-scrim[data-scrim="reveal"] {
+    background: linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0.9) 0%,
+      rgba(0, 0, 0, 0.86) 42%,
+      rgba(0, 0, 0, 0.55) 64%,
+      rgba(0, 0, 0, 0.22) 82%,
+      rgba(0, 0, 0, 0.12) 100%
+    );
+  }
+
   /* AMBIENT GOLD GLOW — see components/ui/AmbientGlow.tsx for the reasoning.
 
      Two soft pools of gold light drifting behind a section. Only `transform` is

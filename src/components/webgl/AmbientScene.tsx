@@ -10,7 +10,7 @@ import {
   ingotGeometry,
   sealBlockGeometry,
 } from "./geometry";
-import { bullionGold, chainSteel, sealStone } from "./materials";
+import { bullionGold, chainSteel, metal, sealStone } from "./materials";
 import { Dust } from "./Dust";
 import { Studio } from "./Studio";
 
@@ -55,7 +55,7 @@ import { Studio } from "./Studio";
  * evidence table, the insight index — get nothing at all.
  */
 
-export type AmbientVariant = "motes" | "ingots" | "links" | "seal";
+export type AmbientVariant = "motes" | "ingots" | "links" | "seal" | "bar";
 
 export type AmbientSceneProps = {
   capability: Capability;
@@ -216,6 +216,111 @@ function Links({ still, count }: { still: boolean; count: number }) {
   );
 }
 
+/**
+ * A SINGLE GOLD BAR, presented — not scattered atmosphere.
+ *
+ * The `ingots` variant puts three small bars deep in the frame at scale 1.5,
+ * which at journey-section scrim strength reads as an empty black rectangle. This
+ * is the opposite brief: one bar, large, near the camera, held in the right-hand
+ * column where that section's layout leaves a genuine void.
+ *
+ * WHY GEOMETRY AND NOT A PHOTOGRAPH
+ *
+ * Every photographed bar found across four search rounds carries another
+ * refiner's stamps — `999.9`, a fineness mark, a serial. That is exactly what got
+ * `bullion.jpg` removed from this site: a third party's trademark and a purity
+ * claim the client has not verified. `ingotGeometry` is unmarked by construction,
+ * so this is a real gold bar making no claim that is not ours to make. The whole
+ * argument is in public/img/CREDITS.md.
+ *
+ * THE MOTION
+ *
+ * A slow tumble on two axes at incommensurable rates, so the bar never returns to
+ * the same pose and the loop is never visible, plus a shallow bob. Scroll drives
+ * an additional yaw through the section's own `journey` channel, so the bar turns
+ * as the reader advances through the four stages — the section is about a
+ * sequence, and the bar advances with it.
+ */
+function GoldBar({
+  still,
+  channel,
+}: {
+  still: boolean;
+  channel: NonNullable<AmbientSceneProps["channel"]>;
+}) {
+  const ref = useRef<THREE.Mesh>(null);
+
+  /**
+   * A DEDICATED material, not the shared bullionGold().
+   *
+   * bullionGold is metalness 1 with envMapIntensity 1.1, tuned for a bar inside
+   * the hero's full-strength lighting. A pure metal takes almost nothing from a
+   * point light — it renders what the environment reflects — so on the ambient
+   * canvas, at exposure 0.86 with a dim shared cubemap, the bar came out a
+   * near-black silhouette. Two screenshots confirmed the geometry was present,
+   * correctly placed and simply unlit. Dropping metalness lets the key light
+   * contribute real diffuse; tripling envMapIntensity recovers the reflection.
+   */
+  const barMaterial = useMemo(
+    () =>
+      metal({
+        color: new THREE.Color("#e8bd5c"),
+        metalness: 0.82,
+        roughness: 0.34,
+        envMapIntensity: 3.4,
+      }),
+    [],
+  );
+
+  /**
+   * PLACED AGAINST THE RUNTIME FRUSTUM, NOT HARDCODED COORDINATES.
+   *
+   * The first two attempts positioned the bar in absolute world units, reasoning
+   * from a 16:10 viewport. Both missed, and the screenshots showed why: this
+   * canvas is `absolute inset-0` inside the SECTION, and the journey section is
+   * roughly 2000px tall. The render target is therefore strongly PORTRAIT, so the
+   * visible world width is about 3 units, not 6.6 — x 1.62 was off-frame to the
+   * right, and the bar appeared as a sliver in the corner.
+   *
+   * `state.viewport` reports the true world width and height at z=0 every frame,
+   * so positioning as a FRACTION of it lands in the same visual place regardless
+   * of section height, viewport size or aspect. Scale is derived the same way, so
+   * the bar keeps its proportion of the frame rather than ballooning on wide
+   * screens.
+   */
+  useFrame((state) => {
+    const bar = ref.current;
+    if (!bar) return;
+
+    const { width, height } = state.viewport;
+
+    // Right-hand column, upper third — the void the journey layout leaves.
+    bar.position.x = width * 0.28;
+    bar.scale.setScalar(width * 0.62);
+
+    if (still) {
+      // Reduced motion: a fixed three-quarter pose. Present, at rest, and still
+      // clearly a bar rather than a silhouette.
+      bar.rotation.set(0.42, 0.72, 0.1);
+      bar.position.y = height * 0.3;
+      return;
+    }
+
+    const t = state.clock.elapsedTime;
+    // 0.085 and 0.043 share no common factor worth noticing, so the pose never
+    // repeats on any timescale a visitor will sit through. Scroll adds yaw
+    // through the section's own channel, so the bar turns as the reader advances
+    // the four stages — the section is about a sequence, and the bar tracks it.
+    bar.rotation.y =
+      t * 0.085 + clamp(scrollState[channel], 0, 1) * Math.PI * 0.9;
+    bar.rotation.x = 0.34 + Math.sin(t * 0.043) * 0.16;
+    bar.rotation.z = Math.sin(t * 0.031) * 0.08;
+    bar.position.y = height * 0.3 + Math.sin(t * 0.052) * 0.1;
+  });
+
+  return <mesh ref={ref} geometry={ingotGeometry()} material={barMaterial} />;
+}
+
 /** The sealed valuation block, turning once every couple of minutes. */
 function Seal({ still }: { still: boolean }) {
   const ref = useRef<THREE.Mesh>(null);
@@ -265,6 +370,7 @@ export function AmbientScene({
         {variant === "ingots" ? <Ingots still={still} /> : null}
         {variant === "links" ? <Links still={still} count={linkCount} /> : null}
         {variant === "seal" ? <Seal still={still} /> : null}
+        {variant === "bar" ? <GoldBar still={still} channel={channel} /> : null}
         {/* 'motes' adds no object at all — the dust IS the scene. */}
       </Parallax>
 
@@ -280,6 +386,20 @@ export function AmbientScene({
         decay={2}
         color="#b87914"
       />
+
+      {/* The bar is PRESENTED rather than buried, so it needs a key of its own.
+          The shared accent above sits behind everything and would leave a
+          near-silhouette. Placed high and to the right, raking across the top
+          face so the cast surface reads as metal rather than as a gold shape. */}
+      {variant === "bar" ? (
+        <pointLight
+          position={[2.6, 2.2, 2.4]}
+          intensity={46}
+          distance={9}
+          decay={2}
+          color="#ffe9a8"
+        />
+      ) : null}
     </group>
   );
 }

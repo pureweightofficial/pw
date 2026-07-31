@@ -42,7 +42,10 @@ export function AmbientCanvas({
   return (
     <SceneShell
       camera={{ position: [0, 0.2, 5.4], fov: 42 }}
-      exposure={0.86}
+      /* 0.86 suits atmosphere — dust and half-seen objects. The `bar` variant is
+         a PRESENTED object and needs the room lit for it; at 0.86 it rendered as
+         a near-black silhouette. */
+      exposure={variant === "bar" ? 1.5 : 0.86}
       poster={<AmbientPoster />}
     >
       {(capability) => (

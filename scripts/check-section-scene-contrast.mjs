@@ -163,6 +163,40 @@ for (const id of sections) {
   }
   await page.waitForTimeout(2600);
 
+  /**
+   * Collect the bounding boxes of ELEMENTS THAT ACTUALLY CONTAIN TEXT, before
+   * anything is hidden. Sampling is then restricted to those rectangles.
+   *
+   * This is the fix for a whole class of false alarm. Sampling the entire section
+   * has now flagged, in four separate runs: the fixed navigation's white button
+   * label, two decorative gold ornaments that are correctly aria-hidden, a clip
+   * box that ran past the section into the next one, and a presented gold bar
+   * sitting in a column the layout deliberately leaves empty. Every one reported
+   * a catastrophic ~1.0:1 and every one was measuring a surface no text sits on.
+   *
+   * A contrast gate that cries wolf gets ignored, which is worse than not having
+   * it. Text boxes only.
+   */
+  const textBoxes = await page.evaluate((sel) => {
+    const el = document.getElementById(sel);
+    if (!el) return [];
+    const boxes = [];
+    el.querySelectorAll("h1,h2,h3,h4,p,li,a,span,dt,dd,td,th").forEach((n) => {
+      if (n.closest('[aria-hidden="true"]')) return;
+      // Direct text only: a wrapper's rect would re-introduce the whole-section
+      // problem one level down.
+      const own = [...n.childNodes].some(
+        (c) => c.nodeType === 3 && c.textContent.trim().length > 1,
+      );
+      if (!own) return;
+      const r = n.getBoundingClientRect();
+      if (r.width < 8 || r.height < 8) return;
+      if (r.bottom < 0 || r.top > innerHeight) return;
+      boxes.push({ x: r.left, y: r.top, w: r.width, h: r.height });
+    });
+    return boxes;
+  }, id);
+
   // Hide the copy — sampling a shot that still contains text would measure the
   // text against itself — AND the fixed chrome. The navigation is
   // position:fixed, so it paints over every section; the first run of this audit
@@ -237,30 +271,53 @@ for (const id of sections) {
 
   // Decode the PNG in-page: the browser already has a decoder, and this avoids
   // adding an image library just to read pixels back.
-  const worst = await page.evaluate(async (dataUrl) => {
-    const img = new Image();
-    img.src = dataUrl;
-    await img.decode();
-    const c = document.createElement('canvas');
-    c.width = img.width;
-    c.height = img.height;
-    const ctx = c.getContext('2d', { willReadFrequently: true });
-    ctx.drawImage(img, 0, 0);
-    const { data } = ctx.getImageData(0, 0, c.width, c.height);
+  const worst = await page.evaluate(
+    async ({ dataUrl, boxes, originX, originY }) => {
+      const img = new Image();
+      img.src = dataUrl;
+      await img.decode();
+      const c = document.createElement("canvas");
+      c.width = img.width;
+      c.height = img.height;
+      const ctx = c.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0);
 
-    let best = null;
-    let bestLum = -1;
-    for (let i = 0; i < data.length; i += 4) {
-      // Cheap luminance proxy for finding the brightest pixel; the accurate
-      // WCAG maths is done once, outside, on the winner.
-      const l = data[i] * 0.2126 + data[i + 1] * 0.7152 + data[i + 2] * 0.0722;
-      if (l > bestLum) {
-        bestLum = l;
-        best = [data[i], data[i + 1], data[i + 2]];
+      let best = null;
+      let bestLum = -1;
+
+      // Boxes are in viewport coords; the shot is clipped to the section, so
+      // shift them into image space.
+      for (const b of boxes) {
+        const x0 = Math.max(0, Math.round(b.x - originX));
+        const y0 = Math.max(0, Math.round(b.y - originY));
+        const x1 = Math.min(c.width, Math.round(b.x - originX + b.w));
+        const y1 = Math.min(c.height, Math.round(b.y - originY + b.h));
+        if (x1 <= x0 || y1 <= y0) continue;
+
+        const { data } = ctx.getImageData(x0, y0, x1 - x0, y1 - y0);
+        for (let i = 0; i < data.length; i += 4) {
+          const l =
+            data[i] * 0.2126 + data[i + 1] * 0.7152 + data[i + 2] * 0.0722;
+          if (l > bestLum) {
+            bestLum = l;
+            best = [data[i], data[i + 1], data[i + 2]];
+          }
+        }
       }
-    }
-    return best;
-  }, `data:image/png;base64,${shot.toString('base64')}`);
+      return best;
+    },
+    {
+      dataUrl: `data:image/png;base64,${shot.toString("base64")}`,
+      boxes: textBoxes,
+      originX: box.x,
+      originY: box.y,
+    },
+  );
+
+  if (!worst) {
+    console.log(`  SKIP  ${id} — no text boxes visible in this viewport`);
+    continue;
+  }
 
   const lead = contrast(over(IVORY, 0.72, worst), worst);
   const ashRatio = contrast(ASH, worst);
