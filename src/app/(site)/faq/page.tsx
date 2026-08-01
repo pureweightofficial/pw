@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BeamDivider, Eyebrow, Placeholder, Section } from '@/components/ui/primitives';
-import { brand, canonicalPath, ogFor } from '@/lib/site';
+import { canonicalPath, ogFor } from '@/lib/site';
+import faqContent from '@/content/faq.json';
 
 export const metadata: Metadata = {
   title: 'Frequently Asked Questions',
@@ -42,38 +43,18 @@ export const metadata: Metadata = {
 type Answered = { question: string; answer: string };
 type Pending = { question: string; placeholder: string; note: string };
 
-const general: Answered[] = [
-  {
-    question: 'What does carat actually mean?',
-    answer:
-      'Carat describes how much of an alloy is gold, expressed in twenty-fourths. 24 carat is pure gold. 22ct is 22 parts in 24, usually marked 916 parts per thousand; 18ct is 750; 14ct is 585; 9ct is 375. Everything that is not gold is alloy — typically copper, silver or zinc — and it carries no precious-metal value. This is why a heavy 9ct chain can be worth less than a much lighter 22ct one.',
-  },
-  {
-    question: 'Why is my gold weighed in troy ounces?',
-    answer:
-      'Precious metals use troy weight, not the everyday avoirdupois ounce. One troy ounce is 31.1035 grams, against 28.3495 grams for a standard ounce — a difference of about ten per cent. It is the single most common reason two people quoting the same weight appear to disagree with each other.',
-  },
-  {
-    question: 'What is a hallmark, and what if my piece has not got one?',
-    answer:
-      'A hallmark is a set of marks struck into a piece recording its fineness, and often who submitted it and where it was tested. It is usually found inside a ring band, on a clasp, or on the reverse of a pendant. Plenty of genuine gold carries no hallmark at all — it may be worn away, the piece may predate marking requirements, or it may have been made where marking is not customary. An unmarked piece is not a problem; it simply means fineness is established by examination rather than read off the metal.',
-  },
-  {
-    question: 'Why might my piece be worth less than its total weight suggests?',
-    answer:
-      'Because not all of what you are holding is gold. Stones, clasps, spring mechanisms, pins and solder all add weight without adding precious metal, and plated items carry only a microscopic layer of gold over a base metal. A professional evaluation separates these out and tells you what it has excluded, which is why an itemised assessment and a single lump figure can differ considerably.',
-  },
-  {
-    question: 'Should I clean or repair anything before bringing it in?',
-    answer:
-      'No. Cleaning risks damaging stones, softening old settings or removing patina that matters on antique pieces, and a repair almost never returns more than it costs. Bring items exactly as they are, including broken ones — a snapped chain and a single earring are perfectly normal things to have assessed.',
-  },
-  {
-    question: 'Can I get a valuation over the phone or from a photograph?',
-    answer:
-      `No, and you should be wary of anyone who offers one. A figure quoted before a piece has been weighed and examined is a guess. ${brand.shortName} establishes value in person, from measured weight and verified fineness. Photographs sent with an enquiry are useful for preparing, but they are not a valuation.`,
-  },
-];
+/**
+ * OWNER-EDITABLE, via the Keeper's FAQ tab. The general questions moved to
+ * src/content/faq.json so the owner can edit and extend them without a
+ * developer — they are trade-standard knowledge, safe in the owner's hands,
+ * and exactly what an answer engine should be citing this business for.
+ *
+ * The business-specific list below deliberately did NOT move. Every one of
+ * those is a promise (fees, timing, insurance, identification), and promises
+ * on this site are only ever unlocked by verifying the underlying business
+ * fact — not by typing an answer into a box.
+ */
+const general: Answered[] = faqContent.general;
 
 const businessSpecific: Pending[] = [
   {

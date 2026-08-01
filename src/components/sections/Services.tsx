@@ -6,6 +6,14 @@ import { BeamDivider, Eyebrow, Section } from "@/components/ui/primitives";
 import { services } from "@/lib/site";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
 import { SectionScene } from "@/components/ui/SectionScene";
+import { opener } from "@/lib/copy";
+
+const copy = opener("services", {
+  eyebrow: "Chapter 03 — What We Buy",
+  heading: "Gold, silver, coins",
+  accent: "and bullion",
+  lead: "Four categories, one order of operations: weigh it, establish what it actually is, show you the working, and only then talk about money.",
+});
 
 /**
  * SERVICES
@@ -86,22 +94,18 @@ export function Services() {
           <div className="max-w-3xl">
             {/* Was "Chapter 03 — The Services" against a chapter list and a nav
                 that both say "What We Buy". Three labels for one section. */}
-            <Eyebrow className="mb-8 will-reveal">
-              Chapter 03 — What We Buy
-            </Eyebrow>
+            <Eyebrow className="mb-8 will-reveal">{copy.eyebrow}</Eyebrow>
             <h2
               id="services-heading"
               className="font-display text-chapter font-normal text-ivory will-reveal"
             >
-              Gold, silver, coins{" "}
+              {copy.heading}{" "}
               <span className="accent-italic text-gold-high/90">
-                and bullion
+                {copy.accent}
               </span>
             </h2>
             <p className="mt-7 max-w-xl text-lead text-ash will-reveal">
-              Four categories, one order of operations: weigh it, establish
-              what it actually is, show you the working, and only then talk
-              about money.
+              {copy.lead}
             </p>
           </div>
         </div>

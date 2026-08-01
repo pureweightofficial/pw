@@ -4,6 +4,14 @@ import dynamic from "next/dynamic";
 import { VisitCta } from "@/components/ui/VisitCta";
 import { ScalePoster } from "@/components/webgl/ScalePoster";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
+import { opener } from "@/lib/copy";
+
+const copy = opener("finale", {
+  eyebrow: "In Balance",
+  heading: "Know the true value",
+  accent: "of what you hold.",
+  lead: "Bring your items in. We will examine and weigh them with you, and explain every figure before you decide.",
+});
 
 /**
  * FINAL BALANCE
@@ -48,20 +56,19 @@ export function FinalBalance() {
 
       <div className="shell relative w-full" data-cursor-normal>
         <div className="mx-auto max-w-3xl text-center">
-          <p className="label mb-8 will-reveal">In Balance</p>
+          <p className="label mb-8 will-reveal">{copy.eyebrow}</p>
 
           <h2
             id="finale-heading"
             className="font-display text-chapter font-normal text-ivory will-reveal"
           >
-            Know the true value
+            {copy.heading}
             <br />
-            <span className="gold-leaf accent-italic">of what you hold.</span>
+            <span className="gold-leaf accent-italic">{copy.accent}</span>
           </h2>
 
           <p className="mx-auto mt-8 max-w-lg text-lead text-ivory/72 will-reveal">
-            Bring your items in. We will examine and weigh them with you, and
-            explain every figure before you decide.
+            {copy.lead}
           </p>
 
           <div className="mt-12 flex justify-center will-reveal">

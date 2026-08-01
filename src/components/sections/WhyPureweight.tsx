@@ -5,6 +5,14 @@ import type { ReactElement } from "react";
 import { pillars } from "@/lib/site";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
 import { SectionScene } from "@/components/ui/SectionScene";
+import { opener } from "@/lib/copy";
+
+const copy = opener("pillars", {
+  eyebrow: "Chapter 05 — Built on Trust",
+  heading: "What you can check",
+  accent: "for yourself",
+  lead: "",
+});
 
 /**
  * WHY PUREWEIGHT
@@ -40,7 +48,7 @@ export function WhyPureweight() {
       <div className="shell">
         <div className="mx-auto max-w-2xl text-center">
           <Eyebrow align="center" className="mb-8 will-reveal">
-            Chapter 05 — Built on Trust
+            {copy.eyebrow}
           </Eyebrow>
           <h2
             id="pillars-heading"
@@ -48,10 +56,10 @@ export function WhyPureweight() {
           >
             {/* Not "three things" any more — the heading used to hardcode the count
                 and would have silently gone wrong when the pillars became four. */}
-            What you can check
+            {copy.heading}
             <span className="accent-italic text-gold-high/90">
               {" "}
-              for yourself
+              {copy.accent}
             </span>
           </h2>
         </div>

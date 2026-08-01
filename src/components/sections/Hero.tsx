@@ -5,6 +5,14 @@ import { HeroVideo } from "@/components/hero/HeroVideo";
 import { useMotion } from "@/components/motion/MotionProvider";
 import { CTA } from "@/components/ui/primitives";
 import { VisitCta } from "@/components/ui/VisitCta";
+import { opener } from "@/lib/copy";
+
+const heroCopy = opener("hero", {
+  eyebrow: "Precision in Every Gram",
+  heading: "Where Gold Finds",
+  accent: "Its True Weight.",
+  lead: "We buy gold and silver over the counter — jewellery, coins and bullion. Your items examined and weighed in front of you, against the live market.",
+});
 
 /**
  * HERO
@@ -105,22 +113,20 @@ export function Hero() {
         {/* 4xl, not 2xl: the capitals headline needs the wider measure to hold
             two lines. The lead paragraph keeps its own tighter max-w-xl. */}
         <div className="max-w-4xl">
-          <p className="label mb-9 hero-rise">Precision in Every Gram</p>
+          <p className="label mb-9 hero-rise">{heroCopy.eyebrow}</p>
 
           <h1
             id="hero-heading"
             className="hero-rise font-display text-hero font-normal text-ivory [--rise-delay:120ms]"
           >
-            <span className="block">Where Gold Finds</span>
+            <span className="block">{heroCopy.heading}</span>
             <span className="gold-leaf accent-italic block">
-              Its True Weight.
+              {heroCopy.accent}
             </span>
           </h1>
 
           <p className="hero-rise mt-8 max-w-xl text-lead text-ivory/72 [--rise-delay:240ms]">
-            We buy gold and silver over the counter — jewellery, coins and
-            bullion. Your items examined and weighed in front of you, against
-            the live market.
+            {heroCopy.lead}
           </p>
 
           <div className="hero-rise mt-11 flex flex-col items-start gap-4 [--rise-delay:360ms] sm:flex-row sm:items-center sm:gap-7">

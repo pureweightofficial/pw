@@ -194,11 +194,19 @@ export const business: BusinessFacts = {
 /* NAVIGATION                                                                 */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Every item is a real PAGE now, not a homepage anchor. Anchors made the nav
+ * a table of contents for one document; these are destinations with their own
+ * 800+ words of standalone content, their own metadata, and their own place
+ * in the sitemap — which is what lets each topic rank and be cited
+ * independently. The homepage sections remain the cinematic versions, and
+ * each page links back to its section.
+ */
 export const primaryNav = [
-  { label: "What We Buy", href: "/#services" },
-  { label: "How It Works", href: "/#journey" },
-  { label: "Purity & Weight", href: "/#assay" },
-  { label: "About", href: "/#story" },
+  { label: "What We Buy", href: "/what-we-buy" },
+  { label: "How It Works", href: "/how-it-works" },
+  { label: "Purity & Weight", href: "/purity-and-weight" },
+  { label: "About", href: "/about" },
   { label: "Insights", href: "/insights" },
   { label: "FAQ", href: "/faq" },
   { label: "Contact", href: "/contact" },

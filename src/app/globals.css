@@ -890,6 +890,72 @@
    UTILITIES
    ========================================================================== */
 
+/* ==========================================================================
+   ARTICLE BODY — typography for owner-authored insight articles.
+   The markdown is rendered at build time (src/lib/insights.ts); these rules
+   style the resulting plain HTML in the site's own voice. Kept deliberately
+   quiet: articles are for reading, and the display faces stay in headings.
+   ========================================================================== */
+
+.article-body {
+  color: color-mix(in srgb, var(--color-ivory) 72%, transparent);
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+.article-body h2 {
+  margin-top: 2.75rem;
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 400;
+  line-height: 1.25;
+  color: var(--color-ivory);
+}
+.article-body h3 {
+  margin-top: 2rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--color-ivory);
+}
+.article-body p {
+  margin-top: 1.25rem;
+}
+.article-body ul,
+.article-body ol {
+  margin-top: 1.25rem;
+  padding-left: 1.4rem;
+}
+.article-body ul { list-style: disc; }
+.article-body ol { list-style: decimal; }
+.article-body li { margin-top: 0.5rem; }
+.article-body li::marker { color: var(--color-gold-antique); }
+.article-body strong { color: var(--color-ivory); font-weight: 600; }
+.article-body em { font-family: var(--font-accent); font-style: italic; }
+.article-body a {
+  color: var(--color-gold-rich);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.article-body a:hover { color: var(--color-gold-high); }
+.article-body blockquote {
+  margin-top: 1.5rem;
+  border-left: 2px solid var(--color-gold-antique);
+  padding-left: 1.25rem;
+  font-family: var(--font-accent);
+  font-style: italic;
+  color: color-mix(in srgb, var(--color-ivory) 85%, transparent);
+}
+.article-body code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  color: var(--color-gold-high);
+}
+.article-body hr {
+  margin-top: 2.5rem;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--color-gold-antique) 25%, transparent);
+}
+
 @layer utilities {
   /*
     SAFE-AREA INSETS, paired with `viewportFit: 'cover'` in layout.tsx.

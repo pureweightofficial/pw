@@ -9,6 +9,14 @@ import {
 } from "@/components/ui/primitives";
 import { brand, business } from "@/lib/site";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
+import { opener } from "@/lib/copy";
+
+const copy = opener("story", {
+  eyebrow: "The Pureweight Approach",
+  heading: "Weight can be measured.",
+  accent: "Trust must be earned.",
+  lead: "A scale settles because of physics. A customer settles because of how they were treated while it did.",
+});
 
 /**
  * BRAND STORY
@@ -38,25 +46,22 @@ export function BrandStory() {
         <div className="grid gap-16 lg:grid-cols-12 lg:gap-20">
           <div className="lg:col-span-5">
             <div className="sticky top-32">
-              <Eyebrow className="mb-8 will-reveal">
-                The Pureweight Approach
-              </Eyebrow>
+              <Eyebrow className="mb-8 will-reveal">{copy.eyebrow}</Eyebrow>
               <h2
                 id="story-heading"
                 className="font-display text-chapter font-normal text-ivory will-reveal"
               >
-                Weight can be measured.
+                {copy.heading}
                 <br />
                 <span className="accent-italic text-gold-high/90">
-                  Trust must be earned.
+                  {copy.accent}
                 </span>
               </h2>
 
               <BeamDivider className="mt-12 max-w-xs will-reveal" />
 
               <p className="mt-12 max-w-sm text-lead text-ash will-reveal">
-                A scale settles because of physics. A customer settles because
-                of how they were treated while it did.
+                {copy.lead}
               </p>
             </div>
           </div>

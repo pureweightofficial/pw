@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Eyebrow, Section } from '@/components/ui/primitives';
 import { insightTopics, canonicalPath, ogFor } from '@/lib/site';
+import { publishedArticles } from '@/lib/insights';
 
 export const metadata: Metadata = {
   title: 'Insights',
@@ -17,10 +18,14 @@ export const metadata: Metadata = {
       'Plain explanations of how gold is measured and valued — purity, hallmarks, weight units, and what to expect from a professional evaluation.',
     path: '/insights',
   }),
-  // Marked noindex until the articles exist: an index page listing eight
-  // unwritten titles is a thin page, and shipping it to search would earn a
-  // quality problem the site does not need.
-  robots: { index: false, follow: true },
+  /*
+    Was noindex while every topic was an unwritten stub. Real articles exist
+    now (authored through the Keeper), so the page has substance — but the
+    SITE-WIDE indexing switch still rules: robots.ts keeps everything noindex
+    until NEXT_PUBLIC_ALLOW_INDEXING is set, so flipping this early cannot
+    leak a placeholder site into search.
+  */
+  robots: { index: true, follow: true },
 };
 
 /**
@@ -37,6 +42,7 @@ export const metadata: Metadata = {
  * useful piece of information on the page that does not depend on the client.
  */
 export default function InsightsPage() {
+  const articles = publishedArticles();
   return (
     <Section material="steel" labelledBy="insights-heading" className="pb-24 pt-36 lg:pb-36 lg:pt-44">
       <div className="shell">
@@ -52,13 +58,40 @@ export default function InsightsPage() {
           </p>
         </div>
 
+        {articles.length > 0 ? (
+          <div className="mt-16 max-w-3xl">
+            <h2 className="label mb-8">Published</h2>
+            <ul className="border-t border-gold-antique/16">
+              {articles.map((article) => (
+                <li key={article.slug} className="border-b border-gold-antique/12">
+                  <Link
+                    href={`/insights/${article.slug}`}
+                    className="group block py-8 transition-colors"
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-3">
+                      <h3 className="font-display text-2xl font-normal leading-tight text-ivory transition-colors group-hover:text-gold-high lg:text-3xl">
+                        {article.title}
+                      </h3>
+                      <span className="text-[0.62rem] tracking-[0.2em] text-ash uppercase">
+                        {article.date} · {article.readingMinutes} min read
+                      </span>
+                    </div>
+                    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ash">
+                      {article.summary}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
         <div className="mt-14 inset-panel max-w-3xl p-8">
           <p className="label mb-4">Editorial status</p>
           <p className="text-sm leading-relaxed text-ivory/72">
-            The topics below are planned and the layout is complete. The articles themselves are not
-            written, because content published under Pureweight&apos;s name should be reviewed and
-            approved by Pureweight before it appears. Supply the copy, or approve a draft, and these
-            become live articles with no further build work.
+            Articles are written and published by Pureweight through the site&apos;s own panel.
+            The topics below are planned but not yet written — nothing appears here until it has
+            been authored and approved by the business.
           </p>
         </div>
 

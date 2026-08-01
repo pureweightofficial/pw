@@ -5,6 +5,14 @@ import { Eyebrow, Section } from "@/components/ui/primitives";
 import { scrollState } from "@/lib/scroll-store";
 import { journey } from "@/lib/site";
 import { SectionScene } from "@/components/ui/SectionScene";
+import { opener } from "@/lib/copy";
+
+const copy = opener("journey", {
+  eyebrow: "Chapter 02 — The Process",
+  heading: "From Weight to",
+  accent: "True Value",
+  lead: "Four stages, in order, with nothing agreed until the last one. Each stage produces a fact that the next stage depends on.",
+});
 
 /**
  * THE VALUATION JOURNEY
@@ -38,19 +46,16 @@ export function ValuationJourney() {
       <SectionScene variant="bar" channel="journey" scrim="reveal" />
       <div className="shell">
         <div className="max-w-3xl">
-          <Eyebrow className="mb-8 will-reveal">
-            Chapter 02 — The Process
-          </Eyebrow>
+          <Eyebrow className="mb-8 will-reveal">{copy.eyebrow}</Eyebrow>
           <h2
             id="journey-heading"
             className="font-display text-chapter font-normal text-ivory will-reveal"
           >
-            From Weight to{" "}
-            <span className="accent-italic text-gold-high/90">True Value</span>
+            {copy.heading}{" "}
+            <span className="accent-italic text-gold-high/90">{copy.accent}</span>
           </h2>
           <p className="mt-7 max-w-xl text-lead text-ash will-reveal">
-            Four stages, in order, with nothing agreed until the last one. Each
-            stage produces a fact that the next stage depends on.
+            {copy.lead}
           </p>
         </div>
 

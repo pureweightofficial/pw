@@ -3,6 +3,14 @@
 import dynamic from "next/dynamic";
 import { Eyebrow, Fact, Section } from "@/components/ui/primitives";
 import { assayFactors, business } from "@/lib/site";
+import { opener } from "@/lib/copy";
+
+const copy = opener("assay", {
+  eyebrow: "Chapter 04 — Purity & Weight",
+  heading: "Value is not guessed.",
+  accent: "It is measured.",
+  lead: "Five things decide what a piece of gold is worth. Four of them can be established with an instrument. The fifth is the reference the business works to on the day.",
+});
 
 /**
  * PURITY AND WEIGHT — "Value is not guessed. It is measured."
@@ -40,23 +48,19 @@ export function AssayExperience() {
     >
       <div className="shell">
         <div className="max-w-3xl">
-          <Eyebrow className="mb-8 will-reveal">
-            Chapter 04 — Purity &amp; Weight
-          </Eyebrow>
+          <Eyebrow className="mb-8 will-reveal">{copy.eyebrow}</Eyebrow>
           <h2
             id="assay-heading"
             className="font-display text-chapter font-normal text-ivory will-reveal"
           >
-            Value is not guessed.
+            {copy.heading}
             <br />
             <span className="accent-italic text-gold-high/90">
-              It is measured.
+              {copy.accent}
             </span>
           </h2>
           <p className="mt-7 max-w-xl text-lead text-ash will-reveal">
-            Five things decide what a piece of gold is worth. Four of them can
-            be established with an instrument. The fifth is the reference the
-            business works to on the day.
+            {copy.lead}
           </p>
         </div>
 
