@@ -37,6 +37,7 @@ export const CONTENT_PATHS = [
   "src/content/testimonials.json",
   "src/content/faq.json",
   "src/content/copy.json",
+  "src/content/seo.json",
 ] as const;
 
 export const INSIGHTS_DIR = "src/content/insights";
@@ -135,10 +136,29 @@ export async function loadContent(token: string): Promise<LoadedContent> {
 
   const files: Record<string, Json> = {};
   for (const path of CONTENT_PATHS) {
-    const file = await gh<{ content: string; encoding: string }>(
+    /*
+      A MISSING CONTENT FILE MUST NOT BRICK THE PANEL.
+
+      Found the hard way: adding seo.json to this list made every sign-in hang
+      on "Opening the ledger…" until the file existed on the remote, because a
+      single 404 rejected the whole load. That window is real on every future
+      release too — between deploying a panel that knows about a new content
+      file and the commit that creates it, the owner would meet a dead tool
+      with no explanation.
+
+      A missing file now becomes an empty object. The editors already treat
+      absent keys as empty, the validators already say what is missing, and
+      the first save writes the file into existence.
+    */
+    const file = await gh<{ content: string; encoding: string } | null>(
       token,
       `/repos/${REPO}/contents/${path}?ref=${headSha}`,
+      { allow404: true },
     );
+    if (!file) {
+      files[path] = {};
+      continue;
+    }
     // Contents API base64 is line-wrapped; atob handles it after unwrapping.
     const bytes = Uint8Array.from(atob(file.content.replace(/\n/g, "")), (c) =>
       c.charCodeAt(0),

@@ -14,9 +14,12 @@ import {
   BUSINESS_RULES,
   COPY_FIELDS,
   COPY_SECTIONS,
+  DAYS,
+  TIME_PATTERN,
   FORBIDDEN_IN_PROSE,
   INSIGHT_DATE_PATTERN,
   INSIGHT_SLUG_PATTERN,
+  SEO_PAGES,
   SERVICE_IDS,
 } from "@/lib/content-schema";
 
@@ -80,6 +83,28 @@ export function validateBusiness(doc: Record<string, unknown>): FieldIssue[] {
         field: key,
         message: `Contains "${hit.phrase}" — ${hit.why}. The site will refuse to publish this.`,
       });
+    }
+  }
+
+  /*
+    Hours are validated as a WEEK, not as fields. A single malformed time is
+    an error worth naming; a half-filled week is not an error at all — it just
+    means the structured table stays off and the written line is used. Saying
+    that plainly beats a row of red marks on a form the owner has not finished.
+  */
+  const hours = (doc.hours ?? {}) as Record<string, unknown>;
+  const time = new RegExp(TIME_PATTERN);
+  for (const day of DAYS) {
+    const row = (hours[day.key] ?? {}) as Record<string, unknown>;
+    if (row.closed === true) continue;
+    for (const field of ["open", "close"] as const) {
+      const value = s(row[field]);
+      if (value !== "" && !time.test(value)) {
+        issues.push({
+          field: "hours",
+          message: `${day.label} ${field === "open" ? "opening" : "closing"} time "${value}" must be 24-hour, like 09:00 or 17:30.`,
+        });
+      }
     }
   }
 
@@ -268,6 +293,35 @@ export function validateInsight(
         field: `insight.${field}`,
         message: `Contains "${hit.phrase}" — ${hit.why}.`,
       });
+  }
+  return issues;
+}
+
+export function validateSeo(doc: Record<string, unknown>): FieldIssue[] {
+  const issues: FieldIssue[] = [];
+  for (const [key, meta] of Object.entries(SEO_PAGES)) {
+    const page = (doc[key] ?? {}) as Record<string, unknown>;
+    if (s(page.title) === "") {
+      issues.push({
+        field: `seo.${key}.title`,
+        message: `${meta.label}: the page title cannot be empty — it is the headline in every search result.`,
+      });
+    }
+    if (s(page.description) === "") {
+      issues.push({
+        field: `seo.${key}.description`,
+        message: `${meta.label}: the description cannot be empty — search engines would write their own from the page text.`,
+      });
+    }
+    for (const field of ["title", "description"] as const) {
+      const hit = forbiddenIn(s(page[field]));
+      if (hit) {
+        issues.push({
+          field: `seo.${key}.${field}`,
+          message: `Contains "${hit.phrase}" — ${hit.why}. This text appears in search results, where an unverified promise is most visible.`,
+        });
+      }
+    }
   }
   return issues;
 }

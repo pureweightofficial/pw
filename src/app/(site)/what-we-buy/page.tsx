@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Eyebrow, Section } from '@/components/ui/primitives';
-import { brand, canonicalPath, ogFor } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo';
 
 /**
  * WHAT WE BUY — the dedicated page behind the nav item.
@@ -19,16 +19,11 @@ const TITLE = 'What We Buy — Gold, Silver, Coins & Bullion';
 const DESCRIPTION =
   'What a gold buyer will actually take: jewellery in any condition, sterling and continental silver, sovereigns and bullion coins, and cast or minted bars — and what decides the value of each.';
 
-export const metadata: Metadata = {
-  title: TITLE,
-  description: DESCRIPTION,
-  alternates: { canonical: canonicalPath('/what-we-buy') },
-  openGraph: ogFor({
-    title: `${TITLE} — ${brand.name}`,
-    description: DESCRIPTION,
-    path: '/what-we-buy',
-  }),
-};
+export const metadata: Metadata = pageMetadata(
+  "what-we-buy",
+  "/what-we-buy",
+  { title: TITLE, description: DESCRIPTION },
+);
 
 export default function WhatWeBuyPage() {
   return (

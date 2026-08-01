@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Eyebrow, Section } from '@/components/ui/primitives';
-import { brand, canonicalPath, ogFor } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo';
 
 /**
  * HOW IT WORKS — the dedicated page behind the nav item.
@@ -19,16 +19,11 @@ const TITLE = 'How It Works — Selling Gold Over the Counter';
 const DESCRIPTION =
   'What actually happens when you sell gold at a counter: examination and weighing in front of you, an itemised offer against the live market, and a decision that stays entirely yours.';
 
-export const metadata: Metadata = {
-  title: TITLE,
-  description: DESCRIPTION,
-  alternates: { canonical: canonicalPath('/how-it-works') },
-  openGraph: ogFor({
-    title: `${TITLE} — ${brand.name}`,
-    description: DESCRIPTION,
-    path: '/how-it-works',
-  }),
-};
+export const metadata: Metadata = pageMetadata(
+  "how-it-works",
+  "/how-it-works",
+  { title: TITLE, description: DESCRIPTION },
+);
 
 export default function HowItWorksPage() {
   return (

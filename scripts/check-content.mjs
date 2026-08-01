@@ -33,6 +33,7 @@ const read = (p) => JSON.parse(readFileSync(join(root, p), "utf8"));
 const business = read("src/content/business.json");
 const services = read("src/content/services.json");
 const testimonials = read("src/content/testimonials.json");
+const seo = read("src/content/seo.json");
 
 /*
   The schema lives in src/lib/content-schema.ts. This script is plain node —
@@ -46,8 +47,11 @@ const BUSINESS_KEYS = [
   "appointmentProcess", "settlementMethods", "priceReferenceSource",
   "insurance", "insuranceIssuer", "memberships", "certifications",
   "licences", "securityProcedures", "weighingEquipment", "reviewScore",
-  "reviewScoreSource", "founderMessage", "foundingStory", "social",
+  "reviewScoreSource", "founderMessage", "foundingStory", "social", "hours",
 ];
+
+const DAY_KEYS = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 const PATTERNS = {
   telephone: [/^[+()0-9 \-.]{7,}$/, "should be a real phone number (digits and separators, at least 7)"],
@@ -113,6 +117,24 @@ for (const [key, companions] of Object.entries(REQUIRES)) {
     for (const companion of companions) {
       if (s(business[companion]) === "") {
         fail(`business.${key} is filled in but business.${companion} is empty — a credential must name its issuer/source, or it stays a placeholder`);
+      }
+    }
+  }
+}
+
+/* Opening hours: malformed times fail; an incomplete week is legal (the
+   free-text line is then used instead of the structured table). */
+if (business.hours && typeof business.hours === "object") {
+  for (const key of Object.keys(business.hours)) {
+    if (!DAY_KEYS.includes(key)) fail(`business.hours has an unknown day "${key}"`);
+  }
+  for (const key of DAY_KEYS) {
+    const row = business.hours[key] ?? {};
+    if (row.closed === true) continue;
+    for (const field of ["open", "close"]) {
+      const value = s(row[field]);
+      if (value !== "" && !TIME_RE.test(value)) {
+        fail(`business.hours.${key}.${field} "${value}" must be 24-hour HH:MM (e.g. 09:00)`);
       }
     }
   }
@@ -201,6 +223,42 @@ if (!Array.isArray(testimonials.testimonials)) {
       if (m) fail(`testimonial #${n} contains "${m[0]}" — ${why}. Real customers may well say this, but the site cannot print promises the business has not verified, even quoted.`);
     }
   });
+}
+
+/* ------------------------------------------------------------------ */
+/* seo.json                                                           */
+/* ------------------------------------------------------------------ */
+
+const SEO_KEYS = ["home","what-we-buy","how-it-works","purity-and-weight","about","faq","contact","insights"];
+
+for (const key of Object.keys(seo)) {
+  if (!SEO_KEYS.includes(key)) fail(`seo.json has an unknown page "${key}" — pages cannot be added from content`);
+}
+for (const key of SEO_KEYS) {
+  const page = seo[key];
+  if (!page) { fail(`seo.json is missing the "${key}" page`); continue; }
+  if (s(page.title) === "") fail(`seo.${key}.title is empty — every page needs a title`);
+  if (s(page.description) === "") fail(`seo.${key}.description is empty — every page needs a meta description`);
+  for (const field of ["title", "description"]) {
+    for (const [re, why] of FORBIDDEN) {
+      const m = s(page[field]).match(re);
+      if (m) fail(`seo.${key}.${field} contains "${m[0]}" — ${why}`);
+    }
+  }
+}
+
+/* Duplicate titles and descriptions across pages are a real SEO fault, and
+   the kind an owner creates by copy-pasting one page's entry into another. */
+for (const field of ["title", "description"]) {
+  const seen = new Map();
+  for (const key of SEO_KEYS) {
+    const value = s((seo[key] ?? {})[field]).toLowerCase();
+    if (value === "") continue;
+    if (seen.has(value)) {
+      fail(`seo.${key}.${field} is identical to seo.${seen.get(value)}.${field} — every page needs its own`);
+    }
+    seen.set(value, key);
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -302,9 +360,20 @@ for (const key of COPY_KEYS) {
   }
 }
 for (const key of BUSINESS_KEYS) {
-  if (key === "insuranceIssuer" || key === "reviewScoreSource") continue; // companions live in COMPANION_FIELDS
+  // Companions live in COMPANION_FIELDS, and `hours` is a structured block
+  // described by DAYS/TIME_PATTERN rather than a BUSINESS_RULES entry — both
+  // are drift-checked below on their own terms rather than by name here.
+  if (key === "insuranceIssuer" || key === "reviewScoreSource" || key === "hours") continue;
   if (!schemaSource.includes(`${key}:`)) {
     fail(`"${key}" is enforced here but missing from content-schema.ts — the two schema halves have drifted`);
+  }
+}
+
+/* The seven day keys this gate enforces must match the DAYS table the site and
+   the panel share, or a day could be validated here and ignored there. */
+for (const day of DAY_KEYS) {
+  if (!schemaSource.includes(`key: "${day}"`)) {
+    fail(`opening-hours day "${day}" is enforced here but missing from content-schema.ts DAYS — drifted`);
   }
 }
 

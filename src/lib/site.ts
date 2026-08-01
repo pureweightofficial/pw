@@ -22,7 +22,7 @@
 import content from "@/content/business.json";
 import servicesContent from "@/content/services.json";
 import testimonialsContent from "@/content/testimonials.json";
-import { BUSINESS_RULES, SERVICE_IDS } from "@/lib/content-schema";
+import { BUSINESS_RULES, DAYS, SERVICE_IDS, TIME_PATTERN } from "@/lib/content-schema";
 
 export type Verifiable<T> =
   { status: "verified"; value: T } | { status: "placeholder"; label: string };
@@ -565,6 +565,37 @@ export const insightTopics = [
  * containing placeholder text. Emitting `[INSERT ADDRESS]` to a search engine
  * would be worse than emitting nothing.
  */
+/**
+ * STRUCTURED OPENING HOURS.
+ *
+ * Reads the seven day rows. A day counts only when it is either marked closed
+ * or carries BOTH a valid open and close time — a half-filled row is silently
+ * ignored rather than published as a guess, which is the same rule every other
+ * fact on this site follows.
+ */
+export type DayHours = { label: string; schema: string; closed: boolean; open: string; close: string };
+
+export function structuredHours(): DayHours[] {
+  const raw = (content as Record<string, unknown>).hours as Record<string, unknown> | undefined;
+  if (!raw) return [];
+  const time = new RegExp(TIME_PATTERN);
+  const out: DayHours[] = [];
+  for (const day of DAYS) {
+    const row = (raw[day.key] ?? {}) as Record<string, unknown>;
+    const closed = row.closed === true;
+    const open = str(row.open);
+    const close = str(row.close);
+    if (closed) {
+      out.push({ label: day.label, schema: day.schema, closed: true, open: "", close: "" });
+    } else if (time.test(open) && time.test(close)) {
+      out.push({ label: day.label, schema: day.schema, closed: false, open, close });
+    }
+  }
+  // All seven or nothing: a partial week published as if complete would imply
+  // the missing days are closed, which is a claim nobody made.
+  return out.length === DAYS.length ? out : [];
+}
+
 export function buildLocalBusinessJsonLd(): Record<string, unknown> | null {
   const address = verifiedValue(business.address);
   const legalName = verifiedValue(business.legalName);
@@ -586,8 +617,26 @@ export function buildLocalBusinessJsonLd(): Record<string, unknown> | null {
   const email = verifiedValue(business.email);
   if (email) jsonLd.email = email;
 
-  const hours = verifiedValue(business.openingHours);
-  if (hours) jsonLd.openingHours = hours;
+  /*
+    Structured hours WIN over the free-text field when a full week exists,
+    because `OpeningHoursSpecification` is what actually populates an opening-
+    hours panel in search results. The free text remains the fallback, and
+    remains the right answer for a business that trades by appointment.
+  */
+  const week = structuredHours();
+  if (week.length > 0) {
+    jsonLd.openingHoursSpecification = week
+      .filter((d) => !d.closed)
+      .map((d) => ({
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: `https://schema.org/${d.schema}`,
+        opens: d.open,
+        closes: d.close,
+      }));
+  } else {
+    const hours = verifiedValue(business.openingHours);
+    if (hours) jsonLd.openingHours = hours;
+  }
 
   const area = verifiedValue(business.serviceArea);
   if (area) jsonLd.areaServed = area;

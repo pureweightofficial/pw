@@ -156,18 +156,6 @@ export const COMPANION_FIELDS = ["insuranceIssuer", "reviewScoreSource"] as cons
 export const SERVICE_IDS = ["jewellery", "silver", "coins", "bullion"] as const;
 
 /**
- * PHRASES THE OWNER'S PROSE MAY NOT CONTAIN.
- *
- * The credential fields are gated, but prose fields (founder message, service
- * copy, testimonials) would otherwise be an open side door: type "fully
- * insured, best prices guaranteed" into the founder message and every
- * credential gate above is bypassed. The build refuses these phrases anywhere
- * in owner-editable prose, so the only way to claim a credential is through
- * the field that requires its evidence.
- *
- * Case-insensitive regex sources, matched by scripts/check-content.mjs.
- */
-/**
  * SITE COPY SECTIONS — the hero and chapter openers editable in the Keeper.
  *
  * `leadRequired: false` exists for exactly one section: pillars has no lead
@@ -186,6 +174,32 @@ export const COPY_SECTIONS = {
   finale: { label: "Closing statement", leadRequired: true },
 } as const;
 
+/**
+ * PAGES WHOSE TITLE AND DESCRIPTION THE OWNER CONTROLS.
+ *
+ * Article pages are absent on purpose: their title and summary ARE their SEO
+ * fields, edited in the Insights tab. Duplicating them here would create two
+ * places to change one sentence.
+ */
+export const SEO_PAGES = {
+  home: { label: "Homepage", path: "/" },
+  "what-we-buy": { label: "What We Buy", path: "/what-we-buy" },
+  "how-it-works": { label: "How It Works", path: "/how-it-works" },
+  "purity-and-weight": { label: "Purity & Weight", path: "/purity-and-weight" },
+  about: { label: "About", path: "/about" },
+  faq: { label: "FAQ", path: "/faq" },
+  contact: { label: "Contact", path: "/contact" },
+  insights: { label: "Insights index", path: "/insights" },
+} as const;
+
+/**
+ * Soft limits, not hard ones. Google truncates around these lengths but the
+ * exact point depends on pixel width, so the panel warns and never blocks —
+ * a long title is a judgement call, not an error.
+ */
+export const SEO_TITLE_SOFT_MAX = 60;
+export const SEO_DESCRIPTION_SOFT_MAX = 160;
+
 export const COPY_FIELDS = ["eyebrow", "heading", "accent", "lead"] as const;
 
 /**
@@ -196,10 +210,47 @@ export const COPY_FIELDS = ["eyebrow", "heading", "accent", "lead"] as const;
  */
 export const HERO_HEADING_SOFT_MAX = 24;
 
+/**
+ * OPENING HOURS, STRUCTURED.
+ *
+ * `openingHours` was a single free-text field, which was honest but inert: a
+ * search engine cannot read "Mon-Fri 9-5, closed Sunday" into an opening-hours
+ * panel, and neither can a visitor's phone. Seven day rows with explicit open
+ * and close times produce real `OpeningHoursSpecification` markup.
+ *
+ * The free-text field is KEPT and still wins when the day rows are empty —
+ * some businesses genuinely are "by appointment", and forcing that into a
+ * grid would either lose the nuance or invent hours nobody stated.
+ */
+export const DAYS = [
+  { key: "monday", label: "Monday", schema: "Monday" },
+  { key: "tuesday", label: "Tuesday", schema: "Tuesday" },
+  { key: "wednesday", label: "Wednesday", schema: "Wednesday" },
+  { key: "thursday", label: "Thursday", schema: "Thursday" },
+  { key: "friday", label: "Friday", schema: "Friday" },
+  { key: "saturday", label: "Saturday", schema: "Saturday" },
+  { key: "sunday", label: "Sunday", schema: "Sunday" },
+] as const;
+
+/** 24-hour HH:MM. Schema.org wants this shape; so does every parser. */
+export const TIME_PATTERN = "^([01]\\d|2[0-3]):[0-5]\\d$";
+
 /** Article slugs become URLs; date feeds JSON-LD. Both are load-bearing. */
 export const INSIGHT_SLUG_PATTERN = "^[a-z0-9]+(?:-[a-z0-9]+)*$";
 export const INSIGHT_DATE_PATTERN = "^\\d{4}-\\d{2}-\\d{2}$";
 
+/**
+ * PHRASES THE OWNER'S PROSE MAY NOT CONTAIN.
+ *
+ * The credential fields are gated, but prose fields (founder message, service
+ * copy, testimonials) would otherwise be an open side door: type "fully
+ * insured, best prices guaranteed" into the founder message and every
+ * credential gate above is bypassed. The build refuses these phrases anywhere
+ * in owner-editable prose, so the only way to claim a credential is through
+ * the field that requires its evidence.
+ *
+ * Case-insensitive regex sources, matched by scripts/check-content.mjs.
+ */
 export const FORBIDDEN_IN_PROSE: readonly { pattern: string; why: string }[] = [
   { pattern: "same[ -]day", why: "a turnaround promise nobody has verified" },
   { pattern: "instant(ly)?", why: "a speed promise nobody has verified" },

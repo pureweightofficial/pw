@@ -32,9 +32,14 @@ import { assetPath } from "@/lib/asset";
 import {
   BUSINESS_RULES,
   COMPANION_FIELDS,
+  DAYS,
   HERO_HEADING_SOFT_MAX,
   COPY_SECTIONS,
+  SEO_DESCRIPTION_SOFT_MAX,
+  SEO_PAGES,
+  SEO_TITLE_SOFT_MAX,
   SERVICE_IDS,
+  TIME_PATTERN,
 } from "@/lib/content-schema";
 import {
   CONTENT_PATHS,
@@ -62,6 +67,7 @@ import {
   validateCopy,
   validateFaq,
   validateInsight,
+  validateSeo,
   validateServices,
   validateTestimonials,
   type FieldIssue,
@@ -138,7 +144,7 @@ function SectionHeading({ title, note }: { title: string; note: string }) {
 /* THE PAGE                                                                   */
 /* -------------------------------------------------------------------------- */
 
-type Tab = "dashboard" | "business" | "services" | "testimonials" | "faq" | "copy" | "insights" | "media";
+type Tab = "dashboard" | "business" | "services" | "testimonials" | "faq" | "copy" | "insights" | "media" | "seo";
 
 /** "3 minutes ago" — dates in an admin panel should read like speech. */
 function timeAgo(iso: string): string {
@@ -238,12 +244,14 @@ export default function KeeperPage() {
     };
   }, [token, signee, docs]);
 
-  const [businessPath, servicesPath, testimonialsPath, faqPath, copyPath] = CONTENT_PATHS;
+  const [businessPath, servicesPath, testimonialsPath, faqPath, copyPath, seoPath] =
+    CONTENT_PATHS;
   const business = (docs?.[businessPath] ?? null) as Doc | null;
   const services = (docs?.[servicesPath] ?? null) as Doc | null;
   const testimonials = (docs?.[testimonialsPath] ?? null) as Doc | null;
   const faq = (docs?.[faqPath] ?? null) as Doc | null;
   const siteCopy = (docs?.[copyPath] ?? null) as Doc | null;
+  const seo = (docs?.[seoPath] ?? null) as Doc | null;
 
   const update = useCallback(
     (path: string, next: Doc) => {
@@ -257,15 +265,16 @@ export default function KeeperPage() {
   /* --------------------------- validation --------------------------- */
 
   const issues: FieldIssue[] = useMemo(() => {
-    if (!business || !services || !testimonials || !faq || !siteCopy) return [];
+    if (!business || !services || !testimonials || !faq || !siteCopy || !seo) return [];
     return [
       ...validateBusiness(business),
       ...validateServices(services),
       ...validateTestimonials(testimonials),
       ...validateFaq(faq),
       ...validateCopy(siteCopy),
+      ...validateSeo(seo),
     ];
-  }, [business, services, testimonials, faq, siteCopy]);
+  }, [business, services, testimonials, faq, siteCopy, seo]);
 
   /* ------------------------------ save ------------------------------ */
 
@@ -330,7 +339,7 @@ export default function KeeperPage() {
     );
   }
 
-  if (!business || !services || !testimonials || !faq || !siteCopy) {
+  if (!business || !services || !testimonials || !faq || !siteCopy || !seo) {
     return (
       <main className="flex min-h-svh items-center justify-center">
         <p className={`${MONO_LABEL} text-ash`}>Opening the ledger…</p>
@@ -366,6 +375,7 @@ export default function KeeperPage() {
     { key: "copy", label: "Site Copy" },
     { key: "insights", label: "Insights" },
     { key: "media", label: "Media" },
+    { key: "seo", label: "Search (SEO)" },
   ];
 
   const goTo = (nextTab: Tab, field?: string) => {
@@ -533,6 +543,13 @@ export default function KeeperPage() {
               signee={signee}
               branchOverride={branchOverride}
               onPublishStateChange={setPublish}
+            />
+          ) : null}
+          {tab === "seo" ? (
+            <SeoEditor
+              doc={seo}
+              issues={issues}
+              onChange={(next) => update(seoPath, next)}
             />
           ) : null}
           {tab === "media" ? (
@@ -1045,6 +1062,7 @@ function BusinessEditor({
   }, [focusField, onFocused]);
 
   const social = (Array.isArray(doc.social) ? doc.social : []) as string[];
+  const hours = (doc.hours ?? {}) as Record<string, unknown>;
 
   return (
     <div className="space-y-14">
@@ -1115,6 +1133,66 @@ function BusinessEditor({
       ))}
 
       {/* social list */}
+      {/* ----------------------------- opening hours -------------------- */}
+      <fieldset>
+        <legend className="font-display text-lg text-gold-high">Opening hours</legend>
+        <p className="mt-1 max-w-2xl text-xs leading-relaxed text-ash/80">
+          Fill in all seven days and the site publishes a real opening-hours
+          table that search engines can read and show beside your listing. Leave
+          any day blank and it falls back to the written line above — which is
+          the right answer if you trade by appointment. Times are 24-hour, e.g.
+          09:00 and 17:30.
+        </p>
+        <div className="mt-6 space-y-2">
+          {DAYS.map((day) => {
+            const row = ((hours[day.key] ?? {}) as Record<string, unknown>);
+            const closed = row.closed === true;
+            const setRow = (patch: Record<string, unknown>) =>
+              set("hours", { ...hours, [day.key]: { ...row, ...patch } });
+            const bad = (v: unknown) =>
+              s(v) !== "" && !new RegExp(TIME_PATTERN).test(s(v));
+            return (
+              <div key={day.key} className="flex flex-wrap items-center gap-4">
+                <span className={`${MONO_LABEL} w-28 shrink-0 text-ash`}>{day.label}</span>
+                <label className="flex items-center gap-2 text-xs text-ash">
+                  <input
+                    type="checkbox"
+                    checked={closed}
+                    onChange={(e) => setRow({ closed: e.target.checked })}
+                    className="h-4 w-4 accent-[#d99a33]"
+                  />
+                  Closed
+                </label>
+                {!closed ? (
+                  <>
+                    <input
+                      type="text"
+                      aria-label={`${day.label} opening time`}
+                      value={s(row.open)}
+                      onChange={(e) => setRow({ open: e.target.value })}
+                      placeholder="09:00"
+                      className={`${INPUT_CLASS} w-28 font-mono ${bad(row.open) ? "border-[#d8825a]" : ""}`}
+                    />
+                    <span className="text-ash">to</span>
+                    <input
+                      type="text"
+                      aria-label={`${day.label} closing time`}
+                      value={s(row.close)}
+                      onChange={(e) => setRow({ close: e.target.value })}
+                      placeholder="17:30"
+                      className={`${INPUT_CLASS} w-28 font-mono ${bad(row.close) ? "border-[#d8825a]" : ""}`}
+                    />
+                  </>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+        {issueFor("hours").map((issue, i) => (
+          <IssueLine key={i} text={issue.message} />
+        ))}
+      </fieldset>
+
       <fieldset>
         <legend className="font-display text-lg text-gold-high">Online</legend>
         <p className="mt-1 text-xs leading-relaxed text-ash/80">
@@ -2380,6 +2458,133 @@ function MediaLibrary({
             );
           })}
         </div>
+      )}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* SEO EDITOR                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The title and description each page shows in a search result, with a live
+ * preview of roughly how Google will render it. The preview is the point: a
+ * character counter tells an owner a number, a preview tells them whether
+ * their sentence survives being cut off.
+ *
+ * Article pages are absent — an article's title and summary ARE its search
+ * fields, edited where the article is written.
+ */
+function SeoEditor({
+  doc,
+  issues,
+  onChange,
+}: {
+  doc: Doc;
+  issues: FieldIssue[];
+  onChange: (next: Doc) => void;
+}) {
+  const issueFor = (field: string) => issues.filter((i) => i.field === field);
+
+  return (
+    <div className="space-y-12">
+      <SectionHeading
+        title="Search (SEO)"
+        note="What each page shows in a search result. Titles are the clickable headline; descriptions are the grey text beneath. Write them for a person deciding whether to click, not for a search engine — and keep every page different from every other, which the site checks before publishing."
+      />
+
+      {(Object.entries(SEO_PAGES) as [string, { label: string; path: string }][]).map(
+        ([key, meta]) => {
+          const page = (doc[key] ?? {}) as Record<string, unknown>;
+          const title = s(page.title);
+          const description = s(page.description);
+          const setField = (field: string, value: string) =>
+            onChange({ ...doc, [key]: { ...page, [field]: value } });
+
+          return (
+            <fieldset key={key}>
+              <legend className="font-display text-lg text-gold-high">
+                {meta.label}
+              </legend>
+              <p className={`${MONO_LABEL} mt-1 text-ash/60`}>{meta.path}</p>
+
+              {/* Search-result preview */}
+              <div className="mt-4 border border-gold-antique/15 bg-void/40 p-5">
+                <p className={`${MONO_LABEL} mb-3 text-ash/60`}>
+                  Roughly how this appears in search
+                </p>
+                <p className="truncate text-[0.95rem] text-[#8ab4f8]">
+                  {title || "(no title)"}
+                </p>
+                <p className="mt-1 text-xs text-gold-antique">
+                  pureweight.example{meta.path}
+                </p>
+                <p className="mt-1.5 text-xs leading-relaxed text-ash">
+                  {description
+                    ? description.length > SEO_DESCRIPTION_SOFT_MAX
+                      ? `${description.slice(0, SEO_DESCRIPTION_SOFT_MAX)}…`
+                      : description
+                    : "(no description)"}
+                </p>
+              </div>
+
+              <div className="mt-5 space-y-5">
+                <div>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <label htmlFor={`seo-${key}-title`} className={`${MONO_LABEL} text-ash`}>
+                      Page title
+                    </label>
+                    <span
+                      className={`${MONO_LABEL} ${title.length > SEO_TITLE_SOFT_MAX ? "text-[#d8825a]" : "text-ash/60"}`}
+                    >
+                      {title.length} / {SEO_TITLE_SOFT_MAX}
+                    </span>
+                  </div>
+                  <input
+                    id={`seo-${key}-title`}
+                    type="text"
+                    value={typeof page.title === "string" ? (page.title as string) : ""}
+                    onChange={(e) => setField("title", e.target.value)}
+                    className={`${INPUT_CLASS} mt-2`}
+                  />
+                  {title.length > SEO_TITLE_SOFT_MAX ? (
+                    <p className="mt-2 text-xs leading-relaxed text-ash">
+                      Longer than most search results show — the end may be cut off.
+                      Fine if the important words come first.
+                    </p>
+                  ) : null}
+                  {issueFor(`seo.${key}.title`).map((issue, j) => (
+                    <IssueLine key={j} text={issue.message} />
+                  ))}
+                </div>
+
+                <div>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <label htmlFor={`seo-${key}-description`} className={`${MONO_LABEL} text-ash`}>
+                      Description
+                    </label>
+                    <span
+                      className={`${MONO_LABEL} ${description.length > SEO_DESCRIPTION_SOFT_MAX ? "text-[#d8825a]" : "text-ash/60"}`}
+                    >
+                      {description.length} / {SEO_DESCRIPTION_SOFT_MAX}
+                    </span>
+                  </div>
+                  <textarea
+                    id={`seo-${key}-description`}
+                    rows={3}
+                    value={typeof page.description === "string" ? (page.description as string) : ""}
+                    onChange={(e) => setField("description", e.target.value)}
+                    className={`${INPUT_CLASS} mt-2 resize-y`}
+                  />
+                  {issueFor(`seo.${key}.description`).map((issue, j) => (
+                    <IssueLine key={j} text={issue.message} />
+                  ))}
+                </div>
+              </div>
+            </fieldset>
+          );
+        },
       )}
     </div>
   );

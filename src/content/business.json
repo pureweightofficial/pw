@@ -22,5 +22,42 @@
   "reviewScoreSource": "",
   "founderMessage": "",
   "foundingStory": "",
-  "social": []
+  "social": [],
+  "hours": {
+    "monday": {
+      "closed": false,
+      "open": "",
+      "close": ""
+    },
+    "tuesday": {
+      "closed": false,
+      "open": "",
+      "close": ""
+    },
+    "wednesday": {
+      "closed": false,
+      "open": "",
+      "close": ""
+    },
+    "thursday": {
+      "closed": false,
+      "open": "",
+      "close": ""
+    },
+    "friday": {
+      "closed": false,
+      "open": "",
+      "close": ""
+    },
+    "saturday": {
+      "closed": false,
+      "open": "",
+      "close": ""
+    },
+    "sunday": {
+      "closed": false,
+      "open": "",
+      "close": ""
+    }
+  }
 }

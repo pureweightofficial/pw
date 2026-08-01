@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Eyebrow, Section } from '@/components/ui/primitives';
-import { brand, canonicalPath, ogFor } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo';
 
 /**
  * PURITY & WEIGHT — the dedicated page behind the nav item.
@@ -17,16 +17,11 @@ const TITLE = 'Purity & Weight — Carat, Fineness, Hallmarks and Troy Ounces';
 const DESCRIPTION =
   'The measurements behind every gold valuation: the carat scale and millesimal fineness, how hallmarks are read, why precious metals use troy ounces, and how purity is actually verified.';
 
-export const metadata: Metadata = {
-  title: TITLE,
-  description: DESCRIPTION,
-  alternates: { canonical: canonicalPath('/purity-and-weight') },
-  openGraph: ogFor({
-    title: `${TITLE} — ${brand.name}`,
-    description: DESCRIPTION,
-    path: '/purity-and-weight',
-  }),
-};
+export const metadata: Metadata = pageMetadata(
+  "purity-and-weight",
+  "/purity-and-weight",
+  { title: TITLE, description: DESCRIPTION },
+);
 
 const FINENESS_TABLE: { carat: string; fineness: string; goldContent: string }[] = [
   { carat: '24ct', fineness: '999', goldContent: 'Pure gold — 99.9%+' },

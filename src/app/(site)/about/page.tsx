@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Eyebrow, Fact, Placeholder, Section } from '@/components/ui/primitives';
-import { brand, business, canonicalPath, isVerified, ogFor } from '@/lib/site';
+import { brand, business, isVerified } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo';
 
 /**
  * ABOUT — the dedicated page behind the nav item.
@@ -20,16 +21,11 @@ const TITLE = 'About Pureweight — Measurement Over Persuasion';
 const DESCRIPTION =
   'What Pureweight Gold Exchange is built on: items weighed in front of you, the working shown before any decision, and a valuation you can check rather than take on faith.';
 
-export const metadata: Metadata = {
-  title: TITLE,
-  description: DESCRIPTION,
-  alternates: { canonical: canonicalPath('/about') },
-  openGraph: ogFor({
-    title: `${TITLE}`,
-    description: DESCRIPTION,
-    path: '/about',
-  }),
-};
+export const metadata: Metadata = pageMetadata(
+  "about",
+  "/about",
+  { title: TITLE, description: DESCRIPTION },
+);
 
 export default function AboutPage() {
   return (
