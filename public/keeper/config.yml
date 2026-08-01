@@ -21,6 +21,14 @@ backend:
   # No OAuth app and no proxy: the owner signs in with a fine-grained personal
   # access token scoped to this one repository, entered on the login screen.
   # Sveltia stores it in this browser only and talks straight to api.github.com.
+  #
+  # `auth_methods: [token]` removes the "Sign In with GitHub" OAuth button
+  # entirely. Without it, Sveltia shows that button anyway and falls back to
+  # Netlify's public auth endpoint, which pops a dead "Not Found" window here —
+  # the owner clicked it within a minute of first seeing the panel, which is
+  # proof enough that a broken button is a trap, not an option. Token sign-in
+  # is the only path that works on this stack, so it is the only one shown.
+  auth_methods: [token]
 
 # Media the owner uploads lands in the repo and ships with the next build.
 # public_folder is REPO-RELATIVE ('/img', never '/pw/img'): src/lib/asset.ts
