@@ -1,6 +1,7 @@
 "use client";
 
 import { Eyebrow, Section } from "@/components/ui/primitives";
+import type { ReactElement } from "react";
 import { pillars } from "@/lib/site";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
 import { SectionScene } from "@/components/ui/SectionScene";
@@ -88,8 +89,7 @@ export function WhyPureweight() {
  */
 function Medallion({ index, label }: { index: number; label: string }) {
   const uid = `medallion-${index}`;
-  // Modulo, so a fifth pillar reuses a mark rather than rendering an empty face.
-  const Mark = MARKS[index % MARKS.length];
+  const Mark = MARKS[label];
 
   return (
     <div className="relative">
@@ -100,12 +100,32 @@ function Medallion({ index, label }: { index: number; label: string }) {
         aria-label={`${label} emblem`}
       >
         <defs>
+          {/*
+            userSpaceOnUse, NOT the default objectBoundingBox — a correctness
+            fix, not a preference.
+
+            An objectBoundingBox gradient is resolved against the bounding box
+            of the element it paints. A horizontal <line> has a box of ZERO
+            HEIGHT and a vertical one ZERO WIDTH, so the mapping degenerates and
+            the element is not rendered at all.
+
+            That is why the balance never looked like a balance. Its beam, its
+            column and its base are all axis-aligned lines, so all three were
+            invisible, leaving a triangle and two crescents floating in an empty
+            frame — which is precisely what the client screenshotted and asked
+            about. The same silence had removed every line item from the ledger.
+
+            Pinning the gradient to the 200x200 viewBox makes it independent of
+            the painted element's box, so a one-dimensional stroke takes the
+            same gold as everything else.
+          */}
           <linearGradient
             id={`${uid}-gold`}
-            x1="10%"
-            y1="0%"
-            x2="90%"
-            y2="100%"
+            gradientUnits="userSpaceOnUse"
+            x1="20"
+            y1="0"
+            x2="180"
+            y2="200"
           >
             <stop offset="0%" stopColor="#5c3f10" />
             <stop offset="26%" stopColor="#b98220" />
@@ -153,7 +173,7 @@ function Medallion({ index, label }: { index: number; label: string }) {
           })}
         </g>
 
-        <Mark uid={uid} />
+        {Mark ? <Mark uid={uid} /> : null}
       </svg>
 
       {/* The light pass. One sweep on hover, then done. */}
@@ -167,145 +187,131 @@ function Medallion({ index, label }: { index: number; label: string }) {
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* THE MARKS                                                                  */
+/* -------------------------------------------------------------------------- */
+
 /**
- * The interior marks, in pillar order.
+ * PICTOGRAMS, NOT ORNAMENTS — and keyed by which pillar they belong to.
  *
- *   0  weighed in front of you       the balance beam itself, level and open
- *   1  measured against the market   a graduated dial reading true
- *   2  the working is shown          the struck monogram
- *   3  no obligation, ever           a return arrow — your items come back
+ * The previous set was abstract: a balance beam whose pans were 14px arcs, a
+ * graduated dial, the PW monogram, and an open arc. At the size these actually
+ * render — 128px on mobile, 160px on desktop, inside a beaded frame — none of
+ * them said what the heading beneath it said. The dial read as a clock, the
+ * monogram said nothing about showing your working, and the arc read as a
+ * partial circle. So each is now a drawing of the thing the pillar claims.
  *
- * Read modulo its length by Medallion, so the array can be shorter than the
- * pillar list without producing a blank medallion.
+ * Sized to be legible rather than decorative: main strokes at 3, detail at
+ * 1.6, everything inside r≈62 so it sits clear of the inner ring at r=80.
+ *
+ * KEYED BY TITLE, NOT BY ARRAY POSITION. Twice now — the services plate motifs
+ * and these very medallions — artwork selected by index has silently re-pointed
+ * itself when the content was rewritten. An unknown title falls back to no mark
+ * rather than to whichever drawing happens to be fourth.
  */
-const MARKS = [TransparencyMark, PrecisionMark, TrustMark, ReturnMark] as const;
+const MARKS: Record<string, (p: { uid: string }) => ReactElement> = {
+  "Weighed in front of you": BalanceMark,
+  "Measured against the market": MarketMark,
+  "The working is shown": LedgerMark,
+  "No obligation, ever": OpenHandMark,
+};
 
-/** NO OBLIGATION — a return arrow. What you brought in goes back out with you. */
-function ReturnMark({ uid }: { uid: string }) {
+/** WEIGHED IN FRONT OF YOU — a balance, level, both pans in plain view. */
+function BalanceMark({ uid }: { uid: string }) {
+  const gold = `url(#${uid}-gold)`;
   return (
-    <g stroke={`url(#${uid}-gold)`} fill="none" strokeLinecap="round">
-      {/* An open arc rather than a closed ring: nothing here binds. */}
-      <path d="M 138 100 A 38 38 0 1 1 100 62" strokeWidth="2.4" />
-      {/* The head, turned back on itself. */}
-      <path d="M 100 62 L 112 54 M 100 62 L 110 74" strokeWidth="2.4" />
-      {/* An open palm line beneath, and the hairline the other marks all carry. */}
-      <path
-        d="M 74 128 A 26 12 0 0 0 126 128"
-        strokeWidth="1.6"
-        strokeOpacity="0.7"
-      />
-      <line
-        x1="70"
-        y1="142"
-        x2="130"
-        y2="142"
-        strokeWidth="1"
-        strokeOpacity="0.4"
-      />
+    <g stroke={gold} fill="none" strokeLinecap="round" strokeLinejoin="round">
+      {/* Beam, level — the whole promise of the pillar in one horizontal. */}
+      <line x1="48" y1="76" x2="152" y2="76" strokeWidth="3" />
+      {/* Fulcrum and column. */}
+      <path d="M 100 62 L 92 76 L 108 76 Z" fill={gold} stroke="none" />
+      <line x1="100" y1="76" x2="100" y2="146" strokeWidth="3" />
+      <line x1="76" y1="146" x2="124" y2="146" strokeWidth="3.4" />
+      <path d="M 84 152 L 88 146 L 112 146 L 116 152 Z" fill={gold} stroke="none" opacity="0.85" />
+      {/* Hangers and pans. Deep enough to read as bowls at 128px, which the
+          14px arcs they replace were not. */}
+      <line x1="48" y1="76" x2="48" y2="94" strokeWidth="1.6" strokeOpacity="0.75" />
+      <line x1="152" y1="76" x2="152" y2="94" strokeWidth="1.6" strokeOpacity="0.75" />
+      <path d="M 30 94 Q 48 116 66 94" strokeWidth="2.8" />
+      <path d="M 134 94 Q 152 116 170 94" strokeWidth="2.8" />
     </g>
   );
 }
 
-/** PRECISION — a graduated cross-hair reading true. */
-function PrecisionMark({ uid }: { uid: string }) {
+/** MEASURED AGAINST THE MARKET — a published price line, rising. */
+function MarketMark({ uid }: { uid: string }) {
+  const gold = `url(#${uid}-gold)`;
   return (
-    <g stroke={`url(#${uid}-gold)`} fill="none">
-      {Array.from({ length: 24 }, (_, i) => {
-        const a = (i / 24) * Math.PI * 2;
-        const major = i % 6 === 0;
-        return (
-          <line
-            key={i}
-            x1={100 + Math.cos(a) * (major ? 44 : 52)}
-            y1={100 + Math.sin(a) * (major ? 44 : 52)}
-            x2={100 + Math.cos(a) * 60}
-            y2={100 + Math.sin(a) * 60}
-            strokeWidth={major ? 2.2 : 1}
-            strokeOpacity={major ? 0.95 : 0.45}
-          />
-        );
-      })}
-      <circle cx="100" cy="100" r="10" strokeWidth="1.6" strokeOpacity="0.9" />
-      <circle
-        cx="100"
-        cy="100"
-        r="2.6"
-        fill={`url(#${uid}-gold)`}
-        stroke="none"
-      />
+    <g stroke={gold} fill="none" strokeLinecap="round" strokeLinejoin="round">
+      {/* Axes. */}
+      <path d="M 56 52 V 146 H 150" strokeWidth="2.2" />
+      {/* Two faint rules, so the line is read AGAINST something — the point of
+          the pillar is the reference, not the price. */}
+      <line x1="56" y1="92" x2="150" y2="92" strokeWidth="1" strokeOpacity="0.3" />
+      <line x1="56" y1="119" x2="150" y2="119" strokeWidth="1" strokeOpacity="0.3" />
+      {/* The trace. */}
+      <polyline points="66,132 88,110 106,120 126,86 144,68" strokeWidth="3" />
+      <path d="M 144 68 L 133 70 M 144 68 L 142 79" strokeWidth="2.4" />
+      <g fill={gold} stroke="none">
+        <circle cx="88" cy="110" r="2.6" />
+        <circle cx="106" cy="120" r="2.6" />
+        <circle cx="126" cy="86" r="2.6" />
+      </g>
     </g>
   );
 }
 
-/** TRANSPARENCY — an open beam, level, nothing concealed beneath it. */
-function TransparencyMark({ uid }: { uid: string }) {
+/** THE WORKING IS SHOWN — an itemised sheet with the total ruled beneath. */
+function LedgerMark({ uid }: { uid: string }) {
+  const gold = `url(#${uid}-gold)`;
   return (
-    <g stroke={`url(#${uid}-gold)`} fill="none" strokeLinecap="round">
-      <line x1="46" y1="92" x2="154" y2="92" strokeWidth="2.4" />
-      <path
-        d="M 94 94 L 100 106 L 106 94 Z"
-        fill={`url(#${uid}-gold)`}
-        stroke="none"
-      />
-      <line
-        x1="46"
-        y1="92"
-        x2="46"
-        y2="118"
-        strokeWidth="1.2"
-        strokeOpacity="0.6"
-      />
-      <line
-        x1="154"
-        y1="92"
-        x2="154"
-        y2="118"
-        strokeWidth="1.2"
-        strokeOpacity="0.6"
-      />
-      <path d="M 32 118 A 14 9 0 0 0 60 118 Z" strokeWidth="1.6" />
-      <path d="M 140 118 A 14 9 0 0 0 168 118 Z" strokeWidth="1.6" />
-      <line x1="100" y1="70" x2="100" y2="92" strokeWidth="1.8" />
-      <line
-        x1="70"
-        y1="134"
-        x2="130"
-        y2="134"
-        strokeWidth="1"
-        strokeOpacity="0.4"
-      />
+    <g stroke={gold} fill="none" strokeLinecap="round" strokeLinejoin="round">
+      {/* Sheet with a turned corner, so it reads as paper rather than a box. */}
+      <path d="M 62 48 H 122 L 138 64 V 152 H 62 Z" strokeWidth="2.6" />
+      <path d="M 122 48 V 64 H 138" strokeWidth="1.8" strokeOpacity="0.75" />
+      {/* Three line items: a label and a figure each. */}
+      {[84, 98, 112].map((y) => (
+        <g key={y}>
+          <line x1="74" y1={y} x2="106" y2={y} strokeWidth="2" strokeOpacity="0.8" />
+          <line x1="114" y1={y} x2="128" y2={y} strokeWidth="2" strokeOpacity="0.55" />
+        </g>
+      ))}
+      {/* The rule, and the figure it produces — the working, shown. */}
+      <line x1="74" y1="126" x2="128" y2="126" strokeWidth="1.4" strokeOpacity="0.7" />
+      <line x1="104" y1="138" x2="128" y2="138" strokeWidth="3.2" />
     </g>
   );
 }
 
-/** TRUST — the monogram, struck into the face. */
-function TrustMark({ uid }: { uid: string }) {
+/** NO OBLIGATION, EVER — an open hand, and the piece free above it. */
+function OpenHandMark({ uid }: { uid: string }) {
+  const gold = `url(#${uid}-gold)`;
   return (
-    <g>
-      <text
-        x="100"
-        y="116"
-        textAnchor="middle"
-        fontSize="56"
-        fill={`url(#${uid}-gold)`}
-        style={{ fontFamily: "var(--font-display)", fontWeight: 500 }}
-      >
-        PW
-      </text>
-      <line
-        x1="66"
-        y1="132"
-        x2="134"
-        y2="132"
-        stroke={`url(#${uid}-gold)`}
-        strokeWidth="1.1"
-        strokeOpacity="0.7"
-      />
+    <g stroke={gold} fill="none" strokeLinecap="round" strokeLinejoin="round">
+      {/* The piece, unheld. Drawn as this site's own bar in profile: no marks,
+          no stamp, nothing claimed about it. */}
+      <path d="M 84 64 L 116 64 L 120 78 L 80 78 Z" strokeWidth="2.4" />
+      {/*
+        An open hand, front on. The first attempt drew a deep cupped arc with
+        four strokes rising off its rim, and at 128px that reads as a BASKET —
+        a container, which is the opposite of what this pillar promises.
+
+        Fingers as separate round-capped strokes above a palm, with a thumb off
+        to one side, is what makes a hand read as a hand at this size. Wide
+        strokes, because a 1.5px finger is a scratch.
+      */}
+      <g strokeWidth="5.5">
+        <line x1="84" y1="98" x2="84" y2="124" />
+        <line x1="96" y1="94" x2="96" y2="124" />
+        <line x1="109" y1="94" x2="109" y2="124" />
+        <line x1="121" y1="99" x2="121" y2="124" />
+      </g>
+      <path d="M 76 128 L 64 114" strokeWidth="5.5" />
       <path
-        d="M 96 133 L 100 140 L 104 133 Z"
-        fill={`url(#${uid}-gold)`}
-        opacity="0.75"
+        d="M 78 120 H 127 A 8 8 0 0 1 135 128 V 138 A 12 12 0 0 1 123 150 H 82 A 12 12 0 0 1 70 138 V 128 A 8 8 0 0 1 78 120 Z"
+        strokeWidth="3"
       />
+      {/* The gap between hand and piece is the whole point; nothing bridges it. */}
     </g>
   );
 }
