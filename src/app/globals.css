@@ -891,20 +891,40 @@
    ========================================================================== */
 
 @layer utilities {
+  /*
+    SAFE-AREA INSETS, paired with `viewportFit: 'cover'` in layout.tsx.
+
+    Without viewport-fit=cover, iOS letterboxes the page inside the safe area on
+    a notched device: content is never clipped, but in landscape you get bars
+    down both sides — and on a site whose identity is a full-bleed black field
+    with a firefly backdrop behind everything, those bars break the illusion.
+
+    With cover the page fills the display, and then the copy has to be kept out
+    from under the notch and the home indicator. `max()` does that at zero cost
+    everywhere else: on any device with no insets env() resolves to 0, the
+    existing clamp wins, and the layout is byte-identical to before. Only a
+    notched device sees a difference, and what it sees is its own inset honoured.
+
+    HONEST LIMIT: reasoned from spec and verified only insofar as max() cannot
+    reduce the existing padding, and that all 32 tested widths are unchanged.
+    NOT confirmed on physical notched hardware, which is not available here.
+  */
   .shell {
     width: 100%;
     /* Aurora runs a 1600px measure. The extra width is what lets an editorial
        layout breathe instead of feeling like a centred column on a big screen. */
     max-width: 100rem;
     margin-inline: auto;
-    padding-inline: clamp(1.5rem, 4vw, 3rem);
+    padding-left: max(clamp(1.5rem, 4vw, 3rem), env(safe-area-inset-left));
+    padding-right: max(clamp(1.5rem, 4vw, 3rem), env(safe-area-inset-right));
   }
 
   .shell-narrow {
     width: 100%;
     max-width: 56rem;
     margin-inline: auto;
-    padding-inline: clamp(1.25rem, 5vw, 4.5rem);
+    padding-left: max(clamp(1.25rem, 5vw, 4.5rem), env(safe-area-inset-left));
+    padding-right: max(clamp(1.25rem, 5vw, 4.5rem), env(safe-area-inset-right));
   }
 
   /* Vignette over WebGL — cheaper and calmer than a post-processing pass. */

@@ -173,6 +173,17 @@ export const viewport: Viewport = {
   // Zoom is never disabled. Pinch-zoom is the accessibility feature most often
   // sacrificed for "premium feel", and it is not ours to take away.
   maximumScale: 5,
+  /*
+    Full-bleed on notched devices. Without this iOS letterboxes the page inside
+    the safe area, which on a site built from edge-to-edge black and a fixed
+    firefly field means bars down both sides in landscape.
+
+    Only safe because `.shell` / `.shell-narrow` in globals.css now pad with
+    max(existing, env(safe-area-inset-*)) — cover without those insets would put
+    copy under the notch, which is strictly worse than the letterbox it replaces.
+    The two changes are a pair; neither is correct alone.
+  */
+  viewportFit: 'cover',
 };
 
 /**

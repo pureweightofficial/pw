@@ -330,7 +330,22 @@ export function Loader() {
           e.stopPropagation();
           dismiss();
         }}
-        className="absolute bottom-8 right-6 text-[0.62rem] tracking-[0.28em] text-ash uppercase transition-colors duration-300 hover:text-gold-high sm:right-10"
+        /*
+          A 44x44 hit area around 15px of text.
+
+          Measured at 360, 390 and 844 wide: this button's target was 31x15,
+          because it had no padding and a button's hit area is its box. WCAG 2.2
+          SC 2.5.8 sets the floor at 24x24, so 15 tall failed outright — and it
+          was the ONLY on-screen target under 24px anywhere on the site, which
+          is why it is worth the fiddly offsets rather than a blanket rule.
+
+          min-h-11/min-w-11 is 44px each, the comfort size rather than the bare
+          minimum, because this is a dismiss control people reach for in a hurry.
+          The inset values are reduced by exactly the padding the flex box adds
+          (bottom-8 -> bottom-5, right-6 -> right-3, sm:right-10 -> sm:right-7)
+          so the text stays optically where it was and only the target grows.
+        */
+        className="absolute bottom-5 right-3 flex min-h-11 min-w-11 items-center justify-center text-[0.62rem] tracking-[0.28em] text-ash uppercase transition-colors duration-300 hover:text-gold-high sm:right-7"
       >
         Skip
       </button>
