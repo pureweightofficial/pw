@@ -12,7 +12,11 @@
 
 import {
   BUSINESS_RULES,
+  COPY_FIELDS,
+  COPY_SECTIONS,
   FORBIDDEN_IN_PROSE,
+  INSIGHT_DATE_PATTERN,
+  INSIGHT_SLUG_PATTERN,
   SERVICE_IDS,
 } from "@/lib/content-schema";
 
@@ -164,5 +168,106 @@ export function validateTestimonials(doc: Record<string, unknown>): FieldIssue[]
         message: `Contains "${hit.phrase}" — ${hit.why}. Real customers may say this, but the site cannot print promises the business has not verified, even quoted.`,
       });
   });
+  return issues;
+}
+
+export function validateFaq(doc: Record<string, unknown>): FieldIssue[] {
+  const issues: FieldIssue[] = [];
+  const list = Array.isArray(doc.general) ? doc.general : [];
+  if (list.length < 1) {
+    issues.push({
+      field: "faq",
+      message: "At least one question is needed — an empty FAQ page is worse than none.",
+    });
+  }
+  list.forEach((raw, i) => {
+    const item = (raw ?? {}) as Record<string, unknown>;
+    const n = i + 1;
+    if (s(item.question) === "") {
+      issues.push({ field: `faq${i}.question`, message: `Question ${n} is empty.` });
+    } else if (!s(item.question).endsWith("?")) {
+      issues.push({
+        field: `faq${i}.question`,
+        message: `Question ${n} should end with a question mark.`,
+      });
+    }
+    if (s(item.answer) === "") {
+      issues.push({ field: `faq${i}.answer`, message: `Question ${n} has no answer.` });
+    }
+    const hit = forbiddenIn(s(item.answer));
+    if (hit) {
+      issues.push({
+        field: `faq${i}.answer`,
+        message: `Contains "${hit.phrase}" — ${hit.why}. FAQ answers are trade knowledge, not business promises; promises belong in Business Details where they are evidence-gated.`,
+      });
+    }
+  });
+  return issues;
+}
+
+export function validateCopy(doc: Record<string, unknown>): FieldIssue[] {
+  const issues: FieldIssue[] = [];
+  for (const [key, meta] of Object.entries(COPY_SECTIONS)) {
+    const section = (doc[key] ?? {}) as Record<string, unknown>;
+    for (const field of COPY_FIELDS) {
+      if (field === "lead" && !meta.leadRequired) continue;
+      if (s(section[field]) === "") {
+        issues.push({
+          field: `copy.${key}.${field}`,
+          message: `${meta.label}: ${field} cannot be empty — the site would quietly revert to the original line and your edit would vanish.`,
+        });
+      }
+    }
+    for (const field of COPY_FIELDS) {
+      const hit = forbiddenIn(s(section[field]));
+      if (hit) {
+        issues.push({
+          field: `copy.${key}.${field}`,
+          message: `Contains "${hit.phrase}" — ${hit.why}.`,
+        });
+      }
+    }
+  }
+  return issues;
+}
+
+/** One article, as edited in the panel. `takenSlugs` = the other articles. */
+export function validateInsight(
+  doc: Record<string, unknown>,
+  takenSlugs: string[],
+): FieldIssue[] {
+  const issues: FieldIssue[] = [];
+  if (s(doc.title) === "")
+    issues.push({ field: "insight.title", message: "The article needs a title." });
+  if (s(doc.summary) === "")
+    issues.push({
+      field: "insight.summary",
+      message: "The summary cannot be empty — it becomes the page description and the index card.",
+    });
+  if (s(doc.body) === "")
+    issues.push({ field: "insight.body", message: "The article has no body text." });
+  if (!new RegExp(INSIGHT_SLUG_PATTERN).test(s(doc.slug)))
+    issues.push({
+      field: "insight.slug",
+      message: "The web address may only contain lowercase letters, digits and hyphens, e.g. how-gold-is-weighed.",
+    });
+  if (takenSlugs.includes(s(doc.slug)))
+    issues.push({
+      field: "insight.slug",
+      message: "Another article already uses this web address.",
+    });
+  if (!new RegExp(INSIGHT_DATE_PATTERN).test(s(doc.date)))
+    issues.push({
+      field: "insight.date",
+      message: "The date must look like 2026-08-01 (year-month-day).",
+    });
+  for (const field of ["title", "summary", "body"] as const) {
+    const hit = forbiddenIn(s(doc[field]));
+    if (hit)
+      issues.push({
+        field: `insight.${field}`,
+        message: `Contains "${hit.phrase}" — ${hit.why}.`,
+      });
+  }
   return issues;
 }

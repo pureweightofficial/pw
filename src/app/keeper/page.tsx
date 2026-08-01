@@ -32,18 +32,24 @@ import { assetPath } from "@/lib/asset";
 import {
   BUSINESS_RULES,
   COMPANION_FIELDS,
+  HERO_HEADING_SOFT_MAX,
+  COPY_SECTIONS,
   SERVICE_IDS,
 } from "@/lib/content-schema";
 import {
   CONTENT_PATHS,
+  INSIGHTS_DIR,
   KeeperApiError,
   listContentEdits,
+  listInsightFiles,
   listRuns,
   loadContent,
+  loadInsight,
   publishStatus,
   save,
   validateToken,
   type EditSummary,
+  type InsightFile,
   type PublishStatus,
   type RunSummary,
   type Signee,
@@ -51,6 +57,9 @@ import {
 import { prepareImage, type PreparedImage } from "@/lib/keeper/image";
 import {
   validateBusiness,
+  validateCopy,
+  validateFaq,
+  validateInsight,
   validateServices,
   validateTestimonials,
   type FieldIssue,
@@ -127,7 +136,7 @@ function SectionHeading({ title, note }: { title: string; note: string }) {
 /* THE PAGE                                                                   */
 /* -------------------------------------------------------------------------- */
 
-type Tab = "dashboard" | "business" | "services" | "testimonials";
+type Tab = "dashboard" | "business" | "services" | "testimonials" | "faq" | "copy" | "insights";
 
 /** "3 minutes ago" — dates in an admin panel should read like speech. */
 function timeAgo(iso: string): string {
@@ -227,10 +236,12 @@ export default function KeeperPage() {
     };
   }, [token, signee, docs]);
 
-  const [businessPath, servicesPath, testimonialsPath] = CONTENT_PATHS;
+  const [businessPath, servicesPath, testimonialsPath, faqPath, copyPath] = CONTENT_PATHS;
   const business = (docs?.[businessPath] ?? null) as Doc | null;
   const services = (docs?.[servicesPath] ?? null) as Doc | null;
   const testimonials = (docs?.[testimonialsPath] ?? null) as Doc | null;
+  const faq = (docs?.[faqPath] ?? null) as Doc | null;
+  const siteCopy = (docs?.[copyPath] ?? null) as Doc | null;
 
   const update = useCallback(
     (path: string, next: Doc) => {
@@ -244,13 +255,15 @@ export default function KeeperPage() {
   /* --------------------------- validation --------------------------- */
 
   const issues: FieldIssue[] = useMemo(() => {
-    if (!business || !services || !testimonials) return [];
+    if (!business || !services || !testimonials || !faq || !siteCopy) return [];
     return [
       ...validateBusiness(business),
       ...validateServices(services),
       ...validateTestimonials(testimonials),
+      ...validateFaq(faq),
+      ...validateCopy(siteCopy),
     ];
-  }, [business, services, testimonials]);
+  }, [business, services, testimonials, faq, siteCopy]);
 
   /* ------------------------------ save ------------------------------ */
 
@@ -315,7 +328,7 @@ export default function KeeperPage() {
     );
   }
 
-  if (!business || !services || !testimonials) {
+  if (!business || !services || !testimonials || !faq || !siteCopy) {
     return (
       <main className="flex min-h-svh items-center justify-center">
         <p className={`${MONO_LABEL} text-ash`}>Opening the ledger…</p>
@@ -347,6 +360,9 @@ export default function KeeperPage() {
     { key: "business", label: "Business Details", badge: unconfirmedCount },
     { key: "services", label: "What We Buy" },
     { key: "testimonials", label: "Testimonials" },
+    { key: "faq", label: "FAQ" },
+    { key: "copy", label: "Site Copy" },
+    { key: "insights", label: "Insights" },
   ];
 
   const goTo = (nextTab: Tab, field?: string) => {
@@ -489,6 +505,28 @@ export default function KeeperPage() {
               doc={testimonials}
               issues={issues}
               onChange={(next) => update(testimonialsPath, next)}
+            />
+          ) : null}
+          {tab === "faq" ? (
+            <FaqEditor
+              doc={faq}
+              issues={issues}
+              onChange={(next) => update(faqPath, next)}
+            />
+          ) : null}
+          {tab === "copy" ? (
+            <CopyEditor
+              doc={siteCopy}
+              issues={issues}
+              onChange={(next) => update(copyPath, next)}
+            />
+          ) : null}
+          {tab === "insights" ? (
+            <InsightsEditor
+              token={token!}
+              signee={signee}
+              branchOverride={branchOverride}
+              onPublishStateChange={setPublish}
             />
           ) : null}
         </div>
@@ -1417,6 +1455,608 @@ function TestimonialsEditor({
       >
         + Add testimonial
       </button>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* FAQ EDITOR                                                                 */
+/* -------------------------------------------------------------------------- */
+
+function FaqEditor({
+  doc,
+  issues,
+  onChange,
+}: {
+  doc: Doc;
+  issues: FieldIssue[];
+  onChange: (next: Doc) => void;
+}) {
+  const list = (Array.isArray(doc.general) ? doc.general : []) as {
+    question?: string;
+    answer?: string;
+  }[];
+  const issueFor = (field: string) => issues.filter((i) => i.field === field);
+  const setList = (next: typeof list) => onChange({ ...doc, general: next });
+
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= list.length) return;
+    const next = [...list];
+    [next[i], next[j]] = [next[j], next[i]];
+    setList(next);
+  };
+
+  return (
+    <div className="space-y-10">
+      <SectionHeading
+        title="FAQ"
+        note="The general questions on the FAQ page — trade knowledge, in your words. The order here is the order on the page. Business-specific answers (fees, payment, timing, ID) are deliberately not edited here: those are promises, and promises only appear by confirming the underlying fact in Business Details."
+      />
+
+      {issueFor("faq").map((issue, i) => (
+        <IssueLine key={i} text={issue.message} />
+      ))}
+
+      {list.map((item, i) => (
+        <fieldset key={i} className="border border-gold-antique/15 p-7">
+          <legend className={`${MONO_LABEL} px-3 text-gold-antique`}>
+            Question {i + 1}
+          </legend>
+          <div className="space-y-5">
+            <div>
+              <label htmlFor={`faq${i}-q`} className={`${MONO_LABEL} text-ash`}>
+                Question
+              </label>
+              <input
+                id={`faq${i}-q`}
+                type="text"
+                value={item.question ?? ""}
+                onChange={(e) => {
+                  const next = [...list];
+                  next[i] = { ...item, question: e.target.value };
+                  setList(next);
+                }}
+                className={`${INPUT_CLASS} mt-2`}
+              />
+              {issueFor(`faq${i}.question`).map((issue, j) => (
+                <IssueLine key={j} text={issue.message} />
+              ))}
+            </div>
+            <div>
+              <label htmlFor={`faq${i}-a`} className={`${MONO_LABEL} text-ash`}>
+                Answer
+              </label>
+              <textarea
+                id={`faq${i}-a`}
+                rows={4}
+                value={item.answer ?? ""}
+                onChange={(e) => {
+                  const next = [...list];
+                  next[i] = { ...item, answer: e.target.value };
+                  setList(next);
+                }}
+                className={`${INPUT_CLASS} mt-2 resize-y`}
+              />
+              {issueFor(`faq${i}.answer`).map((issue, j) => (
+                <IssueLine key={j} text={issue.message} />
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => move(i, -1)}
+                disabled={i === 0}
+                className={`${MONO_LABEL} border border-gold-antique/25 px-4 py-2 text-ash transition-colors enabled:hover:border-gold-rich enabled:hover:text-gold-high disabled:opacity-30`}
+              >
+                ↑ Move up
+              </button>
+              <button
+                type="button"
+                onClick={() => move(i, 1)}
+                disabled={i === list.length - 1}
+                className={`${MONO_LABEL} border border-gold-antique/25 px-4 py-2 text-ash transition-colors enabled:hover:border-gold-rich enabled:hover:text-gold-high disabled:opacity-30`}
+              >
+                ↓ Move down
+              </button>
+              <button
+                type="button"
+                onClick={() => setList(list.filter((_, j) => j !== i))}
+                className={`${MONO_LABEL} border border-gold-antique/25 px-4 py-2 text-ash transition-colors hover:border-[#d8825a] hover:text-[#d8825a]`}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </fieldset>
+      ))}
+
+      <button
+        type="button"
+        onClick={() => setList([...list, { question: "", answer: "" }])}
+        className={`${MONO_LABEL} border border-gold-antique/25 px-6 py-3.5 text-gold-antique transition-colors hover:border-gold-rich hover:text-gold-high`}
+      >
+        + Add question
+      </button>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* SITE COPY EDITOR                                                           */
+/* -------------------------------------------------------------------------- */
+
+function CopyEditor({
+  doc,
+  issues,
+  onChange,
+}: {
+  doc: Doc;
+  issues: FieldIssue[];
+  onChange: (next: Doc) => void;
+}) {
+  const issueFor = (field: string) => issues.filter((i) => i.field === field);
+
+  const FIELD_LABELS: Record<string, string> = {
+    eyebrow: "Small label above the heading",
+    heading: "Heading",
+    accent: "Heading — italic gold part",
+    lead: "Paragraph under the heading",
+  };
+
+  return (
+    <div className="space-y-12">
+      <SectionHeading
+        title="Site Copy"
+        note="The hero and the big chapter headings, in your words. These are the most-seen lines on the site, so read each one aloud before saving. Emptying a field is refused — the site would quietly revert to its original line and your edit would vanish."
+      />
+
+      {(Object.entries(COPY_SECTIONS) as [string, { label: string; leadRequired: boolean }][]).map(
+        ([key, meta]) => {
+          const section = (doc[key] ?? {}) as Record<string, unknown>;
+          const setField = (field: string, value: string) =>
+            onChange({ ...doc, [key]: { ...section, [field]: value } });
+
+          return (
+            <fieldset key={key}>
+              <legend className="font-display text-lg text-gold-high">
+                {meta.label}
+              </legend>
+              <div className="mt-5 grid gap-x-8 gap-y-5 sm:grid-cols-2">
+                {(["eyebrow", "heading", "accent", "lead"] as const).map((field) => {
+                  const long = field === "lead";
+                  if (field === "lead" && !meta.leadRequired && s(section.lead) === "") {
+                    return null; // pillars has no lead — don't invite one
+                  }
+                  const value =
+                    typeof section[field] === "string" ? (section[field] as string) : "";
+                  const overSoftMax =
+                    key === "hero" &&
+                    field === "heading" &&
+                    value.trim().length > HERO_HEADING_SOFT_MAX;
+                  return (
+                    <div key={field} className={long ? "sm:col-span-2" : undefined}>
+                      <label
+                        htmlFor={`copy-${key}-${field}`}
+                        className={`${MONO_LABEL} text-ash`}
+                      >
+                        {FIELD_LABELS[field]}
+                      </label>
+                      {long ? (
+                        <textarea
+                          id={`copy-${key}-${field}`}
+                          rows={3}
+                          value={value}
+                          onChange={(e) => setField(field, e.target.value)}
+                          className={`${INPUT_CLASS} mt-2 resize-y`}
+                        />
+                      ) : (
+                        <input
+                          id={`copy-${key}-${field}`}
+                          type="text"
+                          value={value}
+                          onChange={(e) => setField(field, e.target.value)}
+                          className={`${INPUT_CLASS} mt-2`}
+                        />
+                      )}
+                      {overSoftMax ? (
+                        <p className="mt-2 text-xs leading-relaxed text-ash">
+                          Longer than {HERO_HEADING_SOFT_MAX} characters — on a laptop this may
+                          wrap to a second line. Not an error, just worth checking after
+                          publishing.
+                        </p>
+                      ) : null}
+                      {issueFor(`copy.${key}.${field}`).map((issue, j) => (
+                        <IssueLine key={j} text={issue.message} />
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            </fieldset>
+          );
+        },
+      )}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* INSIGHTS EDITOR                                                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Articles get their own save flow, deliberately separate from the main Save
+ * bar: an article is one file with its own lifecycle (create, publish as
+ * draft, delete), and folding it into the five-file batch would make "Save &
+ * Publish" mean two different things depending on which tab was open.
+ */
+function InsightsEditor({
+  token,
+  signee,
+  branchOverride,
+  onPublishStateChange,
+}: {
+  token: string;
+  signee: Signee | null;
+  branchOverride?: string;
+  onPublishStateChange: (s: PublishStatus | null) => void;
+}) {
+  const [files, setFiles] = useState<InsightFile[] | null>(null);
+  const [editing, setEditing] = useState<{ doc: Doc; originalSlug: string | null } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    try {
+      setFiles(await listInsightFiles(token));
+    } catch (e) {
+      setError(e instanceof KeeperApiError ? e.friendly : String(e));
+      setFiles([]);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const doc = editing?.doc ?? null;
+  const takenSlugs = (files ?? [])
+    .map((f) => f.slug)
+    .filter((slug) => slug !== editing?.originalSlug);
+  const articleIssues = doc ? validateInsight(doc, takenSlugs) : [];
+  const issueFor = (field: string) => articleIssues.filter((i) => i.field === field);
+
+  const slugify = (title: string) =>
+    title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60);
+
+  const startNew = () => {
+    setEditing({
+      doc: {
+        slug: "",
+        title: "",
+        date: new Date().toISOString().slice(0, 10),
+        author: "Pureweight",
+        summary: "",
+        tags: [],
+        draft: true,
+        body: "",
+      },
+      originalSlug: null,
+    });
+    setPreview(null);
+  };
+
+  const openExisting = async (file: InsightFile) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const loaded = await loadInsight(token, file.path);
+      setEditing({ doc: loaded, originalSlug: file.slug });
+      setPreview(null);
+    } catch (e) {
+      setError(e instanceof KeeperApiError ? e.friendly : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const set = (patch: Doc) =>
+    setEditing((prev) => (prev ? { ...prev, doc: { ...prev.doc, ...patch } } : prev));
+
+  const saveArticle = async () => {
+    if (!doc || articleIssues.length > 0) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const head = await loadContent(token); // fresh base for the commit
+      const slug = s(doc.slug);
+      const path = `${INSIGHTS_DIR}/${slug}.json`;
+      const deletes =
+        editing?.originalSlug && editing.originalSlug !== slug
+          ? [`${INSIGHTS_DIR}/${editing.originalSlug}.json`]
+          : [];
+      await save(token, {
+        json: { [path]: doc },
+        binaries: {},
+        deletes,
+        message: `Keeper: ${editing?.originalSlug ? "update" : "new"} article "${s(doc.title)}" by ${signee?.login ?? "owner"}`,
+        baseSha: head.headSha,
+        branch: branchOverride,
+      });
+      onPublishStateChange({ state: "publishing" });
+      setEditing(null);
+      /*
+        Optimistic, THEN refreshed. The Contents API can lag a freshly
+        committed file by a second or two, and a refresh that races it shows
+        the owner a list without the article they just saved — which reads as
+        the save having failed. Insert locally first; the listing catches up.
+      */
+      setFiles((prev) => {
+        const next = (prev ?? []).filter((f) => f.slug !== slug);
+        return [...next, { path, slug }].sort((a, b) => a.slug.localeCompare(b.slug));
+      });
+      void refresh();
+    } catch (e) {
+      setError(e instanceof KeeperApiError ? e.friendly : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteArticle = async (file: InsightFile) => {
+    // A typed confirmation, not a yes/no — deleting published writing is the
+    // one destructive act in this panel and it should cost a deliberate step.
+    const answer = window.prompt(
+      `This permanently removes "${file.slug}" from the site on the next publish.\nType DELETE to confirm.`,
+    );
+    if (answer !== "DELETE") return;
+    setBusy(true);
+    setError(null);
+    try {
+      const head = await loadContent(token);
+      await save(token, {
+        json: {},
+        binaries: {},
+        deletes: [file.path],
+        message: `Keeper: delete article "${file.slug}" by ${signee?.login ?? "owner"}`,
+        baseSha: head.headSha,
+        branch: branchOverride,
+      });
+      onPublishStateChange({ state: "publishing" });
+      await refresh();
+    } catch (e) {
+      setError(e instanceof KeeperApiError ? e.friendly : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const showPreview = async () => {
+    if (!doc) return;
+    // marked is loaded on demand: the site renders markdown at build time and
+    // never ships it to visitors; only this preview needs it in a browser.
+    const { marked } = await import("marked");
+    const safe = s(doc.body).replace(/</g, "&lt;");
+    setPreview(marked.parse(safe, { async: false }) as string);
+  };
+
+  /* ------------------------------- list view ------------------------------ */
+
+  if (!editing) {
+    return (
+      <div className="space-y-10">
+        <SectionHeading
+          title="Insights"
+          note="Articles published under the business's name. Each one is its own page on the site, listed on the insights index and in the sitemap. Drafts are saved but invisible to visitors until the draft mark is removed."
+        />
+        {error ? <IssueLine text={error} /> : null}
+
+        {files === null ? (
+          <p className={`${MONO_LABEL} text-ash`}>Reading the shelf…</p>
+        ) : (
+          <div className="space-y-3">
+            {files.length === 0 ? (
+              <p className="text-sm text-ash/70">No articles yet.</p>
+            ) : (
+              files.map((file) => (
+                <div
+                  key={file.slug}
+                  className="flex flex-wrap items-center justify-between gap-3 border border-gold-antique/15 px-5 py-4"
+                >
+                  <span className="font-display text-lg text-ivory">{file.slug}</span>
+                  <span className="flex gap-3">
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void openExisting(file)}
+                      className={`${MONO_LABEL} border border-gold-antique/25 px-4 py-2 text-gold-antique transition-colors enabled:hover:border-gold-rich enabled:hover:text-gold-high disabled:opacity-40`}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void deleteArticle(file)}
+                      className={`${MONO_LABEL} border border-gold-antique/25 px-4 py-2 text-ash transition-colors enabled:hover:border-[#d8825a] enabled:hover:text-[#d8825a] disabled:opacity-40`}
+                    >
+                      Delete
+                    </button>
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={startNew}
+          className={`${MONO_LABEL} border border-gold-rich/60 bg-gold-antique/10 px-6 py-3.5 text-gold-high transition-colors hover:border-gold-high hover:bg-gold-antique/20`}
+        >
+          + Write a new article
+        </button>
+      </div>
+    );
+  }
+
+  /* ------------------------------ editor view ----------------------------- */
+
+  return (
+    <div className="space-y-8">
+      <SectionHeading
+        title={editing.originalSlug ? `Editing: ${editing.originalSlug}` : "New article"}
+        note="Plain text with simple formatting: ## for a section heading, **bold**, - for a bullet list, a blank line between paragraphs. The preview shows exactly what the page will render. Keep it as a draft until it reads right — drafts are saved but never shown to visitors."
+      />
+      {error ? <IssueLine text={error} /> : null}
+
+      <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <label htmlFor="ins-title" className={`${MONO_LABEL} text-ash`}>
+            Title
+          </label>
+          <input
+            id="ins-title"
+            type="text"
+            value={s(doc?.title)}
+            onChange={(e) => {
+              const patch: Doc = { title: e.target.value };
+              // Auto-derive the slug until the article exists; after that the
+              // URL is load-bearing (links, search) and only changes manually.
+              if (!editing.originalSlug) patch.slug = slugify(e.target.value);
+              set(patch);
+            }}
+            className={`${INPUT_CLASS} mt-2`}
+          />
+          {issueFor("insight.title").map((issue, j) => (
+            <IssueLine key={j} text={issue.message} />
+          ))}
+        </div>
+
+        <div>
+          <label htmlFor="ins-slug" className={`${MONO_LABEL} text-ash`}>
+            Web address (slug)
+          </label>
+          <input
+            id="ins-slug"
+            type="text"
+            value={s(doc?.slug)}
+            onChange={(e) => set({ slug: e.target.value })}
+            className={`${INPUT_CLASS} mt-2 font-mono`}
+          />
+          {issueFor("insight.slug").map((issue, j) => (
+            <IssueLine key={j} text={issue.message} />
+          ))}
+        </div>
+
+        <div>
+          <label htmlFor="ins-date" className={`${MONO_LABEL} text-ash`}>
+            Date
+          </label>
+          <input
+            id="ins-date"
+            type="text"
+            value={s(doc?.date)}
+            onChange={(e) => set({ date: e.target.value })}
+            className={`${INPUT_CLASS} mt-2 font-mono`}
+            placeholder="2026-08-01"
+          />
+          {issueFor("insight.date").map((issue, j) => (
+            <IssueLine key={j} text={issue.message} />
+          ))}
+        </div>
+
+        <div className="sm:col-span-2">
+          <label htmlFor="ins-summary" className={`${MONO_LABEL} text-ash`}>
+            Summary
+          </label>
+          <textarea
+            id="ins-summary"
+            rows={2}
+            value={s(doc?.summary)}
+            onChange={(e) => set({ summary: e.target.value })}
+            className={`${INPUT_CLASS} mt-2 resize-y`}
+          />
+          {issueFor("insight.summary").map((issue, j) => (
+            <IssueLine key={j} text={issue.message} />
+          ))}
+        </div>
+
+        <div className="sm:col-span-2">
+          <label htmlFor="ins-body" className={`${MONO_LABEL} text-ash`}>
+            Article text
+          </label>
+          <textarea
+            id="ins-body"
+            rows={16}
+            value={s(doc?.body)}
+            onChange={(e) => set({ body: e.target.value })}
+            className={`${INPUT_CLASS} mt-2 resize-y font-mono text-[0.82rem] leading-relaxed`}
+          />
+          {issueFor("insight.body").map((issue, j) => (
+            <IssueLine key={j} text={issue.message} />
+          ))}
+        </div>
+
+        <div className="sm:col-span-2 flex items-center gap-3">
+          <input
+            id="ins-draft"
+            type="checkbox"
+            checked={Boolean(doc?.draft)}
+            onChange={(e) => set({ draft: e.target.checked })}
+            className="h-4 w-4 accent-[#d99a33]"
+          />
+          <label htmlFor="ins-draft" className="text-sm text-ash">
+            Draft — keep it off the site until this is unticked
+          </label>
+        </div>
+      </div>
+
+      {preview ? (
+        <div className="border border-gold-antique/20 p-7">
+          <p className={`${MONO_LABEL} mb-5 text-ash`}>Preview</p>
+          <div
+            className="article-body"
+            dangerouslySetInnerHTML={{ __html: preview }}
+          />
+        </div>
+      ) : null}
+
+      <div className="flex flex-wrap gap-4 border-t border-gold-antique/16 pt-8">
+        <button
+          type="button"
+          disabled={busy || articleIssues.length > 0}
+          onClick={() => void saveArticle()}
+          className="border border-gold-rich/60 bg-gold-antique/10 px-8 py-3 font-mono text-[0.68rem] font-medium tracking-[0.28em] text-gold-high uppercase transition-all duration-300 enabled:hover:border-gold-high enabled:hover:bg-gold-antique/20 disabled:opacity-35"
+        >
+          {busy ? "Saving…" : doc?.draft ? "Save draft" : "Save & Publish"}
+        </button>
+        <button
+          type="button"
+          onClick={() => void showPreview()}
+          className={`${MONO_LABEL} border border-gold-antique/25 px-6 py-3 text-gold-antique transition-colors hover:border-gold-rich hover:text-gold-high`}
+        >
+          Preview
+        </button>
+        <button
+          type="button"
+          onClick={() => setEditing(null)}
+          className={`${MONO_LABEL} border border-gold-antique/25 px-6 py-3 text-ash transition-colors hover:border-gold-rich hover:text-ivory`}
+        >
+          Back to list
+        </button>
+      </div>
+      {articleIssues.length > 0 ? (
+        <p className="text-xs text-[#d8825a]">
+          {articleIssues.length} thing{articleIssues.length === 1 ? "" : "s"} to fix before
+          saving — marked above.
+        </p>
+      ) : null}
     </div>
   );
 }

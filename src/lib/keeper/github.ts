@@ -35,7 +35,11 @@ export const CONTENT_PATHS = [
   "src/content/business.json",
   "src/content/services.json",
   "src/content/testimonials.json",
+  "src/content/faq.json",
+  "src/content/copy.json",
 ] as const;
+
+export const INSIGHTS_DIR = "src/content/insights";
 
 export const IMAGE_DIR = "public/img";
 
@@ -150,12 +154,49 @@ export type SavePlan = {
   json: Record<string, Json>;
   /** Binary uploads (already resized): repo path -> bytes. */
   binaries: Record<string, Uint8Array>;
+  /**
+   * Repo paths to DELETE in the same commit — used when the owner removes an
+   * article. Restricted by save() to the insights directory: nothing else the
+   * panel touches is deletable, and a bug here must not be able to delete
+   * site code.
+   */
+  deletes?: string[];
   message: string;
   /** The head the editor loaded from; the save rebases once if it moved. */
   baseSha: string;
   /** Target ref. Always "main" in production; overridable for testing. */
   branch?: string;
 };
+
+/* -------------------------------------------------------------------------- */
+/* INSIGHTS (articles)                                                        */
+/* -------------------------------------------------------------------------- */
+
+export type InsightFile = { path: string; slug: string };
+
+/** Lists article files. A missing directory is an empty blog, not an error. */
+export async function listInsightFiles(token: string): Promise<InsightFile[]> {
+  const entries = await gh<{ name: string; path: string; type: string }[] | null>(
+    token,
+    `/repos/${REPO}/contents/${INSIGHTS_DIR}`,
+    { allow404: true },
+  );
+  if (!entries) return [];
+  return entries
+    .filter((e) => e.type === "file" && e.name.endsWith(".json"))
+    .map((e) => ({ path: e.path, slug: e.name.replace(/\.json$/, "") }));
+}
+
+export async function loadInsight(token: string, path: string): Promise<Json> {
+  const file = await gh<{ content: string }>(
+    token,
+    `/repos/${REPO}/contents/${path}`,
+  );
+  const bytes = Uint8Array.from(atob(file.content.replace(/\n/g, "")), (c) =>
+    c.charCodeAt(0),
+  );
+  return JSON.parse(new TextDecoder().decode(bytes)) as Json;
+}
 
 export type SaveResult = { commitSha: string; commitUrl: string };
 
@@ -204,6 +245,22 @@ async function attemptSave(
       body: JSON.stringify({ content: toBase64(bytes), encoding: "base64" }),
     });
     treeEntries.push({ path, mode: "100644", type: "blob", sha: blob.sha });
+  }
+
+  // Deletions: a tree entry with sha null removes the path. Scope-limited to
+  // the insights directory — the only thing the panel is allowed to delete.
+  for (const path of plan.deletes ?? []) {
+    if (!path.startsWith(`${INSIGHTS_DIR}/`)) {
+      throw new Error(`Refusing to delete outside ${INSIGHTS_DIR}: ${path}`);
+    }
+    // The Git Data API accepts sha:null for deletion; the SDK type here is
+    // ours, so widen locally rather than weakening the shared entry type.
+    (treeEntries as unknown as { path: string; mode: string; type: string; sha: null }[]).push({
+      path,
+      mode: "100644",
+      type: "blob",
+      sha: null,
+    });
   }
 
   // 2. One tree on the base commit's tree.

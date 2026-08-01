@@ -167,6 +167,39 @@ export const SERVICE_IDS = ["jewellery", "silver", "coins", "bullion"] as const;
  *
  * Case-insensitive regex sources, matched by scripts/check-content.mjs.
  */
+/**
+ * SITE COPY SECTIONS — the hero and chapter openers editable in the Keeper.
+ *
+ * `leadRequired: false` exists for exactly one section: pillars has no lead
+ * paragraph by design, and requiring one would force the owner to invent
+ * text. Everywhere else an empty field falls back to the original line at
+ * render (src/lib/copy.ts), so the site cannot be blanked — but the panel
+ * still refuses empties so the fallback never becomes the content.
+ */
+export const COPY_SECTIONS = {
+  hero: { label: "Homepage hero", leadRequired: true },
+  journey: { label: "How It Works opener", leadRequired: true },
+  services: { label: "What We Buy opener", leadRequired: true },
+  assay: { label: "Purity & Weight opener", leadRequired: true },
+  pillars: { label: "Built on Trust opener", leadRequired: false },
+  story: { label: "About opener", leadRequired: true },
+  finale: { label: "Closing statement", leadRequired: true },
+} as const;
+
+export const COPY_FIELDS = ["eyebrow", "heading", "accent", "lead"] as const;
+
+/**
+ * The hero headline renders at 5.5vw in a capitals-heavy display face; past
+ * roughly this many characters it wraps to a second line on a 1440 laptop —
+ * measured when the original headline was set. A soft warning in the panel,
+ * not a hard stop: some wraps are intended.
+ */
+export const HERO_HEADING_SOFT_MAX = 24;
+
+/** Article slugs become URLs; date feeds JSON-LD. Both are load-bearing. */
+export const INSIGHT_SLUG_PATTERN = "^[a-z0-9]+(?:-[a-z0-9]+)*$";
+export const INSIGHT_DATE_PATTERN = "^\\d{4}-\\d{2}-\\d{2}$";
+
 export const FORBIDDEN_IN_PROSE: readonly { pattern: string; why: string }[] = [
   { pattern: "same[ -]day", why: "a turnaround promise nobody has verified" },
   { pattern: "instant(ly)?", why: "a speed promise nobody has verified" },

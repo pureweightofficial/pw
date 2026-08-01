@@ -23,7 +23,7 @@
  * and promises may only enter through the fields that demand their evidence.
  */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -201,10 +201,103 @@ if (!Array.isArray(testimonials.testimonials)) {
 }
 
 /* ------------------------------------------------------------------ */
+/* faq.json                                                           */
+/* ------------------------------------------------------------------ */
+
+const faq = read("src/content/faq.json");
+
+if (!Array.isArray(faq.general) || faq.general.length < 1) {
+  fail("faq.json must contain at least one general question — an empty FAQ page is worse than no FAQ page");
+} else {
+  faq.general.forEach((item, i) => {
+    const n = i + 1;
+    if (s(item.question) === "") fail(`FAQ #${n} has no question`);
+    else if (!s(item.question).endsWith("?")) fail(`FAQ #${n} question should end with a question mark (got: "${s(item.question).slice(-30)}")`);
+    if (s(item.answer) === "") fail(`FAQ #${n} has no answer`);
+    for (const [re, why] of FORBIDDEN) {
+      const m = s(item.answer).match(re);
+      if (m) fail(`FAQ #${n} answer contains "${m[0]}" — ${why}. General FAQ answers are trade knowledge, not business promises.`);
+    }
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* copy.json                                                          */
+/* ------------------------------------------------------------------ */
+
+const copy = read("src/content/copy.json");
+
+/* Mirrors COPY_SECTIONS / COPY_FIELDS in content-schema.ts (drift-checked
+   below). pillars.lead is the one legitimately empty field. */
+const COPY_KEYS = ["hero", "journey", "services", "assay", "pillars", "story", "finale"];
+const COPY_FIELDS = ["eyebrow", "heading", "accent", "lead"];
+const COPY_LEAD_OPTIONAL = ["pillars"];
+
+for (const key of Object.keys(copy)) {
+  if (!COPY_KEYS.includes(key)) fail(`copy.json has an unknown section "${key}" — sections cannot be added from content`);
+}
+for (const key of COPY_KEYS) {
+  const section = copy[key];
+  if (!section) { fail(`copy.json is missing the "${key}" section`); continue; }
+  for (const field of COPY_FIELDS) {
+    if (field === "lead" && COPY_LEAD_OPTIONAL.includes(key)) continue;
+    if (s(section[field]) === "") {
+      fail(`copy.${key}.${field} is empty — the site would silently fall back to the original line, which means the owner's edit vanished. Fill it or restore the original text.`);
+    }
+  }
+  for (const field of COPY_FIELDS) {
+    for (const [re, why] of FORBIDDEN) {
+      const m = s(section[field]).match(re);
+      if (m) fail(`copy.${key}.${field} contains "${m[0]}" — ${why}`);
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* insights/*.json                                                    */
+/* ------------------------------------------------------------------ */
+
+let insightFiles = [];
+try {
+  insightFiles = readdirSync(join(root, "src/content/insights")).filter((f) => f.endsWith(".json"));
+} catch { /* no articles yet — valid */ }
+
+const seenSlugs = new Set();
+for (const file of insightFiles) {
+  const a = read(`src/content/insights/${file}`);
+  const at = `insights/${file}`;
+  if (s(a.title) === "") fail(`${at}: title is empty`);
+  if (s(a.summary) === "") fail(`${at}: summary is empty — it is the page's meta description and the index card`);
+  if (s(a.body) === "") fail(`${at}: body is empty`);
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(s(a.slug))) {
+    fail(`${at}: slug "${s(a.slug)}" must be lowercase letters, digits and hyphens — it becomes the URL`);
+  }
+  if (s(a.slug) !== file.replace(/\.json$/, "")) {
+    fail(`${at}: slug "${s(a.slug)}" must match the filename — the Keeper names files from slugs, and a mismatch orphans the article`);
+  }
+  if (seenSlugs.has(s(a.slug))) fail(`${at}: duplicate slug "${s(a.slug)}"`);
+  seenSlugs.add(s(a.slug));
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s(a.date))) {
+    fail(`${at}: date "${s(a.date)}" must be YYYY-MM-DD — it feeds the article's structured data`);
+  }
+  for (const field of ["title", "summary", "body"]) {
+    for (const [re, why] of FORBIDDEN) {
+      const m = s(a[field]).match(re);
+      if (m) fail(`${at}: ${field} contains "${m[0]}" — ${why}`);
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /* drift check against content-schema.ts                              */
 /* ------------------------------------------------------------------ */
 
 const schemaSource = readFileSync(join(root, "src/lib/content-schema.ts"), "utf8");
+for (const key of COPY_KEYS) {
+  if (!schemaSource.includes(`${key}:`)) {
+    fail(`copy section "${key}" is enforced here but missing from content-schema.ts COPY_SECTIONS — drifted`);
+  }
+}
 for (const key of BUSINESS_KEYS) {
   if (key === "insuranceIssuer" || key === "reviewScoreSource") continue; // companions live in COMPANION_FIELDS
   if (!schemaSource.includes(`${key}:`)) {
