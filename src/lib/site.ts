@@ -379,7 +379,7 @@ export const services: readonly Service[] = [
     */
     image: "/img/bullion.jpg",
     imageAlt:
-      "Three cast gold bars resting on a dark surface, lit from one side, with no refiner markings.",
+      "Three cast gold bars stacked on a dark surface under a shaft of warm light, scattered with small gold grains, carrying no refiner markings.",
     enquiryHref: "/contact",
     confirmed: true,
   },
