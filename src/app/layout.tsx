@@ -1,11 +1,5 @@
 import type { Metadata, Viewport } from 'next';
 import { Geist_Mono, Manrope, Playfair_Display, Rye } from 'next/font/google';
-import { Footer } from '@/components/chrome/Footer';
-import { Loader } from '@/components/chrome/Loader';
-import { Nav } from '@/components/chrome/Nav';
-import { SceneCursor } from '@/components/chrome/SceneCursor';
-import { MotionProvider } from '@/components/motion/MotionProvider';
-import { FireflyBackdrop } from '@/components/ui/FireflyBackdrop';
 import { assetPath } from '@/lib/asset';
 import { allowIndexing, brand, buildLocalBusinessJsonLd } from '@/lib/site';
 import './globals.css';
@@ -225,10 +219,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             is therefore omitted; clickjacking protection simply does not exist
             on Pages, which is accepted while the preview is noindex). The node
             target sends the full set as real headers from next.config.ts. */}
+        {/* connect-src includes api.github.com for the keeper (/keeper), which
+            is now a Next route and therefore lives under THIS policy — the old
+            vendored panel was its own HTML file and dodged it. The scope of the
+            loosening is XHR/fetch to GitHub's API only; scripts, styles and
+            frames stay 'self'. */}
         {process.env.GITHUB_PAGES === 'true' ? (
           <meta
             httpEquiv="Content-Security-Policy"
-            content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'"
+            content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://api.github.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'"
           />
         ) : null}
         <meta name="referrer" content="strict-origin-when-cross-origin" />
@@ -248,26 +247,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ) : null}
       </head>
 
-      <body className="bg-void text-ivory antialiased">
-        <MotionProvider>
-          {/*
-            The firefly field sits behind everything, on the body's own black,
-            and every section surface above it is translucent so it reads
-            through. It is deliberately OUTSIDE the content stacking context —
-            a fixed element inside a transformed ancestor would be positioned
-            against that ancestor instead of the viewport, and GSAP puts
-            transforms on plenty of things in here.
-          */}
-          <FireflyBackdrop />
-          <Loader />
-          <SceneCursor />
-          <div className="relative z-10">
-            <Nav />
-            <main id="main">{children}</main>
-            <Footer />
-          </div>
-        </MotionProvider>
-      </body>
+      {/*
+        The body is now BARE: the marketing chrome — loader, nav, footer,
+        cursor, firefly backdrop, Lenis — lives in src/app/(site)/layout.tsx,
+        which wraps every public page. The route group exists so /keeper (the
+        owner's admin panel) can render in the same brand without inheriting a
+        cinematic opening curtain, a marketing nav, or a scroll-hijacking
+        smooth-scroller — none of which belong on a tool. not-found and error
+        stay at this level and render standalone by design.
+      */}
+      <body className="bg-void text-ivory antialiased">{children}</body>
     </html>
   );
 }

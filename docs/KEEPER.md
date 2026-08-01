@@ -12,30 +12,28 @@ asking a developer and without touching any code.
 
 1. **Accept the invitation.** You'll get an email from GitHub inviting you to
    the `pw` project. Click **Accept invitation**. (If you don't have a GitHub
-   account yet, it will ask you to create one first — free.)
+   account yet, it will ask you to create one first — free. If you already own
+   the `pureweightofficial` account, skip this step.)
 
 2. **Open the panel** at the address above and bookmark it.
 
-3. **Click "Sign In with Token".** A GitHub page opens to create your key:
-   - *Repository access* → **Only select repositories** → choose **pw**
-   - *Permissions* → **Contents** → **Read and write**
-   - *Expiration* → **No expiration**
-   - Click **Generate token**, copy it, paste it into the panel.
+3. **Follow the panel's own instructions.** The sign-in screen has a
+   "How do I get my access key?" section that walks you through creating your
+   key on GitHub — four clicks, no terminal. Paste the key in and you're in.
 
-   You do this once. Keep a copy of the token in a password manager — if the
-   browser ever forgets it, you paste the same one again. Treat it like a key
-   to the shop: anyone holding it can edit the website.
-
-That's it. No terminal, no code, no configuration.
-
----
+   Keep a copy of the key in a password manager — if the browser ever forgets
+   it, you paste the same one again. Treat it like a key to the shop: anyone
+   holding it can edit the website.
 
 ## Everyday use
 
-1. Open the panel, pick a section, edit, **Save**.
-2. **Wait about five minutes.** Saving starts an automatic rebuild of the
-   whole site — it is not instant, and that is normal. Then hard-refresh the
-   site (Ctrl+Shift+R) to see your change.
+1. Open the panel, pick a section, edit, **Save & Publish**.
+2. **The panel tells you what is happening.** After saving it shows
+   "Publishing…" while the site rebuilds itself (a few minutes), then
+   "Published". Allow up to ten more minutes for the old page to leave the
+   cache, then hard-refresh the site (Ctrl+Shift+R).
+3. If something in your edit breaks a rule, the panel marks the exact field
+   in red BEFORE saving — nothing is published until it is fixed.
 
 ### What the sections do
 
@@ -66,11 +64,10 @@ change until they are met:
 
 ### If your change doesn't appear
 
-- Wait the full five minutes, then hard-refresh (Ctrl+Shift+R).
-- If it still hasn't changed, the site probably refused the edit — usually
-  one of the rules above. Re-open the panel and check what you last changed
-  against the rules, or send your developer a message saying what you edited
-  and when.
+- Wait for the panel to say "Published", give the cache ten minutes, then
+  hard-refresh (Ctrl+Shift+R).
+- If the panel says the site refused the change, it links to the reason —
+  send that link to your developer if it doesn't make sense.
 
 ---
 

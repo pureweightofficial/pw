@@ -30,7 +30,6 @@
     "three": "^0.170.0"
   },
   "devDependencies": {
-    "@sveltia/cms": "0.176.1",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",

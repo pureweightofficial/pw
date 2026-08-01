@@ -99,8 +99,30 @@ try {
 
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 const page = await browser.newPage({ viewport: VIEWPORT });
+
+/*
+  REFUSE TO MEASURE A DEAD PAGE.
+
+  This gate once reported PASS against a build whose assets all 404'd: the
+  build carried basePath /pw (the GitHub Pages target) while this server
+  serves out/ at the root, so no CSS or JS ever loaded, every section's
+  backdrop sampled as the same unstyled grey, and the numbers looked fine. A
+  gate that passes while measuring nothing is worse than one that fails —
+  nobody rechecks a green light. Local gates need the local build:
+  GITHUB_PAGES=true BASE_PATH= npm run build.
+*/
+let assetFailures = 0;
+page.on('requestfailed', (r) => { if (r.url().includes('/_next/')) assetFailures += 1; });
+page.on('response', (r) => { if (r.url().includes('/_next/') && r.status() === 404) assetFailures += 1; });
 await page.goto(`http://localhost:${PORT}/`, { waitUntil: "load" });
 await page.waitForTimeout(5000);
+
+if (assetFailures > 0) {
+  console.error(`\nGATE ABORTED — ${assetFailures} site asset(s) failed to load.`);
+  console.error("The build in out/ has a basePath this test server does not serve.");
+  console.error("Rebuild for local gates:  GITHUB_PAGES=true BASE_PATH= npm run build\n");
+  process.exit(1);
+}
 
 /** Every section that pins something, found by looking rather than by a list. */
 const targets = await page.evaluate(() => {
