@@ -360,12 +360,26 @@ export const services: readonly Service[] = [
       "Bars and investment coins",
     ],
     cta: "Bring Bullion In",
-    // NO PHOTOGRAPH, deliberately. The image that was here showed another
-    // refiner's trademark and crest, "1 KILO / 999.9 FINE GOLD", and three bar
-    // serial numbers — and the marks are spread across the frame, so no crop
-    // clears them. It breached this project's own image rubric and re-introduced
-    // the exact purity claim the hero film was cut to remove. See CREDITS.md.
-    // The panel falls back to the engraved plate, as Silver already does.
+    /*
+      NOT A PHOTOGRAPH — a render of this site's OWN bar geometry, and that
+      distinction is the whole reason this panel finally has an image.
+
+      The photograph that used to be here showed another refiner's trademark
+      and crest, "1 KILO / 999.9 FINE GOLD", and three bar serial numbers,
+      spread across the frame so no crop cleared them. Five search rounds
+      across Openverse, Wikimedia, Pixabay and the CC0 pool produced nothing
+      better, and the reason is structural: commercial bullion photography
+      exists to SHOW the marks, and the marks are exactly what the rubric in
+      CREDITS.md forbids.
+
+      `ingotGeometry` has no marks to clear. It is the same bar the journey
+      section and the services opener turn, rendered as a still — so the panel
+      shows real bullion, in the brand's own light, asserting no purity and
+      carrying no third party's mark.
+    */
+    image: "/img/bullion.jpg",
+    imageAlt:
+      "Three cast gold bars resting on a dark surface, lit from one side, with no refiner markings.",
     enquiryHref: "/contact",
     confirmed: true,
   },

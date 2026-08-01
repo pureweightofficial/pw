@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Eyebrow, Section } from "@/components/ui/primitives";
-import { SectionScene } from "@/components/ui/SectionScene";
 
 /**
  * TESTIMONIALS
@@ -37,7 +36,6 @@ export function Testimonials() {
       labelledBy="testimonials-heading"
       className="py-24 lg:py-36"
     >
-      <SectionScene variant="motes" />
       <div className="shell-narrow text-center">
         <Eyebrow align="center" className="mb-8 will-reveal">
           In Their Words

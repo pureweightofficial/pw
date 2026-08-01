@@ -128,19 +128,29 @@ const page = await browser.newPage({
 await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'load' });
 await page.waitForTimeout(7000);
 
-// Every section that adopted a scene, discovered from the DOM rather than
-// hardcoded — so a section added later cannot silently escape the audit.
-// Discovered from the SCRIM WRAPPER, not from mounted canvases. Canvases are
-// viewport-gated, so querying them at page load finds only whichever one happens
-// to be near the fold — the first run of this audit found 1 section of 7.
+/*
+  EVERY SECTION, NOT JUST THE ONES WITH THEIR OWN SCENE.
+
+  This used to filter for sections containing a scene scrim, which was right
+  when 3D was strictly per-section: a section without a canvas had nothing
+  moving behind it to audit.
+
+  The firefly field changed that. It is ONE fixed canvas behind the entire
+  page, showing through every surface via `--surface-alpha`, so moving light
+  now falls behind sections that own no scene at all. Under the old filter this
+  audit silently narrowed from seven sections to four at the exact moment its
+  coverage needed to widen — the three `motes` scenes it had been keyed to were
+  retired, and the sections they left behind still have a lit backdrop.
+
+  So: audit every section with an id. A few will have nothing behind them but
+  their own surface, and those pass trivially — a gate that also measures the
+  easy cases costs seconds and cannot develop a blind spot.
+*/
 const sections = await page.evaluate(() =>
-  [...document.querySelectorAll('section')]
-    .filter((s) => s.querySelector('.section-scene-scrim'))
-    .map((s) => s.id)
-    .filter(Boolean),
+  [...document.querySelectorAll('section')].map((s) => s.id).filter(Boolean),
 );
 
-console.log(`\nSECTION SCENE CONTRAST — live render, ${sections.length} scened section(s)`);
+console.log(`\nSECTION SCENE CONTRAST — live render, ${sections.length} section(s)`);
 console.log(`  type: ivory rgb(${IVORY.join(',')})  ash rgb(${ASH.join(',')})\n`);
 
 let failures = 0;

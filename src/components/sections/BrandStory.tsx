@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/primitives";
 import { brand, business } from "@/lib/site";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
-import { SectionScene } from "@/components/ui/SectionScene";
 
 /**
  * BRAND STORY
@@ -34,7 +33,6 @@ export function BrandStory() {
       labelledBy="story-heading"
       className="py-24 lg:py-40"
     >
-      <SectionScene variant="motes" />
       <AmbientGlow intensity="normal" placement="split" />
       <div className="shell">
         <div className="grid gap-16 lg:grid-cols-12 lg:gap-20">

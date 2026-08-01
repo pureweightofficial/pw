@@ -3,7 +3,6 @@
 import { BeamDivider, Eyebrow, Section } from "@/components/ui/primitives";
 import { trustStrip } from "@/lib/site";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
-import { SectionScene } from "@/components/ui/SectionScene";
 
 /**
  * IMMEDIATE TRUST
@@ -27,7 +26,6 @@ export function TrustStatement() {
       labelledBy="trust-heading"
       className="py-24 lg:py-36"
     >
-      <SectionScene variant="motes" />
       <AmbientGlow intensity="normal" placement="left" />
       <div className="shell">
         <div className="grid gap-14 lg:grid-cols-12 lg:gap-16">

@@ -5,6 +5,7 @@ import { Loader } from '@/components/chrome/Loader';
 import { Nav } from '@/components/chrome/Nav';
 import { SceneCursor } from '@/components/chrome/SceneCursor';
 import { MotionProvider } from '@/components/motion/MotionProvider';
+import { FireflyBackdrop } from '@/components/ui/FireflyBackdrop';
 import { assetPath } from '@/lib/asset';
 import { allowIndexing, brand, buildLocalBusinessJsonLd } from '@/lib/site';
 import './globals.css';
@@ -238,11 +239,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
       <body className="bg-void text-ivory antialiased">
         <MotionProvider>
+          {/*
+            The firefly field sits behind everything, on the body's own black,
+            and every section surface above it is translucent so it reads
+            through. It is deliberately OUTSIDE the content stacking context —
+            a fixed element inside a transformed ancestor would be positioned
+            against that ancestor instead of the viewport, and GSAP puts
+            transforms on plenty of things in here.
+          */}
+          <FireflyBackdrop />
           <Loader />
           <SceneCursor />
-          <Nav />
-          <main id="main">{children}</main>
-          <Footer />
+          <div className="relative z-10">
+            <Nav />
+            <main id="main">{children}</main>
+            <Footer />
+          </div>
         </MotionProvider>
       </body>
     </html>

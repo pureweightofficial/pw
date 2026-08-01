@@ -7,6 +7,7 @@ import {
 } from "./AmbientScene";
 import { AssayScene } from "./AssayScene";
 import { FinaleScene } from "./FinaleScene";
+import { FireflyField } from "./FireflyField";
 import { HeroScene } from "./HeroScene";
 import { ScalePoster } from "./ScalePoster";
 import { SceneShell } from "./SceneShell";
@@ -55,6 +56,32 @@ export function AmbientCanvas({
           channel={channel}
         />
       )}
+    </SceneShell>
+  );
+}
+
+/**
+ * The site-wide firefly backdrop. One canvas, fixed to the viewport, behind
+ * every section.
+ *
+ * `eager` because this is never off-screen — it IS the screen — so the
+ * viewport gating that unmounts section scenes has nothing to gate on. The
+ * flat orthographic-ish framing (wide FOV, camera on axis) keeps the field
+ * even from edge to edge; a subject-scene camera would bunch the motes toward
+ * the centre.
+ *
+ * Exposure 1.0: the shader already carries its own brightness budget in
+ * uOpacity, and that number is bounded by the contrast gate rather than taste.
+ */
+export function FireflyCanvas() {
+  return (
+    <SceneShell
+      eager
+      camera={{ position: [0, 0, 6], fov: 60 }}
+      exposure={1}
+      poster={<div style={{ width: "100%", height: "100%" }} />}
+    >
+      {(capability) => <FireflyField capability={capability} />}
     </SceneShell>
   );
 }
