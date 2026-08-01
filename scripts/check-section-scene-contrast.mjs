@@ -164,18 +164,26 @@ for (const id of sections) {
   await page.waitForTimeout(2600);
 
   /**
-   * Collect the bounding boxes of ELEMENTS THAT ACTUALLY CONTAIN TEXT, before
-   * anything is hidden. Sampling is then restricted to those rectangles.
+   * Collect the rectangles OF THE GLYPHS THEMSELVES, before anything is hidden.
+   * Sampling is then restricted to those rectangles.
    *
-   * This is the fix for a whole class of false alarm. Sampling the entire section
-   * has now flagged, in four separate runs: the fixed navigation's white button
-   * label, two decorative gold ornaments that are correctly aria-hidden, a clip
-   * box that ran past the section into the next one, and a presented gold bar
-   * sitting in a column the layout deliberately leaves empty. Every one reported
-   * a catastrophic ~1.0:1 and every one was measuring a surface no text sits on.
+   * This instrument has now been wrong five times, and every correction was a
+   * narrowing. Sampling the whole section flagged: the fixed navigation's white
+   * button label, two decorative gold ornaments that are correctly aria-hidden,
+   * a clip box that ran past the section into the next one, and a presented
+   * gold bar sitting in a column the layout deliberately leaves empty. So it was
+   * narrowed to elements that contain text. Then it failed #services at 1.01:1 —
+   * and the "text" it measured was the services opener's gold bar again, this
+   * time inside the bounding box of a block element whose glyphs stop at 350px
+   * but whose BOX runs the full shell width. An element's rectangle is not where
+   * its text is.
+   *
+   * `Range.getClientRects()` on the text node returns the actual line boxes the
+   * glyphs occupy — tight, per-line, and nothing else. That is the surface a
+   * visitor reads against, so it is the only surface this gate may judge.
    *
    * A contrast gate that cries wolf gets ignored, which is worse than not having
-   * it. Text boxes only.
+   * it. Glyph rectangles only.
    */
   const textBoxes = await page.evaluate((sel) => {
     const el = document.getElementById(sel);
@@ -183,16 +191,16 @@ for (const id of sections) {
     const boxes = [];
     el.querySelectorAll("h1,h2,h3,h4,p,li,a,span,dt,dd,td,th").forEach((n) => {
       if (n.closest('[aria-hidden="true"]')) return;
-      // Direct text only: a wrapper's rect would re-introduce the whole-section
-      // problem one level down.
-      const own = [...n.childNodes].some(
-        (c) => c.nodeType === 3 && c.textContent.trim().length > 1,
-      );
-      if (!own) return;
-      const r = n.getBoundingClientRect();
-      if (r.width < 8 || r.height < 8) return;
-      if (r.bottom < 0 || r.top > innerHeight) return;
-      boxes.push({ x: r.left, y: r.top, w: r.width, h: r.height });
+      for (const c of n.childNodes) {
+        if (c.nodeType !== 3 || c.textContent.trim().length <= 1) continue;
+        const range = document.createRange();
+        range.selectNodeContents(c);
+        for (const r of range.getClientRects()) {
+          if (r.width < 8 || r.height < 8) continue;
+          if (r.bottom < 0 || r.top > innerHeight) continue;
+          boxes.push({ x: r.left, y: r.top, w: r.width, h: r.height });
+        }
+      }
     });
     return boxes;
   }, id);
@@ -215,14 +223,33 @@ for (const id of sections) {
      * rgb(244,208,102) on #testimonials, which are exactly --color-gold-antique
      * and --color-ivory. Both were ornaments, not surfaces text sits on. Two
      * false alarms in two runs, both from sampling too wide.
+     *
+     * And "any direct child containing the scrim is backdrop" was not enough
+     * either — it assumed scene and copy never share a wrapper. The services
+     * opener wraps both in one band so the canvas can be scoped to the band
+     * rather than a 4000px section, and this heuristic then skipped the band
+     * wholesale: the heading stayed visible and the audit measured the
+     * heading's own glyphs against themselves, reporting ivory at 1.01:1. The
+     * scene host now carries an explicit `section-scene` marker class, and a
+     * child that merely CONTAINS one is walked into rather than skipped.
      */
-    el.querySelectorAll(':scope > *').forEach((n) => {
-      const isBackdrop =
-        n.classList.contains('ambient-glow') || n.querySelector('.section-scene-scrim');
-      if (isBackdrop) return;
-      n.setAttribute('data-audit-hidden', '1');
-      n.style.visibility = 'hidden';
-    });
+    const hideExceptBackdrop = (node) => {
+      for (const n of node.children) {
+        if (
+          n.classList.contains('ambient-glow') ||
+          n.classList.contains('section-scene')
+        ) {
+          continue; // the backdrop stack itself stays visible
+        }
+        if (n.querySelector('.section-scene')) {
+          hideExceptBackdrop(n); // mixed wrapper: descend, hide only the copy
+          continue;
+        }
+        n.setAttribute('data-audit-hidden', '1');
+        n.style.visibility = 'hidden';
+      }
+    };
+    hideExceptBackdrop(el);
     document.querySelectorAll('header, nav, [role="status"]').forEach((n) => {
       if (el.contains(n)) return;
       n.setAttribute('data-audit-hidden', '1');

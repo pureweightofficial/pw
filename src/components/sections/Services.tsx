@@ -5,6 +5,7 @@ import { assetPath } from "@/lib/asset";
 import { BeamDivider, Eyebrow, Section } from "@/components/ui/primitives";
 import { services } from "@/lib/site";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
+import { SectionScene } from "@/components/ui/SectionScene";
 
 /**
  * SERVICES
@@ -37,32 +38,78 @@ export function Services() {
       id="services"
       material="steel"
       labelledBy="services-heading"
-      className="py-24 lg:py-36"
+      /*
+        Bottom padding only. The top padding — and the gap down to the first
+        panel — live INSIDE the opener band below, so the bar's canvas covers
+        the whole void the client marked, not just the strip the text happens
+        to occupy. With the padding outside the band, the canvas was ~290px
+        tall and the bar rendered as a chip.
+      */
+      className="pb-24 lg:pb-36"
     >
       <AmbientGlow intensity="soft" placement="left" />
-      <div className="shell">
-        <div className="max-w-3xl">
-          {/* Was "Chapter 03 — The Services" against a chapter list and a nav
-              that both say "What We Buy". Three labels for one section. */}
-          <Eyebrow className="mb-8 will-reveal">
-            Chapter 03 — What We Buy
-          </Eyebrow>
-          <h2
-            id="services-heading"
-            className="font-display text-chapter font-normal text-ivory will-reveal"
-          >
-            Gold, silver, coins{" "}
-            <span className="accent-italic text-gold-high/90">and bullion</span>
-          </h2>
-          <p className="mt-7 max-w-xl text-lead text-ash will-reveal">
-            Four categories, one order of operations: weigh it, establish what
-            it actually is, show you the working, and only then talk about
-            money.
-          </p>
+      {/*
+        THE CHAPTER OPENER CARRIES THE TURNING GOLD BAR — scoped to this band,
+        not the section.
+
+        The client marked the empty right half of this opener and asked for the
+        bar the journey section has. The scene is mounted on a wrapper around
+        the heading band rather than on the section for two reasons that are
+        about cost, not taste:
+
+          - this section is ~4000px tall. A section-level canvas means a
+            1440x4000 render target redrawing every frame for one object that
+            lives in the top 500px of it.
+          - the four panels below carry photography and engraved plates. A lit
+            scene moving behind those would be backdrop arguing with content —
+            the same reason the evidence ledger and insights index have no
+            scene at all.
+
+        `hidden lg:block` because the void itself is a desktop artefact: below
+        lg the copy spans the full width and there is nothing empty to fill —
+        there would only be a moving bar behind text. A display:none host never
+        intersects the viewport, so SceneShell never mounts the canvas and
+        phones pay nothing.
+
+        The bar variant's placement is frame-shape-aware (see GoldBar in
+        AmbientScene): in this wide band it holds the vertical centre at 78%
+        across, clear of the copy, under the same reveal scrim the journey
+        column uses — heavy where the words are, open where the bar is.
+      */}
+      <div className="relative pt-24 pb-20 lg:pt-36 lg:pb-28">
+        <SectionScene
+          variant="bar"
+          scrim="reveal"
+          className="hidden lg:block"
+        />
+        <div className="shell">
+          <div className="max-w-3xl">
+            {/* Was "Chapter 03 — The Services" against a chapter list and a nav
+                that both say "What We Buy". Three labels for one section. */}
+            <Eyebrow className="mb-8 will-reveal">
+              Chapter 03 — What We Buy
+            </Eyebrow>
+            <h2
+              id="services-heading"
+              className="font-display text-chapter font-normal text-ivory will-reveal"
+            >
+              Gold, silver, coins{" "}
+              <span className="accent-italic text-gold-high/90">
+                and bullion
+              </span>
+            </h2>
+            <p className="mt-7 max-w-xl text-lead text-ash will-reveal">
+              Four categories, one order of operations: weigh it, establish
+              what it actually is, show you the working, and only then talk
+              about money.
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="mt-20 lg:mt-28">
+      {/* The old mt-20 lg:mt-28 gap is now the opener band's bottom padding,
+          so the bar's canvas owns it. */}
+      <div>
         {services.map((service, index) => {
           const reversed = index % 2 === 1;
 

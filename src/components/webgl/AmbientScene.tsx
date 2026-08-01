@@ -11,6 +11,7 @@ import {
   sealBlockGeometry,
 } from "./geometry";
 import { bullionGold, chainSteel, metal, sealStone } from "./materials";
+import { dustSprite } from "./textures";
 import { Dust } from "./Dust";
 import { Studio } from "./Studio";
 
@@ -261,13 +262,79 @@ function GoldBar({
    * correctly placed and simply unlit. Dropping metalness lets the key light
    * contribute real diffuse; tripling envMapIntensity recovers the reflection.
    */
-  const barMaterial = useMemo(
+  const barMaterial = useMemo(() => {
+    const m = metal({
+      color: new THREE.Color("#e8bd5c"),
+      metalness: 0.82,
+      // 0.32: sharper env reflections give the faces the dark-against-bright
+      // contrast that makes metal read as metal — a design panel judged the
+      // original 0.34 "uniform mid-yellow" — while staying just soft enough
+      // that the chamfer highlights do not condense into hot points.
+      roughness: 0.32,
+      envMapIntensity: 2.1,
+    });
+
+    /**
+     * GOLD DOES NOT GO WHITE AT THE EDGES. THE SHADER THINKS IT DOES.
+     *
+     * A design panel sampled the bar's grazing rim twice and got a pure
+     * neutral — rgb(203,203,203) on a gold object, the classic tell of
+     * gold-painted plastic. Every conventional knob was tried against it and
+     * measured: env intensity 3.0 -> 2.1 moved the rim not at all, the key
+     * light warmed and dimmed, roughness raised — the neutral pixel count
+     * went UP. It cannot be lit away, because it is not a lighting problem:
+     * the Schlick/DFG Fresnel approximation sends EVERY material's
+     * reflectance to achromatic white at grazing incidence. Real gold stays
+     * golden at the rim — its index of refraction is complex, absorbing the
+     * blue it would otherwise reflect — but the approximation has no channel
+     * for that, and ACES's shoulder desaturation compounds it.
+     *
+     * So the correction is stated in the shader, after tone mapping — where
+     * it can survive, since anything injected before ACES gets desaturated
+     * again by the very shoulder that causes this. Any output pixel that is
+     * both bright and nearly colourless is, on this object, a Fresnel-white
+     * artifact by definition — nothing else on an #e8bd5c metal under warm
+     * lights can produce it — and it is folded back toward the metal's own
+     * hue in proportion to how achromatic it is.
+     */
+    m.onBeforeCompile = (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        "#include <colorspace_fragment>",
+        `{
+          float hi = max(gl_FragColor.r, max(gl_FragColor.g, gl_FragColor.b));
+          float lo = min(gl_FragColor.r, min(gl_FragColor.g, gl_FragColor.b));
+          // Bright AND unsaturated -> Fresnel white. Fold it back to gold.
+          float achroma = smoothstep(0.30, 0.08, hi - lo) * smoothstep(0.45, 0.75, hi);
+          gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_FragColor.rgb * vec3(1.0, 0.84, 0.52), achroma);
+        }
+        #include <colorspace_fragment>`,
+      );
+    };
+    // The patch changes the compiled program, so the material must not share
+    // a program cache entry with unpatched metals of the same parameters.
+    m.customProgramCacheKey = () => "gold-bar-warm-fresnel";
+    return m;
+  }, []);
+
+  /**
+   * THE ANCHOR. The same panel's strongest finding: with nothing beneath it,
+   * the bar read as a floating game pickup, not a presented object. There is no
+   * floor in this void and putting one in would break the treatment — but a
+   * pool of warm light UNDER the bar implies a surface without drawing one.
+   * One additive sprite, the dust's own soft-circle texture stretched wide,
+   * tracking the bar from below.
+   */
+  const glowRef = useRef<THREE.Sprite>(null);
+  const bounceRef = useRef<THREE.PointLight>(null);
+  const glowMaterial = useMemo(
     () =>
-      metal({
-        color: new THREE.Color("#e8bd5c"),
-        metalness: 0.82,
-        roughness: 0.34,
-        envMapIntensity: 3.4,
+      new THREE.SpriteMaterial({
+        map: dustSprite(),
+        color: new THREE.Color("#b87914"),
+        transparent: true,
+        opacity: 0.4,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
       }),
     [],
   );
@@ -277,48 +344,117 @@ function GoldBar({
    *
    * The first two attempts positioned the bar in absolute world units, reasoning
    * from a 16:10 viewport. Both missed, and the screenshots showed why: this
-   * canvas is `absolute inset-0` inside the SECTION, and the journey section is
+   * canvas is `absolute inset-0` inside its HOST, and the journey section is
    * roughly 2000px tall. The render target is therefore strongly PORTRAIT, so the
    * visible world width is about 3 units, not 6.6 — x 1.62 was off-frame to the
    * right, and the bar appeared as a sliver in the corner.
    *
    * `state.viewport` reports the true world width and height at z=0 every frame,
    * so positioning as a FRACTION of it lands in the same visual place regardless
-   * of section height, viewport size or aspect. Scale is derived the same way, so
-   * the bar keeps its proportion of the frame rather than ballooning on wide
-   * screens.
+   * of host size, viewport size or aspect.
+   *
+   * AND THE FRACTIONS THEMSELVES ARE KEYED TO THE FRAME'S SHAPE.
+   *
+   * The bar now serves two hosts with opposite geometries: the journey section's
+   * tall portrait column, and the services chapter opener — a wide landscape band
+   * beside the heading. The original `scale = width * 0.62` was tuned inside the
+   * portrait frame, where width is the SHORT axis (~3 units). In the services
+   * band, width is the LONG axis (~13 units at 1440px); the same fraction would
+   * have produced an eight-unit bar filling the frame — the sliver bug's exact
+   * mirror image. So each shape gets its own term, and the min() keeps them from
+   * colliding: journey is unchanged by construction, because there width IS the
+   * short axis and 0.62 · width < 0.9 · height.
+   *
+   * The landscape term is 1.35 · height rather than a "same world size" 0.45,
+   * and two rounds of looking are why. Round one: WORLD-unit invariance is not
+   * SCREEN-size invariance. Pixels-per-world-unit is hostHeightPx / 4.15, so an
+   * identical world-size bar renders seven times smaller in a ~550px band than
+   * in the 2000px journey column — at 0.45 it came out a pale 70px chip. Round
+   * two: at 0.9 a design panel called the bar "smaller than the word 'Gold,'"
+   * and "light and incidental" — a weight problem for a brand named Pureweight.
+   * 1.35 · height with the ingot's 0.34-unit native length projects to roughly
+   * half the band's height, which finally counterweights the two-line heading.
+   *
+   * The landscape bar also sits slightly BELOW centre (-0.1 · height): level
+   * with the heading's first line it left the lower-right quadrant dead; at the
+   * heading's midline it balances the full copy block.
+   *
+   * Vertical placement is shape-keyed the same way. In the portrait column the
+   * copy sits below the marked void, so the bar rides in the upper third. In the
+   * landscape band the copy fills the left and the void spans the full height of
+   * the right, so the bar holds the vertical centre.
    */
   useFrame((state) => {
     const bar = ref.current;
     if (!bar) return;
 
     const { width, height } = state.viewport;
+    const landscape = width >= height;
+    const restY = landscape ? height * -0.1 : height * 0.3;
+    const s = Math.min(width * 0.62, height * 1.35);
 
-    // Right-hand column, upper third — the void the journey layout leaves.
+    // Right-hand side of the frame in both shapes — 78% across.
     bar.position.x = width * 0.28;
-    bar.scale.setScalar(width * 0.62);
+    bar.scale.setScalar(s);
 
     if (still) {
       // Reduced motion: a fixed three-quarter pose. Present, at rest, and still
       // clearly a bar rather than a silhouette.
       bar.rotation.set(0.42, 0.72, 0.1);
-      bar.position.y = height * 0.3;
-      return;
+      bar.position.y = restY;
+    } else {
+      const t = state.clock.elapsedTime;
+      // 0.085 and 0.043 share no common factor worth noticing, so the pose
+      // never repeats on any timescale a visitor will sit through. Scroll adds
+      // yaw through the host's own channel, so the bar turns as the reader
+      // advances — the journey section drives it with its four stages, the
+      // services opener with overall page progress.
+      bar.rotation.y =
+        t * 0.085 + clamp(scrollState[channel], 0, 1) * Math.PI * 0.9;
+      bar.rotation.x = 0.34 + Math.sin(t * 0.043) * 0.16;
+      bar.rotation.z = Math.sin(t * 0.031) * 0.08;
+      bar.position.y = restY + Math.sin(t * 0.052) * 0.1;
     }
 
-    const t = state.clock.elapsedTime;
-    // 0.085 and 0.043 share no common factor worth noticing, so the pose never
-    // repeats on any timescale a visitor will sit through. Scroll adds yaw
-    // through the section's own channel, so the bar turns as the reader advances
-    // the four stages — the section is about a sequence, and the bar tracks it.
-    bar.rotation.y =
-      t * 0.085 + clamp(scrollState[channel], 0, 1) * Math.PI * 0.9;
-    bar.rotation.x = 0.34 + Math.sin(t * 0.043) * 0.16;
-    bar.rotation.z = Math.sin(t * 0.031) * 0.08;
-    bar.position.y = height * 0.3 + Math.sin(t * 0.052) * 0.1;
+    // The light pool rides with the bar, a bar's height below it and slightly
+    // behind, so the bar always has something to sit ON. It does not bob with
+    // the bar — a pool of light on a surface would not.
+    const glow = glowRef.current;
+    if (glow) {
+      glow.position.set(bar.position.x, restY - s * 0.5, -0.5);
+      glow.scale.set(s * 1.9, s * 0.55, 1);
+    }
+
+    // The pool's BOUNCE, riding below-right of the bar. This is the fix for
+    // the last achromatic pixel on the object: three.js uses the Schlick
+    // Fresnel approximation, which sends every material's reflectance to pure
+    // WHITE at grazing angles — real gold stays tinted there, because its
+    // index of refraction is complex, but the approximation cannot know that.
+    // The bar's right edge is a grazing strip, so it reflected the neutral
+    // environment at full strength: rgb(202,202,201), measured, on a gold
+    // bar. Cutting env intensity did not move it — Fresnel(90°) is 1 in every
+    // channel regardless. What fixes it is adding warm light where the white
+    // rim forms, and the scene already owns the justification: a pool of warm
+    // light under a metal bar would bounce onto its lower faces.
+    const bounce = bounceRef.current;
+    if (bounce) {
+      bounce.position.set(bar.position.x + s * 0.42, restY - s * 0.45, 0.9);
+    }
   });
 
-  return <mesh ref={ref} geometry={ingotGeometry()} material={barMaterial} />;
+  return (
+    <group>
+      <mesh ref={ref} geometry={ingotGeometry()} material={barMaterial} />
+      <sprite ref={glowRef} material={glowMaterial} />
+      <pointLight
+        ref={bounceRef}
+        color="#d99a28"
+        intensity={11}
+        distance={4}
+        decay={2}
+      />
+    </group>
+  );
 }
 
 /** The sealed valuation block, turning once every couple of minutes. */
@@ -390,14 +526,21 @@ export function AmbientScene({
       {/* The bar is PRESENTED rather than buried, so it needs a key of its own.
           The shared accent above sits behind everything and would leave a
           near-silhouette. Placed high and to the right, raking across the top
-          face so the cast surface reads as metal rather than as a gold shape. */}
+          face so the cast surface reads as metal rather than as a gold shape.
+
+          #f2cd7a at 34, down from #ffe9a8 at 46: at the old values the rim
+          highlight clipped to paper-white, and a white highlight on gold is the
+          classic tell of gold-painted plastic — a design panel called it
+          exactly that. Gold's brights should clip toward hot yellow, never
+          white; the warmer, dimmer key also softens the aliased edge the
+          blown rim was carving on non-antialiased tiers. */}
       {variant === "bar" ? (
         <pointLight
           position={[2.6, 2.2, 2.4]}
-          intensity={46}
+          intensity={27}
           distance={9}
           decay={2}
-          color="#ffe9a8"
+          color="#f2cd7a"
         />
       ) : null}
     </group>

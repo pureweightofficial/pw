@@ -67,7 +67,15 @@ export function SectionScene({
       // it lives inside the section's own opaque surface, which is why this works
       // at all. See the note in AmbientScene about why a single fixed canvas does
       // not: every section surface is opaque and would hide it.
-      className={`pointer-events-none absolute inset-0 -z-10 overflow-hidden ${className}`}
+      //
+      // `section-scene` is a MARKER for scripts/check-section-scene-contrast.mjs,
+      // not a style. The gate hides a section's copy while leaving the backdrop
+      // stack visible, and it must recognise this host exactly. It used to treat
+      // "any direct child containing the scrim" as backdrop, which broke the
+      // moment the services opener wrapped scene and copy in one band: the gate
+      // skipped the whole band, left the heading visible, and measured the
+      // heading's own glyphs against themselves.
+      className={`section-scene pointer-events-none absolute inset-0 -z-10 overflow-hidden ${className}`}
     >
       <AmbientCanvas variant={variant} channel={channel} />
 
