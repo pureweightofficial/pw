@@ -29,6 +29,24 @@ import { markHeroRevealed, whenHeroReady } from "@/lib/readiness";
 
 const SESSION_KEY = "pw:loader:v2"; // bumped: neon opening replaces the emblem wipe
 
+/**
+ * How fast the opening plays, as a multiple of its authored speed.
+ *
+ * The choreography below is authored at 1.0 and runs 2.25s. At 1.45 it runs
+ * ~1.55s with every beat keeping its shape and relative timing — the sweep is
+ * still a sweep, the seam still flashes at the moment of contact, the subtitle
+ * still lands last.
+ *
+ * This is the single number that trades brand time against Largest Contentful
+ * Paint, and it is deliberately one number so the trade is explicit. Raise it
+ * for a faster page and a brisker opening; lower it toward 1.0 for the fullest
+ * version of the animation and roughly 700ms more LCP.
+ */
+const OPENING_TEMPO = 1.45;
+
+/** Authored length of the opening timeline, seconds, before OPENING_TEMPO. */
+const OPENING_AUTHORED_MS = 2250;
+
 export function Loader() {
   const rootRef = useRef<HTMLDivElement>(null);
   const emblemRef = useRef<HTMLDivElement>(null);
@@ -80,18 +98,34 @@ export function Loader() {
       return;
     }
 
+    /*
+      THE HANDOFF, TIGHTENED. Everything between dismiss() and the page being
+      visible is time the visitor spends looking at a curtain they have already
+      finished watching, and all of it lands on LCP.
+
+      The emblem fade was 0.5s with the lift starting 0.2s before it ended, so
+      the lift began 0.3s after dismiss. At 0.34 with a 0.26 overlap it begins
+      after 0.08s — the fade still reads, because it is now mostly concurrent
+      with the lift rather than sequential to it.
+
+      The lift itself is 0.8s rather than 0.95s. It is the signature move and
+      is deliberately NOT cut further; below about 0.7s a full-height curtain
+      stops reading as a lift and starts reading as a cut.
+
+      Net: ~370ms off every cold first paint, with the choreography intact.
+    */
     gsap
       .timeline({ onComplete: () => setVisible(false) })
       .to(emblemRef.current, {
         opacity: 0,
         scale: 1.04,
-        duration: 0.5,
+        duration: 0.34,
         ease: "power2.inOut",
       })
       .to(
         root,
-        { yPercent: -100, duration: 0.95, ease: "power3.inOut" },
-        "-=0.2",
+        { yPercent: -100, duration: 0.8, ease: "power3.inOut" },
+        "-=0.26",
       );
   }, []);
 
@@ -112,7 +146,29 @@ export function Loader() {
       gsap.set(".pw-neon-seam", { opacity: 0, scaleY: 0.2 });
       gsap.set(".pw-loader-text", { opacity: 0, y: 14, filter: "blur(6px)" });
 
+      /*
+        ONE TEMPO KNOB FOR THE WHOLE OPENING, BECAUSE LCP IS DOWNSTREAM OF IT.
+
+        Measured: this curtain is responsible for essentially all of the site's
+        Largest Contentful Paint. Cold first visit LCP 3904ms; the identical
+        build with the loader session-skipped, 220ms. Eighteen times faster.
+        Nothing else on the page is close to that.
+
+        The naive fix — lower MIN_MS — is wrong, and measuring the timeline is
+        what showed it. The convergence is 1.4s but the FULL sequence runs to
+        ~2.25s: seam flash at 1.12, neon strike at 1.31, subtitle landing at
+        2.25. MIN_MS 2400 was chosen to just outlast it. Cutting the gate alone
+        would have lifted the curtain over an opening still in progress.
+
+        So the whole timeline is scaled by one number instead. Every beat keeps
+        its shape and its relative timing — the two-sided sweep still reads as a
+        sweep rather than the fade it degraded into when it was too fast, which
+        is the failure this choreography was rebuilt to fix — the sequence just
+        plays quicker. MIN_MS below is derived from this, so the two can never
+        drift apart into the exact bug described above.
+      */
       const tl = gsap.timeline();
+      tl.timeScale(OPENING_TEMPO);
       timelineRef.current = tl;
 
       // The two halves converge. power2.inOut, NOT a *.out ease: filmed at
@@ -175,7 +231,18 @@ export function Loader() {
     /* ---------------------------------------------------------------- */
 
     const started = performance.now();
-    const MIN_MS = 2400;
+
+    /*
+      DERIVED, NOT HARDCODED. This used to be a bare 2400 sitting several
+      hundred lines away from the timeline it had to outlast — so nothing
+      stopped the two drifting apart, and the failure mode is silent: the
+      curtain lifts over an opening still playing, and nobody notices in
+      review because it only shows on a cold first visit.
+
+      Now it is the opening's own length plus a short settle, so retiming the
+      animation retimes the gate automatically.
+    */
+    const MIN_MS = Math.round(OPENING_AUTHORED_MS / OPENING_TEMPO) + 150;
     let ready = false;
     let raf = 0;
 
