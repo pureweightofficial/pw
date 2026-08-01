@@ -63,8 +63,44 @@ import { markHeroReady, whenHeroRevealed } from "@/lib/readiness";
  * WebM's whole justification was fewer bytes, and it lost, so there is one file.
  */
 
+/**
+ * TWO CUTS OF THE FILM, BECAUSE ONE CANNOT SURVIVE BOTH SHAPES.
+ *
+ * The master is 1280x720. On a 390x844 phone, `object-fit: cover` scales it to
+ * 1500x844 and shows 390 of those 1500 pixels — 26% of the frame's width. The
+ * subject is a wide circular emblem: ring, PW medallion, beam and two pans. At
+ * 26% you keep the column and the top finial and lose everything that makes it
+ * readable, which is exactly what the client photographed and asked about.
+ *
+ * No `object-position` fixes that. The subject is simply wider than the window,
+ * so the crop has to be art-directed rather than computed — and `contain` is
+ * not the answer either, because it reintroduces the letterbox band and hard
+ * seam that were removed once already.
+ *
+ * `hero-portrait.mp4` is composed FOR the tall frame: the full emblem scaled to
+ * the width, over a heavily blurred and darkened continuation of the film
+ * itself, with the join feathered so no rectangle is visible. It fills the frame
+ * — no bars, no empty space, no stretching, and nothing cropped that matters.
+ * The lower half settles to near-black, which is where the hero copy sits.
+ */
 const STILL = assetPath("/video/hero-still.jpg");
 const FILM = assetPath("/video/hero-atmosphere.mp4");
+const STILL_PORTRAIT = assetPath("/video/hero-portrait-still.jpg");
+const FILM_PORTRAIT = assetPath("/video/hero-portrait.mp4");
+
+/**
+ * SHAPE, NOT WIDTH.
+ *
+ * The first version of this keyed on `(max-width: 1023px)`, mirroring the CSS
+ * breakpoint — and a 844x390 phone in landscape then got the PORTRAIT cut,
+ * verified in the browser. A 0.48:1 film inside a 2.16:1 frame is the original
+ * bug turned on its side: `cover` would crop it to a thin horizontal band.
+ *
+ * Which cut fits is a question about the frame's SHAPE alone. Taller than wide
+ * takes the portrait cut; anything else takes the 16:9 master, which is far
+ * closer to a landscape phone's proportions than the portrait cut could be.
+ */
+const PORTRAIT_QUERY = "(max-aspect-ratio: 1/1)";
 
 /**
  * Longest the opening will wait for a reveal signal before starting anyway.
@@ -141,6 +177,55 @@ export function HeroVideo({ paused, onActiveChange }: HeroVideoProps) {
 
   const [failed, setFailed] = useState(false);
   const [started, setStarted] = useState(false);
+
+  /*
+    WHICH CUT TO PLAY — and why this is JavaScript rather than <source media>.
+
+    `<source media="...">` is evaluated ONCE, when the element loads its media.
+    No browser re-evaluates it when the viewport changes, so a phone turned from
+    portrait to landscape would keep playing the portrait cut, letterboxed inside
+    a wide frame. The client asked specifically about orientation changes, so the
+    selection has to be live.
+
+    matchMedia covers every target browser (Chrome, Safari, Firefox, Edge,
+    Samsung Internet) and fires on both rotation and resize. `false` on the
+    server and on the first client render, so hydration matches; the effect
+    corrects it before the curtain lifts.
+  */
+  const [portrait, setPortrait] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia(PORTRAIT_QUERY);
+    const sync = () => setPortrait(mq.matches);
+    sync();
+    // addEventListener over the deprecated addListener; Safari has supported it
+    // since 14, and the fallback below covers anything older.
+    if (mq.addEventListener) {
+      mq.addEventListener("change", sync);
+      return () => mq.removeEventListener("change", sync);
+    }
+    mq.addListener(sync);
+    return () => mq.removeListener(sync);
+  }, []);
+
+  const film = portrait ? FILM_PORTRAIT : FILM;
+  const still = portrait ? STILL_PORTRAIT : STILL;
+
+  /*
+    Changing a <video>'s `src` does not by itself swap what is playing in every
+    browser — the element keeps its current media until told to reload. This
+    reloads and resumes only AFTER playback has already started, so it never
+    interferes with the first-play sequence above, and only on a real
+    orientation change, which is a deliberate and rare user action.
+  */
+  useEffect(() => {
+    const node = videoRef.current;
+    if (!node || !started) return;
+    node.load();
+    void node.play().catch(() => {
+      /* autoplay refused after a reload — the still underneath still shows */
+    });
+  }, [film, started]);
 
   /**
    * `capability` is null until after mount, so the first client render matches
@@ -302,7 +387,7 @@ export function HeroVideo({ paused, onActiveChange }: HeroVideoProps) {
   return (
     <div ref={wrapperRef} className="absolute inset-0 overflow-hidden">
       <Image
-        src={STILL}
+        src={still}
         alt=""
         aria-hidden="true"
         fill
@@ -357,7 +442,7 @@ export function HeroVideo({ paused, onActiveChange }: HeroVideoProps) {
             setFailed(true);
             markHeroReady();
           }}
-          src={FILM}
+          src={film}
         />
       ) : null}
     </div>

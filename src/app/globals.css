@@ -1133,7 +1133,18 @@
      * that survives the crop.
      */
     object-fit: cover;
-    object-position: 50% 38%;
+    /*
+      CENTRE, now that the portrait cut exists.
+
+      50% 38% was a best-effort bias on the LANDSCAPE master: it favoured the
+      beam and finial over the plinth, because a 26%-wide slice of a 16:9 frame
+      had to sacrifice something. That slice is gone — HeroVideo now serves
+      hero-portrait.mp4 here, composed for a tall frame with the whole emblem
+      inside it — so there is nothing left to bias towards. The source is
+      0.48:1 against a hero that ranges roughly 0.46-0.50, so `cover` trims a
+      few percent off one axis and the emblem never comes near an edge.
+    */
+    object-position: center;
   }
 
   @media (min-width: 1024px) and (min-aspect-ratio: 4 / 3) {
