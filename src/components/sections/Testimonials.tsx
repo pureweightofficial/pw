@@ -23,11 +23,9 @@ import { SectionScene } from "@/components/ui/SectionScene";
 /** Replace with client-approved testimonials. Keep the shape. */
 const testimonials: { quote: string; name: string; context: string }[] = [];
 
-const SLOT_COUNT = 3;
-
 export function Testimonials() {
   const [index, setIndex] = useState(0);
-  const total = testimonials.length || SLOT_COUNT;
+  const total = testimonials.length;
   const current = testimonials[index];
 
   const go = (next: number) => setIndex((next + total) % total);
@@ -83,34 +81,51 @@ export function Testimonials() {
           )}
         </div>
 
-        {/* Controls. Present and functional even while the slots are empty, so
-            the interaction can be reviewed and tested before content lands. */}
-        <div className="mt-12 flex items-center justify-center gap-8">
-          <button
-            type="button"
-            onClick={() => go(index - 1)}
-            disabled={testimonials.length === 0}
-            className="flex h-11 w-11 items-center justify-center border border-gold-antique/28 text-gold-antique transition-colors duration-300 enabled:hover:border-gold-rich enabled:hover:text-gold-high disabled:opacity-30"
-          >
-            <span className="sr-only">Previous testimonial</span>
-            <span aria-hidden="true">←</span>
-          </button>
+        {/*
+          THE COUNTER USED TO LIE.
 
-          <p className="text-[0.62rem] tracking-[0.24em] text-ash uppercase tabular-nums">
-            {String(index + 1).padStart(2, "0")} /{" "}
-            {String(total).padStart(2, "0")}
-          </p>
+          `total` was `testimonials.length || SLOT_COUNT`, so with the array
+          empty it fell back to 3 and the page rendered "01 / 03" — directly
+          above a paragraph saying no testimonials have been supplied. Two
+          contradictory statements, and the counter is the one a skimming
+          visitor reads. On a site whose entire discipline is that nothing
+          unverified may render as fact, a pager asserting three reviews exist
+          is the same class of error as inventing the quotes themselves.
 
-          <button
-            type="button"
-            onClick={() => go(index + 1)}
-            disabled={testimonials.length === 0}
-            className="flex h-11 w-11 items-center justify-center border border-gold-antique/28 text-gold-antique transition-colors duration-300 enabled:hover:border-gold-rich enabled:hover:text-gold-high disabled:opacity-30"
-          >
-            <span className="sr-only">Next testimonial</span>
-            <span aria-hidden="true">→</span>
-          </button>
-        </div>
+          The controls shipped early so the interaction could be "reviewed and
+          tested before content lands", but they were `disabled` whenever the
+          array was empty — a disabled control demonstrates nothing. So the row
+          renders only when there is something to page through, which also
+          removes ~100px of dead furniture from the emptiest section on the
+          page and retires the `% total` division by zero that was one enabled
+          button away from producing NaN.
+        */}
+        {total > 0 && (
+          <div className="mt-12 flex items-center justify-center gap-8">
+            <button
+              type="button"
+              onClick={() => go(index - 1)}
+              className="flex h-11 w-11 items-center justify-center border border-gold-antique/28 text-gold-antique transition-colors duration-300 hover:border-gold-rich hover:text-gold-high"
+            >
+              <span className="sr-only">Previous testimonial</span>
+              <span aria-hidden="true">←</span>
+            </button>
+
+            <p className="text-[0.62rem] tracking-[0.24em] text-ash uppercase tabular-nums">
+              {String(index + 1).padStart(2, "0")} /{" "}
+              {String(total).padStart(2, "0")}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => go(index + 1)}
+              className="flex h-11 w-11 items-center justify-center border border-gold-antique/28 text-gold-antique transition-colors duration-300 hover:border-gold-rich hover:text-gold-high"
+            >
+              <span className="sr-only">Next testimonial</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        )}
       </div>
     </Section>
   );

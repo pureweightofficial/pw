@@ -91,21 +91,43 @@ export function TrustEvidence() {
       <div className="shell">
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-16">
           <div className="lg:col-span-5">
-            <Eyebrow className="mb-8 will-reveal">Evidence</Eyebrow>
-            <h2
-              id="evidence-heading"
-              className="font-display text-chapter font-normal text-ivory will-reveal"
-            >
-              Checkable,{" "}
-              <span className="accent-italic text-gold-high/90">
-                not claimed
-              </span>
-            </h2>
-            <p className="mt-7 max-w-md text-lead text-ash will-reveal">
-              Anything below that is not filled in has not been verified, and is
-              shown as an open slot rather than filled with something plausible.
-              That is deliberate.
-            </p>
+            {/*
+              STICKY, LIKE EVERY OTHER SECTION WITH THIS SHAPE.
+
+              Measured at 1440x900: this heading block is 318px of content
+              beside a 1049px ledger, leaving a 731px dead rail once the heading
+              scrolls away. That was the largest genuinely empty region on the
+              page — and the only large one that was not an artefact of
+              screenshotting a section taller than the viewport, which breaks
+              position:sticky and invents voids that no visitor ever sees.
+
+              Six sections share this short-column/long-column split. Brand
+              story (611px beside 908px), the assay experience and the journey
+              all pin the short one so it travels with the reader. This one did
+              not, for no reason anyone recorded.
+
+              Pinning it costs nothing and adds no canvas. It also puts the
+              explanation where it is needed: this heading is what tells the
+              reader that the blank slots below are deliberate rather than
+              unfinished, and it used to scroll away before they reached them.
+            */}
+            <div className="lg:sticky lg:top-32">
+              <Eyebrow className="mb-8 will-reveal">Evidence</Eyebrow>
+              <h2
+                id="evidence-heading"
+                className="font-display text-chapter font-normal text-ivory will-reveal"
+              >
+                Checkable,{" "}
+                <span className="accent-italic text-gold-high/90">
+                  not claimed
+                </span>
+              </h2>
+              <p className="mt-7 max-w-md text-lead text-ash will-reveal">
+                Anything below that is not filled in has not been verified, and
+                is shown as an open slot rather than filled with something
+                plausible. That is deliberate.
+              </p>
+            </div>
           </div>
 
           <div className="lg:col-span-7">

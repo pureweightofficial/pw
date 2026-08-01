@@ -286,7 +286,31 @@ export function Section({
       id={id}
       aria-labelledby={labelledBy}
       data-scroll-section={scrollSection}
-      className={`relative isolate overflow-hidden ${MATERIALS[material]} ${material !== "none" ? "grain" : ""} ${className}`}
+      /*
+        `overflow-clip`, NOT `overflow-hidden`, AND THE DIFFERENCE IS LOAD-BEARING.
+
+        Both clip a scene or a glow that overruns the section box, which is all
+        this was ever for. But `overflow: hidden` also makes the element a
+        SCROLL CONTAINER, and a scroll container becomes the nearest scrolling
+        ancestor for any `position: sticky` descendant. The section box does not
+        itself scroll, so those descendants had no range to stick within and
+        simply travelled with the page.
+
+        Four sections pin a short column beside a long one — the journey stages,
+        the assay ring, the brand story and now the evidence ledger — and not
+        one of them worked. Measured before the change, at 1440x900: the brand
+        story's pinned column reported viewport-top 288, then -12, then -312,
+        then -612 across four 300px scroll steps. Exactly 1:1 with scroll, which
+        is the signature of an element that is not sticking at all.
+
+        The visible cost was a dead rail beside each of those sections — up to
+        731px in the evidence ledger — that looked like a design decision and
+        was actually a bug. `overflow: clip` clips identically without creating
+        the scroll container, so sticky resolves against the viewport again.
+        Verified by scripts/check-sticky.mjs, which fails the build if any of
+        these columns stops pinning.
+      */
+      className={`relative isolate overflow-clip ${MATERIALS[material]} ${material !== "none" ? "grain" : ""} ${className}`}
     >
       {children}
     </section>

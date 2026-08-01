@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { assetPath } from "@/lib/asset";
@@ -112,7 +113,7 @@ export function Services() {
                         />
                       </>
                     ) : (
-                      <ServicePlate index={index} />
+                      <ServicePlate index={index} title={service.title} />
                     )}
                     <span className="absolute left-5 top-5 font-display text-6xl font-normal text-gold-antique/75">
                       {service.index}
@@ -188,12 +189,52 @@ export function Services() {
 
 /**
  * One engraved motif per service, drawn from the emblem's vocabulary:
- * graduations, stacked bars, concentric bands and a vaulted arch. Struck rather
- * than drawn — every line has a dark cut and a lit shoulder, so the plate reads
- * as metal under the same key light as everything else.
+ * graduations, stacked bars and concentric bands. Struck rather than drawn —
+ * every line has a dark cut and a lit shoulder, so the plate reads as metal
+ * under the same key light as everything else.
+ *
+ * KEYED BY WHAT THE PANEL IS, NOT WHERE IT SITS.
+ *
+ * These used to be picked with `index === 0 … index === 3`, written when the
+ * services were Gold Valuation / Bullion Exchange / Jewellery Evaluation /
+ * Private Appointments — which is still what the motif docstrings below say.
+ * The services were later rewritten to Jewellery / Silver / Coins / Bars &
+ * Bullion, and the positional test silently re-pointed every motif at a panel
+ * it was not drawn for.
+ *
+ * It went unnoticed for three of the four, because those panels carry
+ * photographs and never reach the plate at all. The one panel that DOES render
+ * a plate — Bars & Bullion — was drawing a vaulted doorway designed for a
+ * private-appointments service this business does not offer. That doorway was
+ * the only engraved artwork visible anywhere on the site. Meanwhile
+ * `BullionMotif`, whose stacked bar edges were drawn for exactly this panel,
+ * was pointed at Silver and could never appear.
+ *
+ * The doorway has been deleted rather than reassigned: its service is gone, and
+ * orphaned artwork sitting in the file waiting for a positional match is what
+ * caused this. This is the second time positional selection has done it here —
+ * the pillar medallions had the same bug. Keying by identity means a content
+ * rewrite can no longer silently re-point artwork, and an unrecognised title
+ * falls back to the plain plate rather than to whichever motif happens to be
+ * third in the file.
  */
-function ServicePlate({ index }: { index: number }) {
+const MOTIFS: Record<string, (p: { uid: string }) => ReactElement> = {
+  // Concentric bands under inspection — what this one was drawn for.
+  "Gold Jewellery": BandMotif,
+  // The graduated arc: silver is weighed on the same basis, against its own price.
+  Silver: GraduationMotif,
+  // Stacked bar edges seen end-on. The only plate that currently renders.
+  "Bars & Bullion": BullionMotif,
+  // Coins is deliberately absent. There are three motifs and four panels, and no
+  // coin motif was ever drawn. Giving it a duplicate of another panel's artwork
+  // would look like a mistake the moment two plates were visible at once, so it
+  // falls back to the plain struck plate — which is honest and, since Coins
+  // carries a photograph, currently unreachable anyway.
+};
+
+function ServicePlate({ index, title }: { index: number; title: string }) {
   const uid = `plate-${index}`;
+  const Motif = MOTIFS[title];
 
   return (
     <svg
@@ -225,10 +266,7 @@ function ServicePlate({ index }: { index: number }) {
       <rect width="400" height="500" fill={`url(#${uid}-metal)`} />
       <rect width="400" height="500" fill={`url(#${uid}-glow)`} />
 
-      {index === 0 ? <GraduationMotif uid={uid} /> : null}
-      {index === 1 ? <BullionMotif uid={uid} /> : null}
-      {index === 2 ? <BandMotif uid={uid} /> : null}
-      {index === 3 ? <ArchMotif uid={uid} /> : null}
+      {Motif ? <Motif uid={uid} /> : null}
 
       {/* Inner rule — the plate's own frame, kept a hair inside the edge. */}
       <rect
@@ -375,54 +413,3 @@ function BandMotif({ uid }: { uid: string }) {
   );
 }
 
-/** PRIVATE APPOINTMENTS — a vaulted opening into a lit room. */
-function ArchMotif({ uid }: { uid: string }) {
-  return (
-    <g>
-      <path
-        d="M 116 400 L 116 214 A 84 84 0 0 1 284 214 L 284 400"
-        fill="none"
-        stroke={`url(#${uid}-gold)`}
-        strokeOpacity="0.6"
-        strokeWidth="1.6"
-      />
-      <path
-        d="M 138 400 L 138 220 A 62 62 0 0 1 262 220 L 262 400"
-        fill="none"
-        stroke={`url(#${uid}-gold)`}
-        strokeOpacity="0.34"
-        strokeWidth="1"
-      />
-      {/* Light falling through the opening. */}
-      <path
-        d="M 160 400 L 200 236 L 240 400 Z"
-        fill={`url(#${uid}-gold)`}
-        opacity="0.07"
-      />
-      <line
-        x1="116"
-        y1="400"
-        x2="284"
-        y2="400"
-        stroke={`url(#${uid}-gold)`}
-        strokeOpacity="0.7"
-        strokeWidth="2"
-      />
-      <circle
-        cx="200"
-        cy="196"
-        r="6"
-        fill={`url(#${uid}-gold)`}
-        opacity="0.9"
-      />
-      {/* Filigree spandrels. */}
-      <path
-        d="M 118 216 q 20 -14 30 -34 M 282 216 q -20 -14 -30 -34"
-        fill="none"
-        stroke={`url(#${uid}-gold)`}
-        strokeOpacity="0.42"
-        strokeWidth="1.2"
-      />
-    </g>
-  );
-}
