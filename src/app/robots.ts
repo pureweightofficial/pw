@@ -20,7 +20,7 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         /**
-         * ONLY the API is blocked here.
+         * ONLY the API and the keeper are blocked here.
          *
          * The unwritten legal shells and the insights index are excluded from
          * search by a `noindex` robots meta tag instead — deliberately, because
@@ -30,8 +30,15 @@ export default function robots(): MetadataRoute.Robots {
          *
          * Disallow blocks crawling. Noindex blocks indexing. Wanting the second
          * means permitting the first.
+         *
+         * The keeper (the owner's admin panel at /keeper/) gets BOTH: it is a
+         * static file whose HTML carries its own noindex meta, and there is
+         * nothing on it worth a crawler's time under any circumstances — it
+         * is a login screen. The usual trade-off above is about pages whose
+         * absence from results matters more than their contents; this one has
+         * no contents.
          */
-        disallow: ['/api/'],
+        disallow: ['/api/', '/keeper/'],
       },
     ],
     sitemap: `${base}/sitemap.xml`,

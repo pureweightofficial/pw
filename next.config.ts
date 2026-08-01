@@ -93,7 +93,16 @@ const nextConfig: NextConfig = {
                     "style-src 'self' 'unsafe-inline'",
                     "img-src 'self' data: blob:",
                     "font-src 'self'",
-                    "connect-src 'self'",
+                    /*
+                     * api.github.com: the keeper panel (/keeper/) signs in
+                     * and commits from the browser. On GitHub Pages this
+                     * header never ships — Pages cannot set headers — so the
+                     * panel works there by default. But the day this site
+                     * moves to a node host, a bare connect-src 'self' would
+                     * silently break the owner's only editing tool.
+                     * raw.githubusercontent.com is the CMS's media preview.
+                     */
+                    "connect-src 'self' https://api.github.com https://raw.githubusercontent.com",
                     "worker-src 'self' blob:",
                     "object-src 'none'",
                     "base-uri 'self'",

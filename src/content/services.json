@@ -1,0 +1,46 @@
+{
+  "jewellery": {
+    "summary": "Worn, broken, inherited or unwanted — in any condition.",
+    "body": "Chains, rings, bracelets, earrings and pendants, whether whole or in pieces. Nothing needs to be a matching pair, in working order, or worth anything in particular before it is worth bringing in.",
+    "points": [
+      "Any carat, 9ct to 24ct",
+      "Broken and single pieces",
+      "Stones and settings allowed for"
+    ],
+    "image": "/img/jewellery.jpg",
+    "imageAlt": "A wide diamond-set gold bangle photographed against black, its stones catching a single warm light."
+  },
+  "silver": {
+    "summary": "Hallmarked silver, from jewellery to tableware.",
+    "body": "Silver is weighed and assessed on the same basis as gold, against its own market price. Plated items contain very little recoverable silver, and we will tell you plainly when that is what you have.",
+    "points": [
+      "Sterling and 800 silver",
+      "Jewellery, cutlery, tableware",
+      "Plate identified honestly"
+    ],
+    "image": "/img/silver.jpg",
+    "imageAlt": "A silver filigree butterfly pendant among fine chains and carved shell blossoms, on black."
+  },
+  "coins": {
+    "summary": "Precious-metal coins, whether collected or inherited.",
+    "body": "Coins are looked at twice: once for the metal in them, and once for whether the coin itself is worth more than that metal. Where the second is true you are told so, rather than paid for the weight.",
+    "points": [
+      "Sovereigns and krugerrands",
+      "Pre-decimal silver",
+      "Collections and single coins"
+    ],
+    "image": "/img/coins.jpg",
+    "imageAlt": "A hammered gold sovereign, its shield-and-Tudor-rose reverse struck in deep relief, lit against a dark ground."
+  },
+  "bullion": {
+    "summary": "Investment bars and coins, assessed on weight and stated fineness.",
+    "body": "Refiner marks and stated fineness are checked against the physical weight of the piece. Recognised bullion is handled on its own terms rather than treated as scrap metal.",
+    "points": [
+      "Refiner mark checked",
+      "Weight verified at the counter",
+      "Bars and investment coins"
+    ],
+    "image": "/img/bullion.jpg",
+    "imageAlt": "Three cast gold bars stacked on a dark surface under a shaft of warm light, scattered with small gold grains, carrying no refiner markings."
+  }
+}

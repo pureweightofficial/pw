@@ -12,7 +12,16 @@ const eslintConfig = [
   {
     // `out/` is the static export's build output — minified bundles that would
     // otherwise be linted as if they were source.
-    ignores: ['.next/**', 'out/**', 'build/**', 'node_modules/**', 'next-env.d.ts'],
+    ignores: [
+      '.next/**',
+      'out/**',
+      'build/**',
+      'node_modules/**',
+      'next-env.d.ts',
+      // The keeper panel's vendored CMS bundle: 2.4MB of minified third-party
+      // code. Linting it would hang the lint gate — which is the deploy gate.
+      'public/**',
+    ],
   },
   {
     rules: {

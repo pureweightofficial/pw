@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Eyebrow, Section } from "@/components/ui/primitives";
+import { testimonials } from "@/lib/site";
 
 /**
  * TESTIMONIALS
@@ -19,8 +20,13 @@ import { Eyebrow, Section } from "@/components/ui/primitives";
  * does not get read.
  */
 
-/** Replace with client-approved testimonials. Keep the shape. */
-const testimonials: { quote: string; name: string; context: string }[] = [];
+/*
+ * Sourced from src/content/testimonials.json via the keeper panel (imported
+ * through @/lib/site above). Adding a real, client-approved quote there is
+ * the ONLY way content appears here — the empty state below renders until one
+ * exists, and the build gate refuses entries missing a name or context, so an
+ * anonymous or half-attributed quote cannot ship.
+ */
 
 export function Testimonials() {
   const [index, setIndex] = useState(0);

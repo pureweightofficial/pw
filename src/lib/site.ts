@@ -19,6 +19,11 @@
  * A checklist of every outstanding item is in CONTENT-PLACEHOLDERS.md.
  */
 
+import content from "@/content/business.json";
+import servicesContent from "@/content/services.json";
+import testimonialsContent from "@/content/testimonials.json";
+import { BUSINESS_RULES, SERVICE_IDS } from "@/lib/content-schema";
+
 export type Verifiable<T> =
   { status: "verified"; value: T } | { status: "placeholder"; label: string };
 
@@ -106,39 +111,83 @@ export type BusinessFacts = {
   social: Verifiable<string[]>;
 };
 
+/**
+ * THE FACTS NOW LIVE IN src/content/business.json, EDITED BY THE OWNER AT
+ * /keeper — AND STATUS IS DERIVED, NEVER ASSERTED.
+ *
+ * The panel has no "verified" switch. A field FILLED IN becomes a fact; a
+ * field LEFT BLANK renders as the same visible placeholder as always. The
+ * `[INSERT …]` labels live in content-schema.ts, which the panel does not
+ * expose, so the owner cannot edit the guardrail — only the content.
+ *
+ * Three qualifications a value must clear before it is treated as fact:
+ *   - non-empty after trimming;
+ *   - matching its schema pattern (a phone number must look like one);
+ *   - accompanied by its companions (`insurance` without `insuranceIssuer`
+ *     stays a placeholder — a credential that cannot name its issuer is not
+ *     a credential).
+ *
+ * scripts/check-content.mjs enforces the same table in CI before the export,
+ * so malformed JSON fails the build rather than shipping. The address was
+ * verified 2026-07-31 (supplied by the client) and is seeded in the JSON.
+ */
+const str = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
+
+function deriveFact(key: keyof typeof BUSINESS_RULES): Verifiable<string> {
+  const rule = BUSINESS_RULES[key];
+  const value = str((content as Record<string, unknown>)[key]);
+  if (value === "") return pending(rule.placeholder);
+  if ("pattern" in rule && rule.pattern && !new RegExp(rule.pattern).test(value)) {
+    return pending(rule.placeholder);
+  }
+  if ("requires" in rule && rule.requires) {
+    for (const companion of rule.requires) {
+      if (str((content as Record<string, unknown>)[companion]) === "") {
+        return pending(rule.placeholder);
+      }
+    }
+  }
+  return { status: "verified", value: composeFact(key, value) };
+}
+
+/** Folds a credential's companion into its rendered value. */
+function composeFact(key: string, value: string): string {
+  if (key === "insurance") return `${value} — ${str(content.insuranceIssuer)}`;
+  if (key === "reviewScore") return `${value} — ${str(content.reviewScoreSource)}`;
+  return value;
+}
+
+function deriveSocial(): Verifiable<string[]> {
+  const raw = Array.isArray(content.social) ? content.social : [];
+  const urls = raw.map(str).filter((u) => /^https:\/\/.+/.test(u));
+  return urls.length > 0
+    ? { status: "verified", value: urls }
+    : pending(BUSINESS_RULES.social.placeholder);
+}
+
 export const business: BusinessFacts = {
-  legalName: pending("[INSERT REGISTERED LEGAL NAME]"),
-  registrationNumber: pending("[INSERT VERIFIED BUSINESS REGISTRATION NUMBER]"),
-  vatNumber: pending("[INSERT VAT / TAX NUMBER, IF APPLICABLE]"),
-  yearEstablished: pending("[INSERT CONFIRMED YEAR ESTABLISHED]"),
-  /**
-   * VERIFIED 2026-07-31, supplied by the client. The first field in this file to
-   * graduate from placeholder to fact — and the one that turns a visit-driven
-   * site from a brochure into a destination.
-   */
-  address: {
-    status: "verified",
-    value: "250 John W Morrow Jr Pkwy #121, Gainesville, GA 30501",
-  },
-  serviceArea: pending("[INSERT CONFIRMED SERVICE AREA]"),
-  telephone: pending("[INSERT VERIFIED TELEPHONE NUMBER]"),
-  email: pending("[INSERT VERIFIED ENQUIRY EMAIL ADDRESS]"),
-  openingHours: pending("[INSERT CONFIRMED OPENING HOURS]"),
-  appointmentProcess: pending("[INSERT VERIFIED APPOINTMENT PROCESS]"),
-  settlementMethods: pending("[INSERT CONFIRMED SETTLEMENT / PAYMENT METHODS]"),
-  priceReferenceSource: pending(
-    "[INSERT APPROVED GOLD-PRICE REFERENCE SOURCE]",
-  ),
-  insurance: pending("[INSERT VERIFIED INSURANCE DETAILS]"),
-  memberships: pending("[INSERT VERIFIED PROFESSIONAL MEMBERSHIPS]"),
-  certifications: pending("[INSERT VERIFIED CERTIFICATIONS]"),
-  licences: pending("[INSERT VERIFIED LICENCES]"),
-  securityProcedures: pending("[INSERT CONFIRMED SECURITY PROCEDURES]"),
-  weighingEquipment: pending("[INSERT CONFIRMED WEIGHING / ASSAY EQUIPMENT]"),
-  reviewScore: pending("[INSERT GENUINE AGGREGATE REVIEW SCORE + SOURCE]"),
-  founderMessage: pending("[INSERT FOUNDER MESSAGE]"),
-  foundingStory: pending("[INSERT VERIFIED FOUNDING STORY]"),
-  social: pending("[INSERT CONFIRMED SOCIAL CHANNELS]"),
+  legalName: deriveFact("legalName"),
+  registrationNumber: deriveFact("registrationNumber"),
+  vatNumber: deriveFact("vatNumber"),
+  yearEstablished: deriveFact("yearEstablished"),
+  address: deriveFact("address"),
+  serviceArea: deriveFact("serviceArea"),
+  telephone: deriveFact("telephone"),
+  email: deriveFact("email"),
+  openingHours: deriveFact("openingHours"),
+  appointmentProcess: deriveFact("appointmentProcess"),
+  settlementMethods: deriveFact("settlementMethods"),
+  priceReferenceSource: deriveFact("priceReferenceSource"),
+  insurance: deriveFact("insurance"),
+  memberships: deriveFact("memberships"),
+  certifications: deriveFact("certifications"),
+  licences: deriveFact("licences"),
+  securityProcedures: deriveFact("securityProcedures"),
+  weighingEquipment: deriveFact("weighingEquipment"),
+  reviewScore: deriveFact("reviewScore"),
+  founderMessage: deriveFact("founderMessage"),
+  foundingStory: deriveFact("foundingStory"),
+  social: deriveSocial(),
 };
 
 /* -------------------------------------------------------------------------- */
@@ -296,94 +345,89 @@ export type Service = {
  * your hand — and never a process promise, a timescale or a rate. Those remain
  * unverified business facts behind the placeholder guard.
  */
-export const services: readonly Service[] = [
-  {
-    index: "01",
-    title: "Gold Jewellery",
-    summary: "Worn, broken, inherited or unwanted — in any condition.",
-    body: "Chains, rings, bracelets, earrings and pendants, whether whole or in pieces. Nothing needs to be a matching pair, in working order, or worth anything in particular before it is worth bringing in.",
-    points: [
-      "Any carat, 9ct to 24ct",
-      "Broken and single pieces",
-      "Stones and settings allowed for",
-    ],
-    cta: "Bring Jewellery In",
-    image: "/img/jewellery.jpg",
-    imageAlt:
-      "A wide diamond-set gold bangle photographed against black, its stones catching a single warm light.",
-    enquiryHref: "/contact",
-    confirmed: true,
-  },
-  {
-    index: "02",
-    title: "Silver",
-    summary: "Hallmarked silver, from jewellery to tableware.",
-    body: "Silver is weighed and assessed on the same basis as gold, against its own market price. Plated items contain very little recoverable silver, and we will tell you plainly when that is what you have.",
-    points: [
-      "Sterling and 800 silver",
-      "Jewellery, cutlery, tableware",
-      "Plate identified honestly",
-    ],
-    cta: "Bring Silver In",
-    image: "/img/silver.jpg",
-    imageAlt:
-      "A silver filigree butterfly pendant among fine chains and carved shell blossoms, on black.",
-    enquiryHref: "/contact",
-    confirmed: true,
-  },
-  {
-    index: "03",
-    title: "Coins",
-    summary: "Precious-metal coins, whether collected or inherited.",
-    body: "Coins are looked at twice: once for the metal in them, and once for whether the coin itself is worth more than that metal. Where the second is true you are told so, rather than paid for the weight.",
-    points: [
-      "Sovereigns and krugerrands",
-      "Pre-decimal silver",
-      "Collections and single coins",
-    ],
-    cta: "Bring Coins In",
-    image: "/img/coins.jpg",
-    imageAlt:
-      "A hammered gold sovereign, its shield-and-Tudor-rose reverse struck in deep relief, lit against a dark ground.",
-    enquiryHref: "/contact",
-    confirmed: true,
-  },
-  {
-    index: "04",
-    title: "Bars & Bullion",
-    summary:
-      "Investment bars and coins, assessed on weight and stated fineness.",
-    body: "Refiner marks and stated fineness are checked against the physical weight of the piece. Recognised bullion is handled on its own terms rather than treated as scrap metal.",
-    points: [
-      "Refiner mark checked",
-      "Weight verified at the counter",
-      "Bars and investment coins",
-    ],
-    cta: "Bring Bullion In",
-    /*
-      NOT A PHOTOGRAPH — a render of this site's OWN bar geometry, and that
-      distinction is the whole reason this panel finally has an image.
+/**
+ * THE SKELETON IS CODE; THE COPY IS CONTENT.
+ *
+ * Owner-editable strings (summary, body, points, image, imageAlt) come from
+ * src/content/services.json via the keeper panel. Everything STRUCTURAL stays
+ * here, deliberately out of the panel's reach:
+ *
+ *   - the four ids and their order. The panel cannot add or remove a service
+ *     panel: services.json is modelled as four fixed objects, not a list, and
+ *     this skeleton is what renders. An id missing from the JSON falls back
+ *     to nothing-rendered-wrong: the build gate fails first.
+ *   - `title`. Services.tsx keys its engraved plate artwork by title (after
+ *     two positional-selection bugs), and the chapter list and nav reference
+ *     these names. Renaming a service is a design change, not a content edit.
+ *   - `confirmed`. The client confirmed these four categories; the panel must
+ *     not be able to mark an unconfirmed category as confirmed.
+ *   - images remain subject to public/img/CREDITS.md — the bullion image is
+ *     the client's own (no refiner marks, checked at full resolution); its
+ *     predecessor was removed for carrying another refiner's trademark,
+ *     "1 KILO / 999.9 FINE GOLD" and three serials. The gate re-checks that
+ *     every image has alt text, but provenance stays a human judgement.
+ */
+type EditableService = {
+  summary: string;
+  body: string;
+  points: string[];
+  image: string;
+  imageAlt: string;
+};
 
-      The photograph that used to be here showed another refiner's trademark
-      and crest, "1 KILO / 999.9 FINE GOLD", and three bar serial numbers,
-      spread across the frame so no crop cleared them. Five search rounds
-      across Openverse, Wikimedia, Pixabay and the CC0 pool produced nothing
-      better, and the reason is structural: commercial bullion photography
-      exists to SHOW the marks, and the marks are exactly what the rubric in
-      CREDITS.md forbids.
+const SERVICE_SKELETON: readonly {
+  id: (typeof SERVICE_IDS)[number];
+  index: string;
+  title: string;
+  cta: string;
+  enquiryHref: string;
+  confirmed: boolean;
+}[] = [
+  { id: "jewellery", index: "01", title: "Gold Jewellery", cta: "Bring Jewellery In", enquiryHref: "/contact", confirmed: true },
+  { id: "silver", index: "02", title: "Silver", cta: "Bring Silver In", enquiryHref: "/contact", confirmed: true },
+  { id: "coins", index: "03", title: "Coins", cta: "Bring Coins In", enquiryHref: "/contact", confirmed: true },
+  { id: "bullion", index: "04", title: "Bars & Bullion", cta: "Bring Bullion In", enquiryHref: "/contact", confirmed: true },
+];
 
-      `ingotGeometry` has no marks to clear. It is the same bar the journey
-      section and the services opener turn, rendered as a still — so the panel
-      shows real bullion, in the brand's own light, asserting no purity and
-      carrying no third party's mark.
-    */
-    image: "/img/bullion.jpg",
-    imageAlt:
-      "Three cast gold bars stacked on a dark surface under a shaft of warm light, scattered with small gold grains, carrying no refiner markings.",
-    enquiryHref: "/contact",
-    confirmed: true,
-  },
-] as const;
+export const services: readonly Service[] = SERVICE_SKELETON.map((skeleton) => {
+  const editable = (servicesContent as Record<string, EditableService>)[
+    skeleton.id
+  ];
+  return {
+    index: skeleton.index,
+    title: skeleton.title,
+    summary: editable.summary,
+    body: editable.body,
+    points: editable.points,
+    cta: skeleton.cta,
+    // Image optional in the type; an empty path means the engraved plate.
+    ...(str(editable.image) !== ""
+      ? { image: editable.image, imageAlt: editable.imageAlt }
+      : {}),
+    enquiryHref: skeleton.enquiryHref,
+    confirmed: skeleton.confirmed,
+  };
+});
+
+/**
+ * TESTIMONIALS — owner-supplied through the keeper, empty until real ones
+ * exist. The Testimonials component renders its honest "none have been
+ * supplied" state whenever this is empty; the build gate requires quote,
+ * name and context on every entry, so a half-filled testimonial cannot ship.
+ */
+export const testimonials: readonly {
+  quote: string;
+  name: string;
+  context: string;
+}[] = (
+  (testimonialsContent.testimonials ?? []) as {
+    quote?: unknown;
+    name?: unknown;
+    context?: unknown;
+  }[]
+)
+  .map((t) => ({ quote: str(t.quote), name: str(t.name), context: str(t.context) }))
+  .filter((t) => t.quote !== "" && t.name !== "" && t.context !== "");
 
 /* -------------------------------------------------------------------------- */
 /* ASSAY FACTORS — educational, deliberately non-transactional                */
