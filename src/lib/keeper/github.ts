@@ -263,6 +263,71 @@ export async function save(token: string, plan: SavePlan): Promise<SaveResult> {
 /* PUBLISH STATUS                                                             */
 /* -------------------------------------------------------------------------- */
 
+export type RunSummary = {
+  status: string;
+  conclusion: string | null;
+  createdAt: string;
+  durationSec: number | null;
+  htmlUrl: string;
+  headSha: string;
+};
+
+/**
+ * Recent builds, for the dashboard's publish-history card. Real numbers from
+ * the repository's own CI — this dashboard shows nothing it cannot prove.
+ */
+export async function listRuns(token: string, count = 10): Promise<RunSummary[]> {
+  const runs = await gh<{
+    workflow_runs: {
+      status: string;
+      conclusion: string | null;
+      created_at: string;
+      updated_at: string;
+      html_url: string;
+      head_sha: string;
+    }[];
+  }>(token, `/repos/${REPO}/actions/runs?per_page=${count}`);
+  return runs.workflow_runs.map((r) => ({
+    status: r.status,
+    conclusion: r.conclusion,
+    createdAt: r.created_at,
+    durationSec:
+      r.status === "completed"
+        ? Math.round(
+            (new Date(r.updated_at).getTime() - new Date(r.created_at).getTime()) / 1000,
+          )
+        : null,
+    htmlUrl: r.html_url,
+    headSha: r.head_sha,
+  }));
+}
+
+export type EditSummary = {
+  message: string;
+  author: string;
+  date: string;
+  htmlUrl: string;
+};
+
+/** Recent commits touching the owner-editable content — the edit history. */
+export async function listContentEdits(
+  token: string,
+  count = 8,
+): Promise<EditSummary[]> {
+  const commits = await gh<
+    {
+      commit: { message: string; author: { name: string; date: string } };
+      html_url: string;
+    }[]
+  >(token, `/repos/${REPO}/commits?path=src/content&per_page=${count}`);
+  return commits.map((c) => ({
+    message: c.commit.message.split("\n")[0],
+    author: c.commit.author.name,
+    date: c.commit.author.date,
+    htmlUrl: c.html_url,
+  }));
+}
+
 export type PublishStatus =
   | { state: "publishing" }
   | { state: "published" }

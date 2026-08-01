@@ -37,11 +37,15 @@ import {
 import {
   CONTENT_PATHS,
   KeeperApiError,
+  listContentEdits,
+  listRuns,
   loadContent,
   publishStatus,
   save,
   validateToken,
+  type EditSummary,
   type PublishStatus,
+  type RunSummary,
   type Signee,
 } from "@/lib/keeper/github";
 import { prepareImage, type PreparedImage } from "@/lib/keeper/image";
@@ -123,7 +127,19 @@ function SectionHeading({ title, note }: { title: string; note: string }) {
 /* THE PAGE                                                                   */
 /* -------------------------------------------------------------------------- */
 
-type Tab = "business" | "services" | "testimonials";
+type Tab = "dashboard" | "business" | "services" | "testimonials";
+
+/** "3 minutes ago" — dates in an admin panel should read like speech. */
+function timeAgo(iso: string): string {
+  const sec = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
+  if (sec < 60) return "just now";
+  const min = Math.round(sec / 60);
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr} hour${hr === 1 ? "" : "s"} ago`;
+  const day = Math.round(hr / 24);
+  return `${day} day${day === 1 ? "" : "s"} ago`;
+}
 
 export default function KeeperPage() {
   const [token, setToken] = useState<string | null>(null);
@@ -136,7 +152,8 @@ export default function KeeperPage() {
   const [dirty, setDirty] = useState(false);
   const [pendingImages, setPendingImages] = useState<Record<string, PreparedImage>>({});
 
-  const [tab, setTab] = useState<Tab>("business");
+  const [tab, setTab] = useState<Tab>("dashboard");
+  const [focusField, setFocusField] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [publish, setPublish] = useState<PublishStatus | null>(null);
@@ -306,105 +323,179 @@ export default function KeeperPage() {
     );
   }
 
+  /*
+    THE SHELL — a dashboard, not a form with tabs.
+
+    The owner's reference for "professional" was a classic admin layout:
+    permanent sidebar, an overview page of cards, sections as destinations.
+    That shape carries meaning beyond looks — the dashboard view gives the
+    site a face the owner can read at a glance (what is confirmed, what is
+    missing, whether the last publish landed) before deciding what to edit.
+
+    Every number on it is REAL: derived from the content itself or from the
+    repository's CI history. This site's entire discipline is that nothing
+    unverified renders as fact, and its own admin panel does not get an
+    exemption — there are no invented visitor counts here, and there will be
+    no analytics cards until an analytics service actually exists to back
+    them.
+  */
+  const unconfirmedCount = (Object.keys(BUSINESS_RULES) as (keyof typeof BUSINESS_RULES)[])
+    .filter((k) => !isFact(business, k)).length;
+
+  const NAV: { key: Tab; label: string; badge?: number }[] = [
+    { key: "dashboard", label: "Dashboard" },
+    { key: "business", label: "Business Details", badge: unconfirmedCount },
+    { key: "services", label: "What We Buy" },
+    { key: "testimonials", label: "Testimonials" },
+  ];
+
+  const goTo = (nextTab: Tab, field?: string) => {
+    setTab(nextTab);
+    if (field) setFocusField(field);
+  };
+
   return (
-    <main className="min-h-svh pb-40">
-      {branchOverride ? (
-        <div className="border-b border-[#d8825a]/40 bg-[#d8825a]/10 px-6 py-2 text-center">
-          <span className={`${MONO_LABEL} text-[#d8825a]`}>
-            Test mode — saving to branch “{branchOverride}”, not the live site
-          </span>
+    <main className="min-h-svh lg:flex">
+      {/* ---------------------------- sidebar ------------------------- */}
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-gold-antique/20 lg:flex">
+        <div className="border-b border-gold-antique/15 px-6 py-7">
+          <p className="font-display text-2xl leading-none text-ivory">
+            Pureweight
+          </p>
+          <p className={`${MONO_LABEL} mt-2 text-gold-antique`}>The Keeper</p>
         </div>
-      ) : null}
-
-      {/* ------------------------------ header ------------------------ */}
-      <header className="border-b border-gold-antique/20">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
-          <div>
-            <p className="font-display text-xl leading-none text-ivory">
-              Pureweight
-            </p>
-            <p className={`${MONO_LABEL} mt-1.5 text-gold-antique`}>
-              The Keeper
-            </p>
-          </div>
-          <div className="flex items-center gap-6">
-            <a
-              href={assetPath("/")}
-              target="_blank"
-              rel="noopener"
-              className={`${MONO_LABEL} text-ash transition-colors hover:text-gold-high`}
-            >
-              View site ↗
-            </a>
-            <div className="text-right">
-              <p className="text-xs text-ash">{signee.login}</p>
-              <button
-                type="button"
-                onClick={signOut}
-                className={`${MONO_LABEL} text-gold-antique transition-colors hover:text-gold-high`}
-              >
-                Sign out
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* tabs */}
-        <nav className="mx-auto flex max-w-5xl gap-8 px-6" aria-label="Sections">
-          {(
-            [
-              ["business", "Business Details"],
-              ["services", "What We Buy"],
-              ["testimonials", "Testimonials"],
-            ] as const
-          ).map(([key, label]) => (
+        <nav className="flex-1 px-3 py-6" aria-label="Sections">
+          {NAV.map((item) => (
             <button
-              key={key}
+              key={item.key}
               type="button"
-              onClick={() => setTab(key)}
-              className={`${MONO_LABEL} border-b-2 pb-3 transition-colors ${
-                tab === key
-                  ? "border-gold-rich text-gold-high"
-                  : "border-transparent text-ash hover:text-ivory"
+              onClick={() => setTab(item.key)}
+              aria-current={tab === item.key ? "page" : undefined}
+              className={`${MONO_LABEL} mb-1 flex w-full items-center justify-between px-4 py-3 text-left transition-colors ${
+                tab === item.key
+                  ? "border-l-2 border-gold-rich bg-gold-antique/10 text-gold-high"
+                  : "border-l-2 border-transparent text-ash hover:bg-gold-antique/5 hover:text-ivory"
               }`}
-              aria-current={tab === key ? "page" : undefined}
             >
-              {label}
+              <span>{item.label}</span>
+              {item.badge ? (
+                <span className="ml-3 rounded-full border border-gold-antique/40 px-2 py-0.5 text-[0.58rem] text-gold-antique">
+                  {item.badge}
+                </span>
+              ) : null}
             </button>
           ))}
         </nav>
-      </header>
+        <div className="border-t border-gold-antique/15 px-6 py-5">
+          <a
+            href={assetPath("/")}
+            target="_blank"
+            rel="noopener"
+            className={`${MONO_LABEL} block text-ash transition-colors hover:text-gold-high`}
+          >
+            View site ↗
+          </a>
+          <p className="mt-4 truncate text-xs text-ash/70">{signee.login}</p>
+          <button
+            type="button"
+            onClick={signOut}
+            className={`${MONO_LABEL} mt-1 text-gold-antique transition-colors hover:text-gold-high`}
+          >
+            Sign out
+          </button>
+        </div>
+      </aside>
 
-      {/* ------------------------------ body -------------------------- */}
-      <div className="mx-auto max-w-5xl px-6 pt-10">
-        {tab === "business" ? (
-          <BusinessEditor
-            doc={business}
-            issues={issues}
-            onChange={(next) => update(businessPath, next)}
-          />
+      {/* -------------------------- main column ----------------------- */}
+      <div className="min-w-0 flex-1 pb-40">
+        {branchOverride ? (
+          <div className="border-b border-[#d8825a]/40 bg-[#d8825a]/10 px-6 py-2 text-center">
+            <span className={`${MONO_LABEL} text-[#d8825a]`}>
+              Test mode — saving to branch “{branchOverride}”, not the live site
+            </span>
+          </div>
         ) : null}
-        {tab === "services" ? (
-          <ServicesEditor
-            doc={services}
-            issues={issues}
-            onChange={(next) => update(servicesPath, next)}
-            onImage={(img) =>
-              setPendingImages((prev) => ({ ...prev, [img.repoPath]: img }))
-            }
-          />
-        ) : null}
-        {tab === "testimonials" ? (
-          <TestimonialsEditor
-            doc={testimonials}
-            issues={issues}
-            onChange={(next) => update(testimonialsPath, next)}
-          />
-        ) : null}
+
+        {/* Mobile header + nav (the sidebar is desktop-only). */}
+        <header className="border-b border-gold-antique/20 lg:hidden">
+          <div className="flex items-center justify-between px-5 py-4">
+            <div>
+              <p className="font-display text-lg leading-none text-ivory">
+                Pureweight
+              </p>
+              <p className={`${MONO_LABEL} mt-1 text-gold-antique`}>The Keeper</p>
+            </div>
+            <button
+              type="button"
+              onClick={signOut}
+              className={`${MONO_LABEL} text-gold-antique`}
+            >
+              Sign out
+            </button>
+          </div>
+          <nav className="flex gap-6 overflow-x-auto px-5" aria-label="Sections">
+            {NAV.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => setTab(item.key)}
+                aria-current={tab === item.key ? "page" : undefined}
+                className={`${MONO_LABEL} whitespace-nowrap border-b-2 pb-3 transition-colors ${
+                  tab === item.key
+                    ? "border-gold-rich text-gold-high"
+                    : "border-transparent text-ash"
+                }`}
+              >
+                {item.label}
+                {item.badge ? ` (${item.badge})` : ""}
+              </button>
+            ))}
+          </nav>
+        </header>
+
+        <div className="mx-auto max-w-5xl px-6 pt-10">
+          {tab === "dashboard" ? (
+            <DashboardView
+              token={token!}
+              business={business}
+              services={services}
+              testimonials={testimonials}
+              issues={issues}
+              dirty={dirty}
+              goTo={goTo}
+            />
+          ) : null}
+          {tab === "business" ? (
+            <BusinessEditor
+              doc={business}
+              issues={issues}
+              focusField={focusField}
+              onFocused={() => setFocusField(null)}
+              onChange={(next) => update(businessPath, next)}
+            />
+          ) : null}
+          {tab === "services" ? (
+            <ServicesEditor
+              doc={services}
+              issues={issues}
+              onChange={(next) => update(servicesPath, next)}
+              onImage={(img) =>
+                setPendingImages((prev) => ({ ...prev, [img.repoPath]: img }))
+              }
+            />
+          ) : null}
+          {tab === "testimonials" ? (
+            <TestimonialsEditor
+              doc={testimonials}
+              issues={issues}
+              onChange={(next) => update(testimonialsPath, next)}
+            />
+          ) : null}
+        </div>
       </div>
 
       {/* ---------------------------- save bar ------------------------ */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gold-antique/25 bg-void/95 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gold-antique/25 bg-void/95 backdrop-blur lg:left-64">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-4">
           <div className="min-w-0 flex-1">
             {issues.length > 0 ? (
@@ -453,6 +544,265 @@ export default function KeeperPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* DASHBOARD                                                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The overview the owner lands on. Four cards, a publish history, an edit
+ * history, and the to-confirm list — every figure computed from the content
+ * itself or read from the repository's CI. Nothing is estimated and nothing
+ * is invented; the deliberate absence is visitor analytics, which would
+ * require an analytics service this site does not have. A dashboard that
+ * shows a made-up conversion rate would be this project's cardinal sin with
+ * a chart on it.
+ */
+function DashboardView({
+  token,
+  business,
+  services,
+  testimonials,
+  issues,
+  dirty,
+  goTo,
+}: {
+  token: string;
+  business: Doc;
+  services: Doc;
+  testimonials: Doc;
+  issues: FieldIssue[];
+  dirty: boolean;
+  goTo: (tab: Tab, field?: string) => void;
+}) {
+  const [runs, setRuns] = useState<RunSummary[] | null>(null);
+  const [edits, setEdits] = useState<EditSummary[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [r, e] = await Promise.all([
+          listRuns(token, 8),
+          listContentEdits(token, 6),
+        ]);
+        if (!cancelled) {
+          setRuns(r);
+          setEdits(e);
+        }
+      } catch {
+        if (!cancelled) {
+          setRuns([]);
+          setEdits([]);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  const ruleKeys = Object.keys(BUSINESS_RULES) as (keyof typeof BUSINESS_RULES)[];
+  const confirmed = ruleKeys.filter((k) => isFact(business, k));
+  const missing = ruleKeys.filter((k) => !isFact(business, k));
+  const pct = Math.round((confirmed.length / ruleKeys.length) * 100);
+
+  const panelsWithPhotos = SERVICE_IDS.filter(
+    (id) => s(((services[id] ?? {}) as Doc).image) !== "",
+  ).length;
+  const testimonialCount = (
+    Array.isArray(testimonials.testimonials) ? testimonials.testimonials : []
+  ).length;
+
+  const ring = 2 * Math.PI * 34;
+
+  return (
+    <div className="space-y-12">
+      <SectionHeading
+        title="Dashboard"
+        note="A reading of the site as it stands. Every number here is real — computed from the content or from the build history. There are no visitor statistics because no analytics service is connected; this panel does not invent figures."
+      />
+
+      {/* ------------------------------ cards ------------------------- */}
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        {/* completeness */}
+        <div className="border border-gold-antique/20 bg-char/60 p-6">
+          <p className={`${MONO_LABEL} text-ash`}>Facts confirmed</p>
+          <div className="mt-4 flex items-center gap-5">
+            <svg viewBox="0 0 80 80" className="h-20 w-20 -rotate-90">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="#b87914" strokeOpacity="0.18" strokeWidth="6" />
+              <circle
+                cx="40" cy="40" r="34" fill="none" stroke="#d99a33" strokeWidth="6"
+                strokeLinecap="round"
+                strokeDasharray={`${(pct / 100) * ring} ${ring}`}
+              />
+            </svg>
+            <div>
+              <p className="font-display text-3xl text-ivory">
+                {confirmed.length}
+                <span className="text-lg text-ash">/{ruleKeys.length}</span>
+              </p>
+              <p className="mt-1 text-xs text-ash">{pct}% of the ledger</p>
+            </div>
+          </div>
+        </div>
+
+        {/* publish readiness */}
+        <div className="border border-gold-antique/20 bg-char/60 p-6">
+          <p className={`${MONO_LABEL} text-ash`}>Ready to publish</p>
+          {issues.length === 0 ? (
+            <>
+              <p className="mt-4 font-display text-3xl text-gold-high">Yes</p>
+              <p className="mt-1 text-xs text-ash">
+                {dirty ? "Unsaved changes waiting" : "Everything checks out"}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="mt-4 font-display text-3xl text-[#d8825a]">
+                {issues.length} issue{issues.length === 1 ? "" : "s"}
+              </p>
+              <p className="mt-1 text-xs text-ash">
+                Marked in red next to the fields
+              </p>
+            </>
+          )}
+        </div>
+
+        {/* testimonials */}
+        <button
+          type="button"
+          onClick={() => goTo("testimonials")}
+          className="border border-gold-antique/20 bg-char/60 p-6 text-left transition-colors hover:border-gold-rich/50"
+        >
+          <p className={`${MONO_LABEL} text-ash`}>Testimonials</p>
+          <p className="mt-4 font-display text-3xl text-ivory">{testimonialCount}</p>
+          <p className="mt-1 text-xs text-ash">
+            {testimonialCount === 0
+              ? "The site shows its honest empty state"
+              : "Live on the site"}
+          </p>
+        </button>
+
+        {/* photos */}
+        <button
+          type="button"
+          onClick={() => goTo("services")}
+          className="border border-gold-antique/20 bg-char/60 p-6 text-left transition-colors hover:border-gold-rich/50"
+        >
+          <p className={`${MONO_LABEL} text-ash`}>Panel photos</p>
+          <p className="mt-4 font-display text-3xl text-ivory">
+            {panelsWithPhotos}
+            <span className="text-lg text-ash">/{SERVICE_IDS.length}</span>
+          </p>
+          <p className="mt-1 text-xs text-ash">
+            {panelsWithPhotos === SERVICE_IDS.length
+              ? "Every panel carries a photo"
+              : "Panels without one show the engraved plate"}
+          </p>
+        </button>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        {/* --------------------------- publish history ---------------- */}
+        <div className="border border-gold-antique/20 bg-char/60 p-6">
+          <p className={`${MONO_LABEL} text-ash`}>Publish history</p>
+          <div className="mt-5 space-y-3">
+            {runs === null ? (
+              <p className="text-xs text-ash/60">Reading the build history…</p>
+            ) : runs.length === 0 ? (
+              <p className="text-xs text-ash/60">No builds found.</p>
+            ) : (
+              runs.map((run, i) => (
+                <a
+                  key={i}
+                  href={run.htmlUrl}
+                  target="_blank"
+                  rel="noopener"
+                  className="flex items-center gap-3 text-xs transition-colors hover:text-gold-high"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`inline-block h-2 w-2 shrink-0 rounded-full ${
+                      run.status !== "completed"
+                        ? "animate-pulse bg-ash"
+                        : run.conclusion === "success"
+                          ? "bg-gold-rich"
+                          : "bg-[#d8825a]"
+                    }`}
+                  />
+                  <span className="text-ivory/80">
+                    {run.status !== "completed"
+                      ? "Building now"
+                      : run.conclusion === "success"
+                        ? "Published"
+                        : "Refused"}
+                  </span>
+                  <span className="ml-auto text-ash/70">
+                    {run.durationSec ? `${Math.round(run.durationSec / 60)}m · ` : ""}
+                    {timeAgo(run.createdAt)}
+                  </span>
+                </a>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* ----------------------------- recent edits ----------------- */}
+        <div className="border border-gold-antique/20 bg-char/60 p-6">
+          <p className={`${MONO_LABEL} text-ash`}>Recent content edits</p>
+          <div className="mt-5 space-y-3">
+            {edits === null ? (
+              <p className="text-xs text-ash/60">Reading the ledger…</p>
+            ) : edits.length === 0 ? (
+              <p className="text-xs text-ash/60">
+                No content edits yet — saves from this panel will appear here.
+              </p>
+            ) : (
+              edits.map((edit, i) => (
+                <a
+                  key={i}
+                  href={edit.htmlUrl}
+                  target="_blank"
+                  rel="noopener"
+                  className="block text-xs transition-colors hover:text-gold-high"
+                >
+                  <span className="text-ivory/80">{edit.message}</span>
+                  <span className="mt-0.5 block text-ash/70">
+                    {edit.author} · {timeAgo(edit.date)}
+                  </span>
+                </a>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* --------------------------- still to confirm ----------------- */}
+      {missing.length > 0 ? (
+        <div className="border border-gold-antique/20 bg-char/60 p-6">
+          <p className={`${MONO_LABEL} text-ash`}>Still to confirm</p>
+          <p className="mt-2 text-xs leading-relaxed text-ash/80">
+            Each of these currently shows as a visible placeholder on the site.
+            Click one to go straight to the field.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2.5">
+            {missing.map((key) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => goTo("business", key)}
+                className={`${MONO_LABEL} border border-gold-antique/30 px-4 py-2 text-gold-antique transition-colors hover:border-gold-rich hover:text-gold-high`}
+              >
+                {BUSINESS_RULES[key].label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -613,14 +963,33 @@ const BUSINESS_GROUPS: {
 function BusinessEditor({
   doc,
   issues,
+  focusField,
+  onFocused,
   onChange,
 }: {
   doc: Doc;
   issues: FieldIssue[];
+  focusField: string | null;
+  onFocused: () => void;
   onChange: (next: Doc) => void;
 }) {
   const set = (key: string, value: unknown) => onChange({ ...doc, [key]: value });
   const issueFor = (key: string) => issues.filter((i) => i.field === key);
+
+  /*
+    Jump-to-field: the dashboard's "still to confirm" list lands the owner on
+    the exact input, focused and centred — "go fill in the phone number" is a
+    click, not a hunt through five fieldsets.
+  */
+  useEffect(() => {
+    if (!focusField) return;
+    const el = document.getElementById(`biz-${focusField}`);
+    if (el) {
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      (el as HTMLElement).focus({ preventScroll: true });
+    }
+    onFocused();
+  }, [focusField, onFocused]);
 
   const social = (Array.isArray(doc.social) ? doc.social : []) as string[];
 
