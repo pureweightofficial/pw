@@ -193,6 +193,9 @@ if (!Array.isArray(testimonials.testimonials)) {
     if (s(t.quote) === "") fail(`testimonial #${n} has no quote`);
     if (s(t.name) === "") fail(`testimonial #${n} has no customer name — an unattributed quote reads as invented`);
     if (s(t.context) === "") fail(`testimonial #${n} has no context (e.g. "Sold a gold chain, June 2026")`);
+    if (s(t.photo) !== "" && !/^\/img\//.test(s(t.photo))) {
+      fail(`testimonial #${n} photo must start with /img/ (repo-relative)`);
+    }
     for (const [re, why] of FORBIDDEN) {
       const m = s(t.quote).match(re);
       if (m) fail(`testimonial #${n} contains "${m[0]}" — ${why}. Real customers may well say this, but the site cannot print promises the business has not verified, even quoted.`);

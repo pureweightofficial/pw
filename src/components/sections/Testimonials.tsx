@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Eyebrow, Section } from "@/components/ui/primitives";
+import { assetPath } from "@/lib/asset";
 import { testimonials } from "@/lib/site";
 
 /**
@@ -54,6 +55,20 @@ export function Testimonials() {
         <div className="min-h-[16rem]" aria-live="polite" aria-atomic="true">
           {current ? (
             <blockquote className="will-reveal">
+              {current.photo !== "" ? (
+                /* Plain <img>: images.unoptimized makes next/image a no-op,
+                   and the photo is a small square the owner's upload pipeline
+                   has already resized. Decorative here — the name is adjacent
+                   text — so alt stays empty and aria-hidden keeps readers on
+                   the words. */
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={assetPath(current.photo)}
+                  alt=""
+                  aria-hidden="true"
+                  className="mx-auto mb-8 h-16 w-16 rounded-full border border-gold-antique/40 object-cover"
+                />
+              ) : null}
               <p className="font-display text-statement font-normal leading-tight text-ivory italic">
                 &ldquo;{current.quote}&rdquo;
               </p>

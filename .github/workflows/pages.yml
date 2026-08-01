@@ -18,6 +18,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # Daily 06:00 UTC rebuild — this is the scheduled-publishing mechanism.
+  # publishedArticles() excludes articles dated in the future, so an article
+  # the owner dates for next Tuesday is simply absent until Tuesday's cron
+  # rebuild includes it. No server, no queue: the calendar is the scheduler.
+  schedule:
+    - cron: '0 6 * * *'
 
 permissions:
   contents: read

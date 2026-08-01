@@ -63,7 +63,20 @@ function parseArticle(filename: string): Article | null {
   }
 }
 
-/** Published articles, newest first. Drafts are invisible everywhere. */
+/**
+ * Published articles, newest first. Two filters, both load-bearing:
+ *
+ * DRAFTS are invisible everywhere — pages, index, sitemap all read this one
+ * function, so they cannot disagree.
+ *
+ * FUTURE-DATED articles are invisible until their date arrives. This is how a
+ * static site gets SCHEDULED PUBLISHING with no server: the build only
+ * includes articles dated today or earlier, and pages.yml rebuilds on a daily
+ * cron — so an article dated next Tuesday simply appears in Tuesday morning's
+ * build. The owner writes it, dates it, unticks draft, and the calendar does
+ * the rest. Comparison is by UTC date string, same shape both sides, so there
+ * is no timezone arithmetic to get wrong.
+ */
 export function publishedArticles(): Article[] {
   let files: string[] = [];
   try {
@@ -71,9 +84,13 @@ export function publishedArticles(): Article[] {
   } catch {
     return []; // no directory yet — a site with no articles is a valid site
   }
+  const today = new Date().toISOString().slice(0, 10);
   return files
     .map(parseArticle)
-    .filter((a): a is Article => a !== null && !a.draft && a.title !== "")
+    .filter(
+      (a): a is Article =>
+        a !== null && !a.draft && a.title !== "" && a.date <= today,
+    )
     .sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 

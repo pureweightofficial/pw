@@ -41,6 +41,7 @@ import {
   INSIGHTS_DIR,
   KeeperApiError,
   listContentEdits,
+  listImages,
   listInsightFiles,
   listRuns,
   loadContent,
@@ -50,6 +51,7 @@ import {
   validateToken,
   type EditSummary,
   type InsightFile,
+  type RepoImage,
   type PublishStatus,
   type RunSummary,
   type Signee,
@@ -136,7 +138,7 @@ function SectionHeading({ title, note }: { title: string; note: string }) {
 /* THE PAGE                                                                   */
 /* -------------------------------------------------------------------------- */
 
-type Tab = "dashboard" | "business" | "services" | "testimonials" | "faq" | "copy" | "insights";
+type Tab = "dashboard" | "business" | "services" | "testimonials" | "faq" | "copy" | "insights" | "media";
 
 /** "3 minutes ago" — dates in an admin panel should read like speech. */
 function timeAgo(iso: string): string {
@@ -363,6 +365,7 @@ export default function KeeperPage() {
     { key: "faq", label: "FAQ" },
     { key: "copy", label: "Site Copy" },
     { key: "insights", label: "Insights" },
+    { key: "media", label: "Media" },
   ];
 
   const goTo = (nextTab: Tab, field?: string) => {
@@ -505,6 +508,9 @@ export default function KeeperPage() {
               doc={testimonials}
               issues={issues}
               onChange={(next) => update(testimonialsPath, next)}
+              onImage={(img) =>
+                setPendingImages((prev) => ({ ...prev, [img.repoPath]: img }))
+              }
             />
           ) : null}
           {tab === "faq" ? (
@@ -524,6 +530,15 @@ export default function KeeperPage() {
           {tab === "insights" ? (
             <InsightsEditor
               token={token!}
+              signee={signee}
+              branchOverride={branchOverride}
+              onPublishStateChange={setPublish}
+            />
+          ) : null}
+          {tab === "media" ? (
+            <MediaLibrary
+              token={token!}
+              docs={docs!}
               signee={signee}
               branchOverride={branchOverride}
               onPublishStateChange={setPublish}
@@ -1344,16 +1359,28 @@ function TestimonialsEditor({
   doc,
   issues,
   onChange,
+  onImage,
 }: {
   doc: Doc;
   issues: FieldIssue[];
   onChange: (next: Doc) => void;
+  onImage: (img: PreparedImage) => void;
 }) {
+  const [photoBusy, setPhotoBusy] = useState<number | null>(null);
   const list = (Array.isArray(doc.testimonials) ? doc.testimonials : []) as {
     quote?: string;
     name?: string;
     context?: string;
+    photo?: string;
+    featured?: boolean;
   }[];
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= list.length) return;
+    const next = [...list];
+    [next[i], next[j]] = [next[j], next[i]];
+    setList(next);
+  };
   const issueFor = (field: string) => issues.filter((i) => i.field === field);
   const setList = (next: typeof list) => onChange({ ...doc, testimonials: next });
 
@@ -1437,13 +1464,94 @@ function TestimonialsEditor({
                 ))}
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setList(list.filter((_, j) => j !== i))}
-              className={`${MONO_LABEL} border border-gold-antique/25 px-5 py-2.5 text-ash transition-colors hover:border-[#d8825a] hover:text-[#d8825a]`}
-            >
-              Remove testimonial
-            </button>
+            {/* --- photo + flags --------------------------------------- */}
+            <div className="flex flex-wrap items-center gap-5">
+              {t.photo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={assetPath(t.photo)}
+                  alt=""
+                  className="h-14 w-14 rounded-full border border-gold-antique/40 object-cover"
+                />
+              ) : null}
+              <label
+                className={`${MONO_LABEL} cursor-pointer border border-gold-antique/25 px-4 py-2.5 text-gold-antique transition-colors hover:border-gold-rich hover:text-gold-high`}
+              >
+                {photoBusy === i ? "Preparing…" : t.photo ? "Replace photo" : "Add photo (optional)"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!file) return;
+                    setPhotoBusy(i);
+                    try {
+                      const prepared = await prepareImage(file);
+                      onImage(prepared);
+                      const next = [...list];
+                      next[i] = { ...t, photo: prepared.contentPath };
+                      setList(next);
+                    } finally {
+                      setPhotoBusy(null);
+                    }
+                  }}
+                />
+              </label>
+              {t.photo ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = [...list];
+                    next[i] = { ...t, photo: "" };
+                    setList(next);
+                  }}
+                  className={`${MONO_LABEL} text-ash transition-colors hover:text-[#d8825a]`}
+                >
+                  Remove photo
+                </button>
+              ) : null}
+              <label className="flex items-center gap-2 text-sm text-ash">
+                <input
+                  type="checkbox"
+                  checked={Boolean(t.featured)}
+                  onChange={(e) => {
+                    const next = [...list];
+                    next[i] = { ...t, featured: e.target.checked };
+                    setList(next);
+                  }}
+                  className="h-4 w-4 accent-[#d99a33]"
+                />
+                Featured — shown first
+              </label>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => move(i, -1)}
+                disabled={i === 0}
+                className={`${MONO_LABEL} border border-gold-antique/25 px-4 py-2 text-ash transition-colors enabled:hover:border-gold-rich enabled:hover:text-gold-high disabled:opacity-30`}
+              >
+                ↑ Move up
+              </button>
+              <button
+                type="button"
+                onClick={() => move(i, 1)}
+                disabled={i === list.length - 1}
+                className={`${MONO_LABEL} border border-gold-antique/25 px-4 py-2 text-ash transition-colors enabled:hover:border-gold-rich enabled:hover:text-gold-high disabled:opacity-30`}
+              >
+                ↓ Move down
+              </button>
+              <button
+                type="button"
+                onClick={() => setList(list.filter((_, j) => j !== i))}
+                className={`${MONO_LABEL} border border-gold-antique/25 px-4 py-2 text-ash transition-colors hover:border-[#d8825a] hover:text-[#d8825a]`}
+              >
+                Remove testimonial
+              </button>
+            </div>
           </div>
         </fieldset>
       ))}
@@ -1966,6 +2074,10 @@ function InsightsEditor({
             className={`${INPUT_CLASS} mt-2 font-mono`}
             placeholder="2026-08-01"
           />
+          <p className="mt-2 text-xs leading-relaxed text-ash/70">
+            A future date schedules the article: it publishes automatically on
+            that morning. Today or earlier publishes on the next save.
+          </p>
           {issueFor("insight.date").map((issue, j) => (
             <IssueLine key={j} text={issue.message} />
           ))}
@@ -2057,6 +2169,218 @@ function InsightsEditor({
           saving — marked above.
         </p>
       ) : null}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* MEDIA LIBRARY                                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Every image the site serves, with the one fact a filename cannot tell you:
+ * WHERE IT IS USED. Usage is computed by scanning the live content — the four
+ * buying panels, every testimonial photo, and every article body — so "not
+ * used anywhere" is a measurement, not a guess. Deletion is only offered for
+ * unused images, behind a typed confirmation, and the client refuses to
+ * delete outside public/img even if a bug asks it to.
+ *
+ * Uploads land as their own commit immediately: an image is an asset, not a
+ * draft, and holding it in the batch save would mean a photo the owner
+ * uploaded "successfully" existing only in one browser tab.
+ */
+function MediaLibrary({
+  token,
+  docs,
+  signee,
+  branchOverride,
+  onPublishStateChange,
+}: {
+  token: string;
+  docs: Record<string, Doc>;
+  signee: Signee | null;
+  branchOverride?: string;
+  onPublishStateChange: (s: PublishStatus | null) => void;
+}) {
+  const [images, setImages] = useState<RepoImage[] | null>(null);
+  const [articleBodies, setArticleBodies] = useState<Record<string, string> | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [imgs, files] = await Promise.all([
+          listImages(token),
+          listInsightFiles(token),
+        ]);
+        const bodies: Record<string, string> = {};
+        for (const file of files) {
+          try {
+            const article = await loadInsight(token, file.path);
+            bodies[file.slug] = typeof article.body === "string" ? article.body : "";
+          } catch {
+            bodies[file.slug] = "";
+          }
+        }
+        if (!cancelled) {
+          setImages(imgs);
+          setArticleBodies(bodies);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setError(e instanceof KeeperApiError ? e.friendly : String(e));
+          setImages([]);
+          setArticleBodies({});
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  /** Everywhere an /img/ path can legitimately appear, with a readable name. */
+  const usageOf = (name: string): string[] => {
+    const ref = `/img/${name}`;
+    const uses: string[] = [];
+    const services = (docs["src/content/services.json"] ?? {}) as Doc;
+    for (const id of SERVICE_IDS) {
+      const svc = (services[id] ?? {}) as Doc;
+      if (s(svc.image) === ref) uses.push(`What We Buy — ${id}`);
+    }
+    const testimonials = (docs["src/content/testimonials.json"] ?? {}) as Doc;
+    const list = Array.isArray(testimonials.testimonials) ? testimonials.testimonials : [];
+    list.forEach((t, i) => {
+      if (s((t as Doc).photo) === ref) uses.push(`Testimonial ${i + 1}`);
+    });
+    for (const [slug, body] of Object.entries(articleBodies ?? {})) {
+      if (body.includes(ref)) uses.push(`Article: ${slug}`);
+    }
+    return uses;
+  };
+
+  const upload = async (file: File) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const prepared = await prepareImage(file);
+      const head = await loadContent(token);
+      await save(token, {
+        json: {},
+        binaries: { [prepared.repoPath]: prepared.bytes },
+        message: `Keeper: add image ${prepared.repoPath.split("/").pop()} by ${signee?.login ?? "owner"}`,
+        baseSha: head.headSha,
+        branch: branchOverride,
+      });
+      onPublishStateChange({ state: "publishing" });
+      setImages((prev) => [
+        ...(prev ?? []),
+        { name: prepared.repoPath.split("/").pop()!, path: prepared.repoPath, size: prepared.bytes.length },
+      ]);
+    } catch (e) {
+      setError(e instanceof KeeperApiError ? e.friendly : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async (img: RepoImage) => {
+    const answer = window.prompt(
+      `This permanently removes ${img.name} from the site's files.\nType DELETE to confirm.`,
+    );
+    if (answer !== "DELETE") return;
+    setBusy(true);
+    setError(null);
+    try {
+      const head = await loadContent(token);
+      await save(token, {
+        json: {},
+        binaries: {},
+        deletes: [img.path],
+        message: `Keeper: delete unused image ${img.name} by ${signee?.login ?? "owner"}`,
+        baseSha: head.headSha,
+        branch: branchOverride,
+      });
+      onPublishStateChange({ state: "publishing" });
+      setImages((prev) => (prev ?? []).filter((i) => i.path !== img.path));
+    } catch (e) {
+      setError(e instanceof KeeperApiError ? e.friendly : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-10">
+      <SectionHeading
+        title="Media"
+        note="Every image the site serves, and where each one is used. Uploads are resized and compressed in your browser before anything is stored. Only images used nowhere can be deleted — removing one that a page still points at would leave a hole in the site, so the panel refuses."
+      />
+      {error ? <IssueLine text={error} /> : null}
+
+      <label
+        className={`${MONO_LABEL} inline-block cursor-pointer border border-gold-rich/60 bg-gold-antique/10 px-6 py-3.5 text-gold-high transition-colors hover:border-gold-high hover:bg-gold-antique/20`}
+      >
+        {busy ? "Working…" : "+ Upload image"}
+        <input
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          disabled={busy}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (file) void upload(file);
+          }}
+        />
+      </label>
+
+      {images === null || articleBodies === null ? (
+        <p className={`${MONO_LABEL} text-ash`}>Reading the archive…</p>
+      ) : images.length === 0 ? (
+        <p className="text-sm text-ash/70">No images yet.</p>
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {images.map((img) => {
+            const uses = usageOf(img.name);
+            return (
+              <div key={img.path} className="border border-gold-antique/15">
+                <div className="aspect-4/3 w-full overflow-hidden bg-void">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={assetPath(`/img/${img.name}`)}
+                    alt={img.name}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="space-y-2 p-4">
+                  <p className="truncate font-mono text-xs text-ivory">{img.name}</p>
+                  <p className="text-xs text-ash/70">{Math.round(img.size / 1024)} KB</p>
+                  {uses.length > 0 ? (
+                    <p className="text-xs leading-relaxed text-gold-antique">
+                      Used in: {uses.join(", ")}
+                    </p>
+                  ) : (
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs text-ash/60">Not used anywhere</p>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void remove(img)}
+                        className={`${MONO_LABEL} border border-gold-antique/25 px-3 py-1.5 text-ash transition-colors enabled:hover:border-[#d8825a] enabled:hover:text-[#d8825a] disabled:opacity-40`}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

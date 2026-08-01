@@ -43,6 +43,9 @@ export const INSIGHTS_DIR = "src/content/insights";
 
 export const IMAGE_DIR = "public/img";
 
+/** The only directories the panel may delete from. See save(). */
+const DELETABLE_PREFIXES = [`${INSIGHTS_DIR}/`, `${IMAGE_DIR}/`];
+
 type Json = Record<string, unknown>;
 
 async function gh<T>(
@@ -187,6 +190,21 @@ export async function listInsightFiles(token: string): Promise<InsightFile[]> {
     .map((e) => ({ path: e.path, slug: e.name.replace(/\.json$/, "") }));
 }
 
+export type RepoImage = { name: string; path: string; size: number };
+
+/** Every image in public/img — the media library's inventory. */
+export async function listImages(token: string): Promise<RepoImage[]> {
+  const entries = await gh<{ name: string; path: string; type: string; size: number }[] | null>(
+    token,
+    `/repos/${REPO}/contents/${IMAGE_DIR}`,
+    { allow404: true },
+  );
+  if (!entries) return [];
+  return entries
+    .filter((e) => e.type === "file" && /\.(jpe?g|png|webp|avif)$/i.test(e.name))
+    .map((e) => ({ name: e.name, path: e.path, size: e.size }));
+}
+
 export async function loadInsight(token: string, path: string): Promise<Json> {
   const file = await gh<{ content: string }>(
     token,
@@ -250,8 +268,8 @@ async function attemptSave(
   // Deletions: a tree entry with sha null removes the path. Scope-limited to
   // the insights directory — the only thing the panel is allowed to delete.
   for (const path of plan.deletes ?? []) {
-    if (!path.startsWith(`${INSIGHTS_DIR}/`)) {
-      throw new Error(`Refusing to delete outside ${INSIGHTS_DIR}: ${path}`);
+    if (!DELETABLE_PREFIXES.some((prefix) => path.startsWith(prefix))) {
+      throw new Error(`Refusing to delete outside ${DELETABLE_PREFIXES.join(", ")}: ${path}`);
     }
     // The Git Data API accepts sha:null for deletion; the SDK type here is
     // ours, so widen locally rather than weakening the shared entry type.

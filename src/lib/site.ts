@@ -427,15 +427,29 @@ export const testimonials: readonly {
   quote: string;
   name: string;
   context: string;
+  /** Optional portrait, /img/-relative. Supplied by the customer, via the owner. */
+  photo: string;
+  featured: boolean;
 }[] = (
   (testimonialsContent.testimonials ?? []) as {
     quote?: unknown;
     name?: unknown;
     context?: unknown;
+    photo?: unknown;
+    featured?: unknown;
   }[]
 )
-  .map((t) => ({ quote: str(t.quote), name: str(t.name), context: str(t.context) }))
-  .filter((t) => t.quote !== "" && t.name !== "" && t.context !== "");
+  .map((t) => ({
+    quote: str(t.quote),
+    name: str(t.name),
+    context: str(t.context),
+    photo: str(t.photo),
+    featured: t.featured === true,
+  }))
+  .filter((t) => t.quote !== "" && t.name !== "" && t.context !== "")
+  // Featured first, otherwise the owner's order. Array sort is stable, so
+  // ties keep their relative positions.
+  .sort((a, b) => Number(b.featured) - Number(a.featured));
 
 /* -------------------------------------------------------------------------- */
 /* ASSAY FACTORS — educational, deliberately non-transactional                */
