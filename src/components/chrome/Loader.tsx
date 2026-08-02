@@ -47,6 +47,21 @@ const OPENING_TEMPO = 1.45;
 /** Authored length of the opening timeline, seconds, before OPENING_TEMPO. */
 const OPENING_AUTHORED_MS = 2250;
 
+/**
+ * How long this visit may already have taken before the opening is abandoned.
+ *
+ * Measured against the site's own numbers rather than picked. A capable device
+ * reaches this effect in roughly 200-400ms; the throttled mobile profile
+ * Lighthouse uses takes well over a second, and on that profile the curtain
+ * added 4.3s of LCP to the homepage and 9.9s to the contact page.
+ *
+ * 1200ms sits clearly above the fast case and clearly below the slow one, so
+ * the rule almost never fires on the hardware the opening was designed for and
+ * almost always fires on the hardware that cannot carry it. Raising it favours
+ * the choreography; lowering it favours the metric.
+ */
+const OPENING_BUDGET_MS = 1200;
+
 export function Loader() {
   const rootRef = useRef<HTMLDivElement>(null);
   const emblemRef = useRef<HTMLDivElement>(null);
@@ -69,8 +84,43 @@ export function Loader() {
       // Private mode with storage disabled: treat as unseen, show it once.
     }
 
-    const show = !seen && !reduced;
+    /*
+      THE OPENING IS A LUXURY, AND SLOW DEVICES CANNOT AFFORD IT.
+
+      OPENING_TEMPO trades brand time against LCP for everyone equally, which
+      is the wrong shape for the problem. Measured on a throttled mobile
+      profile — the profile Google actually ranks on — the curtain cost 4.3s of
+      LCP on the homepage and 9.9s on the contact page, against an authored
+      timeline of about 1.55s. The excess is not choreography. It is the time
+      taken to hydrate React and load GSAP before the first frame can even
+      play, and it scales with how slow the device is.
+
+      So the decision is now made per visitor rather than once at build time.
+      `performance.now()` inside this effect is milliseconds since navigation
+      started, which makes it a free, honest measure of how this particular
+      visit is going. Past the budget, the visit is already slow and adding a
+      curtain to it is indefensible; the visitor goes straight to the page.
+
+      Fast devices still get the full opening, unchanged. The A/B that found
+      this showed the homepage measuring 2176ms with the curtain skipped —
+      inside Google's 2.5s threshold, from 6440ms with it.
+
+      The skip is recorded as seen, because a curtain that appears on the third
+      page of a session reads as a fault rather than an entrance.
+    */
+    const elapsed = performance.now();
+    const tooSlow = elapsed > OPENING_BUDGET_MS;
+
+    const show = !seen && !reduced && !tooSlow;
     setVisible(show);
+
+    if (tooSlow && !seen) {
+      try {
+        sessionStorage.setItem(SESSION_KEY, "1");
+      } catch {
+        /* storage unavailable — worst case it is reconsidered next page */
+      }
+    }
 
     // No curtain means nothing will ever lift, so release the hero's opening
     // right away rather than making it wait out its own timeout.
