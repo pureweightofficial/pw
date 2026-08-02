@@ -38,17 +38,28 @@ if (!existsSync(out)) {
   process.exit(1);
 }
 
-/** Real Chrome first: it is on the machine unconditionally. */
+/**
+ * Real Chrome first — present both on this machine and on the CI runner image.
+ *
+ * On failure this reports WHERE it looked. A gate that cannot find a browser
+ * has to say that, because the alternative is a CI log reading "no Chrome
+ * found" and the next person guessing at an image they cannot inspect.
+ */
+const CHROME_CANDIDATES = [
+  process.env.CHROME_PATH,
+  "C:/Program Files/Google/Chrome/Application/chrome.exe",
+  "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
+  "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+  "/usr/bin/google-chrome",
+  "/usr/bin/google-chrome-stable",
+  "/opt/google/chrome/chrome",
+  "/usr/bin/chromium",
+  "/usr/bin/chromium-browser",
+  "/snap/bin/chromium",
+].filter(Boolean);
+
 function findChrome() {
-  const candidates = [
-    process.env.CHROME_PATH,
-    "C:/Program Files/Google/Chrome/Application/chrome.exe",
-    "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
-    "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
-    "/usr/bin/google-chrome",
-    "/usr/bin/chromium-browser",
-  ].filter(Boolean);
-  for (const c of candidates) if (existsSync(c)) return c;
+  for (const c of CHROME_CANDIDATES) if (existsSync(c)) return c;
   const cache = join(process.env.LOCALAPPDATA || "", "ms-playwright");
   if (existsSync(cache)) {
     for (const dir of readdirSync(cache)) {
@@ -126,7 +137,8 @@ const axeSource = readFileSync(
 
 const chromePath = findChrome();
 if (!chromePath) {
-  console.error("  a11y check: no Chrome or Edge found");
+  console.error("  a11y check: no Chrome or Edge found. Looked in:");
+  for (const c of CHROME_CANDIDATES) console.error("    " + c);
   process.exit(1);
 }
 

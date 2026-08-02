@@ -52,14 +52,23 @@ const server = createServer((req, res) => {
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const port = server.address().port;
 
+/* Same search order as the sitewide gate, and the same rule: if no browser is
+   found, say where we looked rather than leaving a CI log to be guessed at. */
+const CHROME_CANDIDATES = [
+  process.env.CHROME_PATH,
+  "C:/Program Files/Google/Chrome/Application/chrome.exe",
+  "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
+  "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+  "/usr/bin/google-chrome",
+  "/usr/bin/google-chrome-stable",
+  "/opt/google/chrome/chrome",
+  "/usr/bin/chromium",
+  "/usr/bin/chromium-browser",
+  "/snap/bin/chromium",
+].filter(Boolean);
+
 function findChrome() {
-  const candidates = [
-    process.env.CHROME_PATH,
-    "C:/Program Files/Google/Chrome/Application/chrome.exe",
-    "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
-    "/usr/bin/google-chrome",
-  ].filter(Boolean);
-  for (const c of candidates) if (existsSync(c)) return c;
+  for (const c of CHROME_CANDIDATES) if (existsSync(c)) return c;
   const cache = join(process.env.LOCALAPPDATA || "", "ms-playwright");
   if (existsSync(cache)) {
     for (const d of readdirSync(cache)) {
@@ -73,7 +82,11 @@ function findChrome() {
 }
 
 const chromePath = findChrome();
-if (!chromePath) { console.error("  keeper a11y: no Chrome or Edge found"); process.exit(1); }
+if (!chromePath) {
+  console.error("  keeper a11y: no Chrome or Edge found. Looked in:");
+  for (const c of CHROME_CANDIDATES) console.error("    " + c);
+  process.exit(1);
+}
 
 const CONTENT_FILES = [
   "business", "services", "testimonials", "faq", "copy", "seo",

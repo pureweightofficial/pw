@@ -68,6 +68,18 @@ jobs:
           NEXT_PUBLIC_ALLOW_INDEXING: 'false'
         run: npm run build
 
+      # The accessibility gates audit the EXPORTED site in a real browser, so
+      # they can only run once the export exists. They were briefly part of
+      # `verify` above and broke this workflow immediately: `verify` runs before
+      # the build, so out/ was not there yet. Gates that need artefacts belong
+      # after the artefacts, which is the whole reason `verify:built` exists.
+      #
+      # The runner image ships Google Chrome at /usr/bin/google-chrome, which is
+      # what these scripts look for. They fail loudly rather than skipping when
+      # no browser is found, so this step can never quietly do nothing.
+      - name: Verify the built site (accessibility)
+        run: npm run verify:built
+
       # Stops Pages' Jekyll pipeline from eating the _next directory.
       - name: Add .nojekyll
         run: touch out/.nojekyll

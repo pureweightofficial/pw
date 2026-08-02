@@ -11,14 +11,15 @@
     "typecheck": "tsc --noEmit",
     "check:geometry": "node --experimental-strip-types scripts/check-geometry.mjs",
     "check:content": "node scripts/check-content.mjs",
-    "verify": "npm run check:content && npm run typecheck && npm run lint && npm run check:geometry && npm run check:contrast && npm run check:budget && npm run check:a11y && npm run check:keeper-a11y",
+    "verify": "npm run check:content && npm run typecheck && npm run lint && npm run check:geometry && npm run check:contrast && npm run check:budget",
     "check:contrast": "node scripts/check-contrast.mjs",
     "check:budget": "node --experimental-strip-types scripts/check-budget.mjs",
     "make:craquelure": "node scripts/make-craquelure.mjs",
     "check:scene-contrast": "node scripts/check-section-scene-contrast.mjs",
     "check:sticky": "node scripts/check-sticky.mjs",
     "check:a11y": "node scripts/check-a11y.mjs",
-    "check:keeper-a11y": "node scripts/check-keeper-a11y.mjs"
+    "check:keeper-a11y": "node scripts/check-keeper-a11y.mjs",
+    "verify:built": "npm run check:a11y && npm run check:keeper-a11y"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.3.6",
