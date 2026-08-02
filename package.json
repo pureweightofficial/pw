@@ -11,12 +11,14 @@
     "typecheck": "tsc --noEmit",
     "check:geometry": "node --experimental-strip-types scripts/check-geometry.mjs",
     "check:content": "node scripts/check-content.mjs",
-    "verify": "npm run check:content && npm run typecheck && npm run lint && npm run check:geometry && npm run check:contrast && npm run check:budget",
+    "verify": "npm run check:content && npm run typecheck && npm run lint && npm run check:geometry && npm run check:contrast && npm run check:budget && npm run check:a11y && npm run check:keeper-a11y",
     "check:contrast": "node scripts/check-contrast.mjs",
     "check:budget": "node --experimental-strip-types scripts/check-budget.mjs",
     "make:craquelure": "node scripts/make-craquelure.mjs",
     "check:scene-contrast": "node scripts/check-section-scene-contrast.mjs",
-    "check:sticky": "node scripts/check-sticky.mjs"
+    "check:sticky": "node scripts/check-sticky.mjs",
+    "check:a11y": "node scripts/check-a11y.mjs",
+    "check:keeper-a11y": "node scripts/check-keeper-a11y.mjs"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.3.6",
@@ -36,8 +38,10 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/three": "^0.170.0",
+    "axe-core": "^4.12.1",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.1.0",
+    "playwright-core": "^1.62.1",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.0"
   }

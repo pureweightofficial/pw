@@ -124,9 +124,31 @@ function FieldStatus({ fact, placeholder }: { fact: boolean; placeholder: string
   );
 }
 
-function IssueLine({ text }: { text: string }) {
+/**
+ * A validation message.
+ *
+ * `control` is the id of the field the message belongs to, and passing it is
+ * what turns a sentence sitting near a box into a sentence attached to it —
+ * `aria-invalid` and `aria-describedby` are wired from these nodes by the
+ * effect in KeeperPage.
+ *
+ * IT IS PASSED, NOT DERIVED. The obvious shortcut is to compute the control id
+ * from the field name, since most of them differ only by a dot. Checked
+ * against the real markup, that rule is wrong five times out of thirteen —
+ * `faq0.question` is on a control called `faq0-q`, and `imageAlt` on one
+ * called `-alt`. A derived id that misses does not fail loudly; it points
+ * assistive technology at nothing. So the caller states it.
+ *
+ * Without `control` the message is a standalone error — sign-in, uploads —
+ * and announces itself, because nothing else on screen will say it.
+ */
+function IssueLine({ text, control }: { text: string; control?: string }) {
   return (
-    <p className="mt-2 text-xs leading-relaxed text-[#d8825a]">
+    <p
+      data-error-for={control}
+      role={control ? undefined : "alert"}
+      className="mt-2 text-xs leading-relaxed text-[#d8825a]"
+    >
       <span aria-hidden="true">✗ </span>
       {text}
     </p>
@@ -177,6 +199,29 @@ export default function KeeperPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [publish, setPublish] = useState<PublishStatus | null>(null);
   const pollRef = useRef<number | null>(null);
+
+  /*
+    THE PANEL USED TO CHANGE IN COMPLETE SILENCE.
+
+    Switching section, saving, the build going green, a save failing — all of it
+    was communicated by colour and position alone. A sighted owner sees the
+    content swap; someone using a screen reader hears nothing at all and has no
+    way to know whether pressing Save did anything.
+
+    One polite live region fixes the whole class, which is why it is the first
+    thing a serious admin template implements. Polite, not assertive: these are
+    progress reports, and interrupting whatever the owner is reading to announce
+    "Saving…" would be worse than the silence it replaces. The one genuinely
+    urgent case — a save that failed — is a role="alert" next to the button,
+    where the person who pressed it is already looking.
+  */
+  const [announcement, setAnnouncement] = useState("");
+  const announce = useCallback((message: string) => {
+    // Re-announce identical text (e.g. two saves in a row) by clearing first;
+    // a live region ignores an unchanged value.
+    setAnnouncement("");
+    window.setTimeout(() => setAnnouncement(message), 60);
+  }, []);
 
   /** Test hook: ?branch=x redirects saves away from main. Visibly bannered. */
   const branchOverride = useMemo(() => {
@@ -284,6 +329,7 @@ export default function KeeperPage() {
     if (!token || !docs || !baseSha || issues.length > 0) return;
     setSaving(true);
     setSaveError(null);
+    announce("Saving your changes.");
     try {
       const binaries: Record<string, Uint8Array> = {};
       for (const img of Object.values(pendingImages)) {
@@ -300,6 +346,7 @@ export default function KeeperPage() {
       setPendingImages({});
       setBaseSha(result.commitSha);
       setPublish({ state: "publishing" });
+      announce("Saved. The site is rebuilding — this usually takes a few minutes.");
 
       // Poll the build until it settles. 15s cadence; a build takes minutes.
       if (pollRef.current) window.clearInterval(pollRef.current);
@@ -308,6 +355,11 @@ export default function KeeperPage() {
           const status = await publishStatus(token, result.commitSha);
           if (status.state === "published" || status.state === "failed") {
             setPublish(status);
+            announce(
+              status.state === "published"
+                ? "Published. Your changes are live."
+                : "The build failed, so the site was not updated.",
+            );
             if (pollRef.current) window.clearInterval(pollRef.current);
           }
         } catch {
@@ -315,17 +367,86 @@ export default function KeeperPage() {
         }
       }, 15000);
     } catch (error) {
-      setSaveError(
-        error instanceof KeeperApiError ? error.friendly : String(error),
-      );
+      const friendly =
+        error instanceof KeeperApiError ? error.friendly : String(error);
+      setSaveError(friendly);
+      announce(`Save failed. ${friendly}`);
     } finally {
       setSaving(false);
     }
-  }, [token, docs, baseSha, issues, pendingImages, signee, branchOverride]);
+  }, [token, docs, baseSha, issues, pendingImages, signee, branchOverride, announce]);
 
   useEffect(() => () => {
     if (pollRef.current) window.clearInterval(pollRef.current);
   }, []);
+
+  /*
+    ATTACH EACH VALIDATION MESSAGE TO ITS CONTROL.
+
+    The messages have always been rendered right under the field they concern,
+    which is enough if you can see them. A screen reader moving through the
+    form reads the label and the box and then moves on: the sentence explaining
+    why the box is refused sits in a separate paragraph with nothing linking
+    the two. `aria-invalid` says the field is wrong; `aria-describedby` says
+    what is wrong with it.
+
+    Wired here rather than at thirty call sites so there is one implementation
+    to be right, and it re-runs whenever the issue list changes.
+
+    THE APPEND MATTERS. Several fields already carry a hint through
+    `aria-describedby` — the character counters, the note about the business
+    name being added automatically. Overwriting the attribute would silently
+    delete that guidance the moment a field became invalid, which is exactly
+    when someone needs the most help. Existing ids are preserved and the error
+    ids are added to them; the originals are remembered so removing the error
+    restores precisely what was there before, rather than blanking it.
+  */
+  const baseDescribedBy = useRef(new Map<string, string>());
+  useEffect(() => {
+    const root = document.getElementById("keeper-panel");
+    if (!root) return;
+
+    const errorsByControl = new Map<string, string[]>();
+    root.querySelectorAll<HTMLElement>("[data-error-for]").forEach((node, i) => {
+      const control = node.dataset.errorFor;
+      if (!control) return;
+      if (!node.id) node.id = `${control}-error-${i}`;
+      errorsByControl.set(control, [...(errorsByControl.get(control) ?? []), node.id]);
+    });
+
+    const touched: HTMLElement[] = [];
+    for (const [controlId, errorIds] of errorsByControl) {
+      const field = document.getElementById(controlId);
+      if (!field) {
+        // A message pointing at a control that does not exist helps nobody and
+        // would be invisible in review — say so where a developer will see it.
+        console.warn(`[keeper] validation message references missing control "${controlId}"`);
+        continue;
+      }
+      if (!baseDescribedBy.current.has(controlId)) {
+        baseDescribedBy.current.set(controlId, field.getAttribute("aria-describedby") ?? "");
+      }
+      const base = baseDescribedBy.current.get(controlId) ?? "";
+      field.setAttribute("aria-describedby", [base, ...errorIds].filter(Boolean).join(" "));
+      field.setAttribute("aria-invalid", "true");
+      touched.push(field);
+    }
+
+    // Fields that were invalid and no longer are must be restored, not left
+    // permanently flagged.
+    for (const [controlId, base] of baseDescribedBy.current) {
+      if (errorsByControl.has(controlId)) continue;
+      const field = document.getElementById(controlId);
+      if (!field) continue;
+      field.removeAttribute("aria-invalid");
+      if (base) field.setAttribute("aria-describedby", base);
+      else field.removeAttribute("aria-describedby");
+    }
+
+    return () => {
+      for (const field of touched) field.removeAttribute("aria-invalid");
+    };
+  }, [issues, tab, docs]);
 
   /* ------------------------------------------------------------------ */
   /* RENDER                                                             */
@@ -383,10 +504,77 @@ export default function KeeperPage() {
   const goTo = (nextTab: Tab, field?: string) => {
     setTab(nextTab);
     if (field) setFocusField(field);
+    const label = NAV.find((n) => n.key === nextTab)?.label ?? nextTab;
+    announce(`${label} section.`);
+  };
+
+  /*
+    ARROW KEYS ACROSS THE SECTION STRIP.
+
+    Nine sections meant nine tab stops before reaching the editor, every time.
+    The tab pattern replaces that with one stop plus arrow keys, which is both
+    the documented behaviour for a tab strip and markedly faster to drive.
+
+    Two deliberate restraints, both learned from templates that got them wrong:
+
+      - The keys are handled ONLY on the tabs themselves. A panel-wide arrow
+        handler is how people end up unable to move the caret inside a text
+        field, which is a far worse bug than the one it set out to fix.
+      - Focus is NOT wrapped at the ends of the document anywhere in this panel.
+        Trapping Tab at the page boundary reads as thorough and is actually a
+        keyboard trap; the browser's own chrome must stay reachable.
+  */
+  const onTabKeys = (event: React.KeyboardEvent, index: number) => {
+    const keys: Record<string, number> = {
+      ArrowRight: index + 1, ArrowDown: index + 1,
+      ArrowLeft: index - 1, ArrowUp: index - 1,
+      Home: 0, End: NAV.length - 1,
+    };
+    const next = keys[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    const wrapped = (next + NAV.length) % NAV.length;
+    goTo(NAV[wrapped].key);
+    // Focus follows selection, which is the expected behaviour when panels
+    // switch immediately rather than on activation.
+    const strip = (event.currentTarget as HTMLElement).parentElement;
+    (strip?.children[wrapped] as HTMLElement | undefined)?.focus();
   };
 
   return (
     <main className="min-h-svh lg:flex">
+      {/*
+        The panel's name, once, as the document's only level-one heading.
+        The axe gate flagged its absence: the wordmark in the corner is a
+        picture of a name, and the editors below start at level two, so the
+        document had a heading outline with no root. Visually hidden because
+        the brand block already says it far better than a line of text would.
+      */}
+      <h1 className="sr-only">Pureweight Keeper — content admin</h1>
+
+      {/*
+        Skip link. Nine section tabs sit before the editor in source order, so
+        without this a keyboard visitor crosses the whole strip on every page
+        view. Hidden until focused, which is the point: it costs sighted users
+        nothing and saves everyone else nine keystrokes.
+      */}
+      <a
+        href="#keeper-panel"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:border focus:border-gold-rich focus:bg-void focus:px-4 focus:py-2 focus:text-gold-high"
+      >
+        Skip to the editor
+      </a>
+
+      {/*
+        The panel's voice. Polite, atomic, and always present in the DOM —
+        a live region inserted at the moment it has something to say is
+        frequently missed by screen readers, because they watch regions that
+        already exist.
+      */}
+      <p aria-live="polite" aria-atomic="true" className="sr-only">
+        {announcement}
+      </p>
+
       {/* ---------------------------- sidebar ------------------------- */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-gold-antique/20 lg:flex">
         <div className="border-b border-gold-antique/15 px-6 py-7">
@@ -395,13 +583,19 @@ export default function KeeperPage() {
           </p>
           <p className={`${MONO_LABEL} mt-2 text-gold-antique`}>The Keeper</p>
         </div>
-        <nav className="flex-1 px-3 py-6" aria-label="Sections">
-          {NAV.map((item) => (
+        <div className="flex-1 px-3 py-6" role="tablist" aria-orientation="vertical" aria-label="Sections">
+          {NAV.map((item, i) => (
             <button
               key={item.key}
               type="button"
-              onClick={() => setTab(item.key)}
-              aria-current={tab === item.key ? "page" : undefined}
+              role="tab"
+              id={`keeper-tab-${item.key}`}
+              aria-selected={tab === item.key}
+              aria-controls="keeper-panel"
+              /* Roving tabindex: the strip is one stop, arrows move within it. */
+              tabIndex={tab === item.key ? 0 : -1}
+              onKeyDown={(e) => onTabKeys(e, i)}
+              onClick={() => goTo(item.key)}
               className={`${MONO_LABEL} mb-1 flex w-full items-center justify-between px-4 py-3 text-left transition-colors ${
                 tab === item.key
                   ? "border-l-2 border-gold-rich bg-gold-antique/10 text-gold-high"
@@ -410,13 +604,26 @@ export default function KeeperPage() {
             >
               <span>{item.label}</span>
               {item.badge ? (
-                <span className="ml-3 rounded-full border border-gold-antique/40 px-2 py-0.5 text-[0.58rem] text-gold-antique">
-                  {item.badge}
-                </span>
+                <>
+                  {/*
+                    The count reads as part of the tab's name, so it has to say
+                    what it counts. Driving the strip with a screen reader
+                    announced "Business Details 22", which is a number with no
+                    noun attached. The pill stays exactly as drawn and the
+                    meaning is supplied for anyone listening.
+                  */}
+                  <span
+                    aria-hidden="true"
+                    className="ml-3 rounded-full border border-gold-antique/40 px-2 py-0.5 text-[0.58rem] text-gold-antique"
+                  >
+                    {item.badge}
+                  </span>
+                  <span className="sr-only">, {item.badge} still to confirm</span>
+                </>
               ) : null}
             </button>
           ))}
-        </nav>
+        </div>
         <div className="border-t border-gold-antique/15 px-6 py-5">
           <a
             href={assetPath("/")}
@@ -464,13 +671,25 @@ export default function KeeperPage() {
               Sign out
             </button>
           </div>
-          <nav className="flex gap-6 overflow-x-auto px-5" aria-label="Sections">
-            {NAV.map((item) => (
+          {/*
+            The same nine sections as the sidebar, for narrow screens. Both
+            strips drive one panel, so the panel is labelled by its own name
+            rather than by a tab — with two possible controlling tabs there is
+            no single correct aria-labelledby target, and naming the panel
+            directly is both valid and unambiguous.
+          */}
+          <div className="flex gap-6 overflow-x-auto px-5" role="tablist" aria-label="Sections">
+            {NAV.map((item, i) => (
               <button
                 key={item.key}
                 type="button"
-                onClick={() => setTab(item.key)}
-                aria-current={tab === item.key ? "page" : undefined}
+                role="tab"
+                id={`keeper-tab-m-${item.key}`}
+                aria-selected={tab === item.key}
+                aria-controls="keeper-panel"
+                tabIndex={tab === item.key ? 0 : -1}
+                onKeyDown={(e) => onTabKeys(e, i)}
+                onClick={() => goTo(item.key)}
                 className={`${MONO_LABEL} whitespace-nowrap border-b-2 pb-3 transition-colors ${
                   tab === item.key
                     ? "border-gold-rich text-gold-high"
@@ -478,13 +697,24 @@ export default function KeeperPage() {
                 }`}
               >
                 {item.label}
-                {item.badge ? ` (${item.badge})` : ""}
+                {item.badge ? (
+                  <>
+                    <span aria-hidden="true"> ({item.badge})</span>
+                    <span className="sr-only">, {item.badge} still to confirm</span>
+                  </>
+                ) : null}
               </button>
             ))}
-          </nav>
+          </div>
         </header>
 
-        <div className="mx-auto max-w-5xl px-6 pt-10">
+        <div
+          id="keeper-panel"
+          role="tabpanel"
+          aria-label={`${NAV.find((n) => n.key === tab)?.label ?? tab} section`}
+          tabIndex={-1}
+          className="mx-auto max-w-5xl px-6 pt-10"
+        >
           {tab === "dashboard" ? (
             <DashboardView
               token={token!}
@@ -897,10 +1127,19 @@ function SignIn({
     <main className="flex min-h-svh items-center justify-center px-6">
       <div className="w-full max-w-md">
         <div className="border border-gold-antique/25 bg-char/80 p-10">
-          <p className="font-display text-3xl leading-none text-ivory">
+          {/*
+            The wordmark is the heading, so it should be marked as one. It was
+            two paragraphs styled to look important, which left the sign-in
+            screen with no heading at all — the axe gate's first finding here.
+            Splitting it across an h1 and a span keeps the two-line lockup
+            exactly as drawn while giving the document a root.
+          */}
+          <h1 className="font-display text-3xl leading-none text-ivory">
             Pureweight
-          </p>
-          <p className={`${MONO_LABEL} mt-2 text-gold-antique`}>The Keeper</p>
+            <span className={`${MONO_LABEL} mt-2 block text-gold-antique`}>
+              The Keeper
+            </span>
+          </h1>
           <p className="mt-6 text-sm leading-relaxed text-ash">
             Your website&apos;s ledger. Sign in with your access key to edit
             business details, the buying panels and testimonials.
@@ -1125,7 +1364,7 @@ function BusinessEditor({
                     />
                   )}
                   {fieldIssues.map((issue, i) => (
-                    <IssueLine key={i} text={issue.message} />
+                    <IssueLine key={i} control={`biz-${key}`} text={issue.message} />
                   ))}
                 </div>
               );
@@ -1351,7 +1590,7 @@ function ServicesEditor({
                     className={`${INPUT_CLASS} mt-2`}
                   />
                   {issueFor(`${id}.summary`).map((issue, i) => (
-                    <IssueLine key={i} text={issue.message} />
+                    <IssueLine key={i} control={`${id}-summary`} text={issue.message} />
                   ))}
                 </div>
                 <div>
@@ -1366,7 +1605,7 @@ function ServicesEditor({
                     className={`${INPUT_CLASS} mt-2 resize-y`}
                   />
                   {issueFor(`${id}.body`).map((issue, i) => (
-                    <IssueLine key={i} text={issue.message} />
+                    <IssueLine key={i} control={`${id}-body`} text={issue.message} />
                   ))}
                 </div>
                 <div>
@@ -1419,7 +1658,7 @@ function ServicesEditor({
                     placeholder="One sentence: what is in the photo?"
                   />
                   {issueFor(`${id}.imageAlt`).map((issue, i) => (
-                    <IssueLine key={i} text={issue.message} />
+                    <IssueLine key={i} control={`${id}-alt`} text={issue.message} />
                   ))}
                 </div>
               </div>
@@ -1500,7 +1739,7 @@ function TestimonialsEditor({
                 className={`${INPUT_CLASS} mt-2 resize-y`}
               />
               {issueFor(`t${i}.quote`).map((issue, j) => (
-                <IssueLine key={j} text={issue.message} />
+                <IssueLine key={j} control={`t${i}-quote`} text={issue.message} />
               ))}
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
@@ -1520,7 +1759,7 @@ function TestimonialsEditor({
                   className={`${INPUT_CLASS} mt-2`}
                 />
                 {issueFor(`t${i}.name`).map((issue, j) => (
-                  <IssueLine key={j} text={issue.message} />
+                  <IssueLine key={j} control={`t${i}-name`} text={issue.message} />
                 ))}
               </div>
               <div>
@@ -1540,7 +1779,7 @@ function TestimonialsEditor({
                   placeholder="Sold a gold chain, June 2026"
                 />
                 {issueFor(`t${i}.context`).map((issue, j) => (
-                  <IssueLine key={j} text={issue.message} />
+                  <IssueLine key={j} control={`t${i}-context`} text={issue.message} />
                 ))}
               </div>
             </div>
@@ -1708,7 +1947,7 @@ function FaqEditor({
                 className={`${INPUT_CLASS} mt-2`}
               />
               {issueFor(`faq${i}.question`).map((issue, j) => (
-                <IssueLine key={j} text={issue.message} />
+                <IssueLine key={j} control={`faq${i}-q`} text={issue.message} />
               ))}
             </div>
             <div>
@@ -1727,7 +1966,7 @@ function FaqEditor({
                 className={`${INPUT_CLASS} mt-2 resize-y`}
               />
               {issueFor(`faq${i}.answer`).map((issue, j) => (
-                <IssueLine key={j} text={issue.message} />
+                <IssueLine key={j} control={`faq${i}-a`} text={issue.message} />
               ))}
             </div>
             <div className="flex flex-wrap gap-3">
@@ -1855,7 +2094,7 @@ function CopyEditor({
                         </p>
                       ) : null}
                       {issueFor(`copy.${key}.${field}`).map((issue, j) => (
-                        <IssueLine key={j} text={issue.message} />
+                        <IssueLine key={j} control={`copy-${key}-${field}`} text={issue.message} />
                       ))}
                     </div>
                   );
@@ -2122,7 +2361,7 @@ function InsightsEditor({
             className={`${INPUT_CLASS} mt-2`}
           />
           {issueFor("insight.title").map((issue, j) => (
-            <IssueLine key={j} text={issue.message} />
+            <IssueLine key={j} control="ins-title" text={issue.message} />
           ))}
         </div>
 
@@ -2138,7 +2377,7 @@ function InsightsEditor({
             className={`${INPUT_CLASS} mt-2 font-mono`}
           />
           {issueFor("insight.slug").map((issue, j) => (
-            <IssueLine key={j} text={issue.message} />
+            <IssueLine key={j} control="ins-slug" text={issue.message} />
           ))}
         </div>
 
@@ -2159,7 +2398,7 @@ function InsightsEditor({
             that morning. Today or earlier publishes on the next save.
           </p>
           {issueFor("insight.date").map((issue, j) => (
-            <IssueLine key={j} text={issue.message} />
+            <IssueLine key={j} control="ins-date" text={issue.message} />
           ))}
         </div>
 
@@ -2175,7 +2414,7 @@ function InsightsEditor({
             className={`${INPUT_CLASS} mt-2 resize-y`}
           />
           {issueFor("insight.summary").map((issue, j) => (
-            <IssueLine key={j} text={issue.message} />
+            <IssueLine key={j} control="ins-summary" text={issue.message} />
           ))}
         </div>
 
@@ -2191,7 +2430,7 @@ function InsightsEditor({
             className={`${INPUT_CLASS} mt-2 resize-y font-mono text-[0.82rem] leading-relaxed`}
           />
           {issueFor("insight.body").map((issue, j) => (
-            <IssueLine key={j} text={issue.message} />
+            <IssueLine key={j} control="ins-body" text={issue.message} />
           ))}
         </div>
 
@@ -2573,7 +2812,7 @@ function SeoEditor({
                     </p>
                   ) : null}
                   {issueFor(`seo.${key}.title`).map((issue, j) => (
-                    <IssueLine key={j} text={issue.message} />
+                    <IssueLine key={j} control={`seo-${key}-title`} text={issue.message} />
                   ))}
                 </div>
 
@@ -2596,7 +2835,7 @@ function SeoEditor({
                     className={`${INPUT_CLASS} mt-2 resize-y`}
                   />
                   {issueFor(`seo.${key}.description`).map((issue, j) => (
-                    <IssueLine key={j} text={issue.message} />
+                    <IssueLine key={j} control={`seo-${key}-description`} text={issue.message} />
                   ))}
                 </div>
               </div>
