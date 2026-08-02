@@ -1,32 +1,29 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Eyebrow, Section } from '@/components/ui/primitives';
-import { insightTopics, canonicalPath, ogFor } from '@/lib/site';
+import { insightTopics } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo';
 import { publishedArticles } from '@/lib/insights';
 
-export const metadata: Metadata = {
-  title: 'Insights',
-  description:
-    'Plain explanations of how gold is measured and valued — purity, hallmarks, weight units, and what to expect from a professional evaluation.',
-  alternates: { canonical: canonicalPath('/insights') },
-  // Complete block per page: Next replaces openGraph wholesale rather than
-  // deep-merging, so a partial one silently drops og:image/site_name/type and
-  // an absent one inherits the HOMEPAGE og:url on every subpage.
-  openGraph: ogFor({
-    title: 'Insights — Pureweight Gold Exchange',
+export const metadata: Metadata = pageMetadata(
+  'insights',
+  '/insights',
+  {
+    title: 'Insights',
     description:
       'Plain explanations of how gold is measured and valued — purity, hallmarks, weight units, and what to expect from a professional evaluation.',
-    path: '/insights',
-  }),
-  /*
-    Was noindex while every topic was an unwritten stub. Real articles exist
-    now (authored through the Keeper), so the page has substance — but the
-    SITE-WIDE indexing switch still rules: robots.ts keeps everything noindex
-    until NEXT_PUBLIC_ALLOW_INDEXING is set, so flipping this early cannot
-    leak a placeholder site into search.
-  */
-  robots: { index: true, follow: true },
-};
+  },
+  {
+    /*
+      Was noindex while every topic was an unwritten stub. Real articles exist
+      now (authored through the Keeper), so the page has substance — but the
+      SITE-WIDE indexing switch still rules: robots.ts keeps everything noindex
+      until NEXT_PUBLIC_ALLOW_INDEXING is set, so flipping this early cannot
+      leak a placeholder site into search.
+    */
+    robots: { index: true, follow: true },
+  },
+);
 
 /**
  * INSIGHTS INDEX

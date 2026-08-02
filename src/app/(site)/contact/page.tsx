@@ -1,23 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BeamDivider, Eyebrow, Fact, Section } from '@/components/ui/primitives';
-import { brand, business, canonicalPath, ogFor, type Verifiable } from '@/lib/site';
+import { brand, business, structuredHours, type DayHours, type Verifiable } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata('contact', '/contact', {
   title: 'Contact',
   description:
     'Contact Pureweight Gold Exchange to arrange a private valuation or to ask a question about gold weight, purity and evaluation.',
-  alternates: { canonical: canonicalPath('/contact') },
-  // Complete block per page: Next replaces openGraph wholesale rather than
-  // deep-merging, so a partial one silently drops og:image/site_name/type and
-  // an absent one inherits the HOMEPAGE og:url on every subpage.
-  openGraph: ogFor({
-    title: 'Contact — Pureweight Gold Exchange',
-    description:
-      'Contact Pureweight Gold Exchange to arrange a private valuation or to ask a question about gold weight, purity and evaluation.',
-    path: '/contact',
-  }),
-};
+});
 
 /**
  * CONTACT
@@ -31,17 +22,35 @@ export default function ContactPage() {
   // `link` is declarative ('tel'/'mailto') because Fact sits inside the client
   // boundary and cannot receive functions from this server component — passing
   // a render function here was a build-breaking serialization error.
+  /*
+    A visitor deciding whether to set off with valuables in their pocket wants
+    to read today's row, not parse a sentence. When the owner has filled the
+    whole week in the Keeper it renders day by day — the same seven rows that
+    feed the OpeningHoursSpecification markup, so the page and the search
+    result cannot say different things.
+
+    The free-text line remains the fallback, and it is a real answer rather
+    than a degraded one: "by appointment" is how this business may actually
+    work, and a grid would either lose that or invent hours to fill itself.
+  */
+  const week = structuredHours();
+
   const details: {
     label: string;
     // All six rows are string facts. Indexing the whole business object would
     // union in Verifiable<string[]> (social) and break Fact's inference.
     field: Verifiable<string>;
     link?: 'tel' | 'mailto';
+    week?: DayHours[];
   }[] = [
     { label: 'Telephone', field: business.telephone, link: 'tel' },
     { label: 'Email', field: business.email, link: 'mailto' },
     { label: 'Address', field: business.address },
-    { label: 'Opening hours', field: business.openingHours },
+    {
+      label: 'Opening hours',
+      field: business.openingHours,
+      week: week.length > 0 ? week : undefined,
+    },
     { label: 'Service area', field: business.serviceArea },
     { label: 'Appointment process', field: business.appointmentProcess },
   ];
@@ -79,7 +88,22 @@ export default function ContactPage() {
                     {item.label}
                   </dt>
                   <dd className="text-sm text-ivory/78 sm:col-span-2">
-                    <Fact field={item.field} link={item.link} />
+                    {item.week ? (
+                      <ul className="max-w-xs space-y-1.5">
+                        {item.week.map((day) => (
+                          <li key={day.label} className="flex justify-between gap-6">
+                            <span>{day.label}</span>
+                            <span
+                              className={day.closed ? 'text-ash' : 'tabular-nums text-ivory/78'}
+                            >
+                              {day.closed ? 'Closed' : `${day.open} – ${day.close}`}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <Fact field={item.field} link={item.link} />
+                    )}
                   </dd>
                 </div>
               ))}

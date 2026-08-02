@@ -29,12 +29,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { assetPath } from "@/lib/asset";
+import { brand } from "@/lib/site";
 import {
   BUSINESS_RULES,
   COMPANION_FIELDS,
   DAYS,
   HERO_HEADING_SOFT_MAX,
   COPY_SECTIONS,
+  composeTitle,
   SEO_DESCRIPTION_SOFT_MAX,
   SEO_PAGES,
   SEO_TITLE_SOFT_MAX,
@@ -2499,6 +2501,15 @@ function SeoEditor({
           const page = (doc[key] ?? {}) as Record<string, unknown>;
           const title = s(page.title);
           const description = s(page.description);
+          /*
+            The preview and the counter both measure the COMPOSED title — what
+            the page will actually emit, business name included. Measuring the
+            typed string instead understated every page by the length of the
+            name, so a 58-character title reported "58 / 60, fine" while 85
+            characters shipped and the end was cut off in the search result.
+          */
+          const fullTitle = composeTitle(title, brand.name);
+          const brandAdded = fullTitle !== title;
           const setField = (field: string, value: string) =>
             onChange({ ...doc, [key]: { ...page, [field]: value } });
 
@@ -2515,7 +2526,7 @@ function SeoEditor({
                   Roughly how this appears in search
                 </p>
                 <p className="truncate text-[0.95rem] text-[#8ab4f8]">
-                  {title || "(no title)"}
+                  {title ? fullTitle : "(no title)"}
                 </p>
                 <p className="mt-1 text-xs text-gold-antique">
                   pureweight.example{meta.path}
@@ -2536,9 +2547,9 @@ function SeoEditor({
                       Page title
                     </label>
                     <span
-                      className={`${MONO_LABEL} ${title.length > SEO_TITLE_SOFT_MAX ? "text-[#d8825a]" : "text-ash/60"}`}
+                      className={`${MONO_LABEL} ${fullTitle.length > SEO_TITLE_SOFT_MAX ? "text-[#d8825a]" : "text-ash/60"}`}
                     >
-                      {title.length} / {SEO_TITLE_SOFT_MAX}
+                      {fullTitle.length} / {SEO_TITLE_SOFT_MAX}
                     </span>
                   </div>
                   <input
@@ -2548,7 +2559,14 @@ function SeoEditor({
                     onChange={(e) => setField("title", e.target.value)}
                     className={`${INPUT_CLASS} mt-2`}
                   />
-                  {title.length > SEO_TITLE_SOFT_MAX ? (
+                  {brandAdded ? (
+                    <p className="mt-2 text-xs leading-relaxed text-ash">
+                      “ — {brand.name}” is added automatically, and counted above.
+                      Write it yourself anywhere in the title and it will not be
+                      added twice.
+                    </p>
+                  ) : null}
+                  {fullTitle.length > SEO_TITLE_SOFT_MAX ? (
                     <p className="mt-2 text-xs leading-relaxed text-ash">
                       Longer than most search results show — the end may be cut off.
                       Fine if the important words come first.

@@ -378,6 +378,51 @@ for (const day of DAY_KEYS) {
 }
 
 /* ------------------------------------------------------------------ */
+/* every SEO page must be WIRED, not merely editable                  */
+/* ------------------------------------------------------------------ */
+
+/*
+  A DEAD CONTROL IS WORSE THAN A MISSING ONE.
+
+  The SEO tab shipped with eight pages editable and only four of them actually
+  reading seo.json — home, faq, contact and insights kept hardcoded metadata.
+  The panel accepted the edit, the gate passed it, the commit built green, and
+  the page ignored it. The owner would have had every reason to believe the
+  change took effect.
+
+  Nothing in a schema could have caught that, because both halves were
+  internally consistent; the break was between the content and the page that
+  was supposed to render it. So this check reads the app source and insists
+  that every key in SEO_PAGES appears in a pageMetadata() call somewhere under
+  src/app. Adding a page to the tab without wiring it now fails the build.
+*/
+
+const appFiles = [];
+(function walk(dir) {
+  for (const entry of readdirSync(join(root, dir), { withFileTypes: true })) {
+    const rel = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) walk(rel);
+    else if (entry.name.endsWith(".tsx")) appFiles.push(rel);
+  }
+})("src/app");
+
+const appSource = appFiles.map((f) => readFileSync(join(root, f), "utf8")).join("\n");
+
+for (const key of SEO_KEYS) {
+  const called =
+    appSource.includes(`pageMetadata("${key}"`) ||
+    appSource.includes(`pageMetadata('${key}'`) ||
+    appSource.includes(`pageMetadata(\n  "${key}"`) ||
+    appSource.includes(`pageMetadata(\n  '${key}'`);
+  if (!called) {
+    fail(
+      `seo.json page "${key}" is editable in the Keeper but no page calls pageMetadata("${key}") — ` +
+        `edits to it would silently do nothing`,
+    );
+  }
+}
+
+/* ------------------------------------------------------------------ */
 
 if (failures.length > 0) {
   console.error(`\nCONTENT CHECK FAILED — ${failures.length} problem(s):\n`);

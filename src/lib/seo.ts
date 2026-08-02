@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import seoContent from "@/content/seo.json";
+import { composeTitle } from "@/lib/content-schema";
 import { brand, canonicalPath, ogFor } from "@/lib/site";
 
 /**
@@ -43,6 +44,12 @@ export function seoFor(
  * `path` is the site-relative route ("/faq"); canonicalPath adds the trailing
  * slash the Pages target redirects to, so canonicals and the sitemap agree
  * rather than pointing at URLs that 301.
+ *
+ * `title.absolute` deliberately bypasses the root layout's title template.
+ * With the template in play two rules were appending the business name — the
+ * template for the browser tab and this helper for the OpenGraph card — which
+ * is how the homepage shipped the name twice in <title> but once in og:title.
+ * composeTitle is now the only rule, and both read the same string from it.
  */
 export function pageMetadata(
   key: PageKey,
@@ -51,17 +58,20 @@ export function pageMetadata(
   extra?: Metadata,
 ): Metadata {
   const { title, description } = seoFor(key, defaults);
+  /*
+    The FULL business name, matching og:site_name. It costs 27 of the ~60
+    characters a search result shows, which puts several pages over the soft
+    limit — but shortening the name, or rewriting the owner's titles to fit,
+    is a branding decision that belongs to the owner and not to this helper.
+    The panel now measures the composed string honestly and says so; what to
+    do about a long title is his call to make in the SEO tab.
+  */
+  const full = composeTitle(title, brand.name);
   return {
-    title,
+    title: { absolute: full },
     description,
     alternates: { canonical: canonicalPath(path) },
-    openGraph: ogFor({
-      // The homepage's title already carries the brand; subpages get it
-      // appended so a shared card reads as this business's page either way.
-      title: key === "home" ? title : `${title} — ${brand.name}`,
-      description,
-      path,
-    }),
+    openGraph: ogFor({ title: full, description, path }),
     ...extra,
   };
 }

@@ -196,9 +196,38 @@ export const SEO_PAGES = {
  * Soft limits, not hard ones. Google truncates around these lengths but the
  * exact point depends on pixel width, so the panel warns and never blocks —
  * a long title is a judgement call, not an error.
+ *
+ * These count the COMPOSED title (see composeTitle), not what the owner typed.
+ * Counting the typed string would have understated every page by the length of
+ * the business name — a 58-character title reading "58 / 60, fine" while 85
+ * characters shipped and Google cut the end off.
  */
 export const SEO_TITLE_SOFT_MAX = 60;
 export const SEO_DESCRIPTION_SOFT_MAX = 160;
+
+/**
+ * THE TITLE THAT ACTUALLY SHIPS.
+ *
+ * A search result should name the business, but making the owner retype
+ * "— Pureweight Gold Exchange" on all eight pages is how a page ends up
+ * missing it. So the name is appended when it is absent and left alone when
+ * it is already there.
+ *
+ * That second clause is not politeness — it is a bug fix. Next's title
+ * template appended the name unconditionally, and the homepage entry already
+ * opened with it, so the live homepage shipped
+ * "Pureweight Gold Exchange — We Buy Gold… — Pureweight Gold Exchange".
+ * Composing the final string here, once, and rendering it with `absolute`
+ * means one rule decides, and the panel can show the owner the same string
+ * the page will emit.
+ */
+export function composeTitle(title: string, brandName: string): string {
+  const t = title.trim();
+  if (t === "") return brandName;
+  return t.toLowerCase().includes(brandName.toLowerCase())
+    ? t
+    : `${t} — ${brandName}`;
+}
 
 export const COPY_FIELDS = ["eyebrow", "heading", "accent", "lead"] as const;
 

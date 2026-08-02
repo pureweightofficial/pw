@@ -1,24 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BeamDivider, Eyebrow, Placeholder, Section } from '@/components/ui/primitives';
-import { canonicalPath, ogFor } from '@/lib/site';
+import { pageMetadata } from '@/lib/seo';
 import faqContent from '@/content/faq.json';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata('faq', '/faq', {
   title: 'Frequently Asked Questions',
   description:
     'Straight answers about how gold is weighed and valued — carat and fineness, troy ounces, hallmarks, what to bring to a valuation, and what affects what a piece is worth.',
-  alternates: { canonical: canonicalPath('/faq') },
-  // Complete block per page: Next replaces openGraph wholesale rather than
-  // deep-merging, so a partial one silently drops og:image/site_name/type and
-  // an absent one inherits the HOMEPAGE og:url on every subpage.
-  openGraph: ogFor({
-    title: 'Frequently Asked Questions — Pureweight Gold Exchange',
-    description:
-      'Straight answers about how gold is weighed and valued — carat and fineness, troy ounces, hallmarks, what to bring to a valuation, and what affects what a piece is worth.',
-    path: '/faq',
-  }),
-};
+});
 
 /**
  * FAQ
