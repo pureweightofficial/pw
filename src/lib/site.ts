@@ -22,7 +22,30 @@
 import content from "@/content/business.json";
 import servicesContent from "@/content/services.json";
 import testimonialsContent from "@/content/testimonials.json";
+import { assetPath } from "@/lib/asset";
 import { BUSINESS_RULES, DAYS, SERVICE_IDS, TIME_PATTERN } from "@/lib/content-schema";
+
+/**
+ * THE ONE PLACE THE SITE'S LANGUAGE IS DECLARED.
+ *
+ * It was hardcoded in the root layout's <html lang> and nowhere else, which
+ * made an unresolved question invisible: the prose here is British English —
+ * "jewellery" thirty-six times, "jewelry" never, sovereigns, hallmarks, and a
+ * VAT field in the Keeper — while the only address anyone has entered is
+ * 250 John W Morrow Jr Pkwy #121, Gainesville, GA 30501. That address is a
+ * real multi-tenant retail centre in Georgia, USA (verified against public
+ * listings), so this is not a typo in a placeholder; it is a genuine
+ * contradiction between the content and the market.
+ *
+ * It is NOT resolved here, because it is not a code decision. A US customer
+ * searching to sell an inherited ring types "jewelry", a word this site does
+ * not contain, so the answer changes what the business earns — and only the
+ * owner knows which market is real. Declaring en-US over British spelling
+ * would merely mislabel the prose.
+ *
+ * What this constant buys is that the decision costs one line when it comes.
+ */
+export const SITE_LOCALE = "en-GB";
 
 export type Verifiable<T> =
   { status: "verified"; value: T } | { status: "placeholder"; label: string };
@@ -594,6 +617,70 @@ export function structuredHours(): DayHours[] {
   // All seven or nothing: a partial week published as if complete would imply
   // the missing days are closed, which is a claim nobody made.
   return out.length === DAYS.length ? out : [];
+}
+
+/**
+ * THE STRUCTURED-DATA LADDER.
+ *
+ * An audit of the live site found ELEVEN OF THIRTEEN PAGES carrying no
+ * structured data whatsoever. `buildLocalBusinessJsonLd` returns null without
+ * a verified legal name — correctly, since LocalBusiness without one is a
+ * claim nobody has checked — and nothing was emitted in its place. So the site
+ * told answer engines nothing about which entity it belongs to, on almost
+ * every page.
+ *
+ * That was over-correction rather than caution. `Organization` and `WebSite`
+ * assert only what this website self-evidently is: its trading name, its own
+ * address on the web, and its own logo file. None of those is a credential, a
+ * registration, or a promise — they are the site describing itself, which is
+ * exactly what entity resolution needs and precisely the thing an AI answer
+ * engine uses to decide who is speaking.
+ *
+ * The ladder: Organization + WebSite always; LocalBusiness replaces the
+ * Organization node the moment a legal name and address are both verified, so
+ * filling those fields in the Keeper upgrades the markup with no code change.
+ */
+export function buildSiteJsonLd(): Record<string, unknown>[] {
+  /*
+    Every node below carries `url`, and `brand.url` falls back to the reserved
+    example domain when NEXT_PUBLIC_SITE_URL is unset. Emitting that would
+    publish a web address this business does not own into structured data —
+    the same category of fabrication the placeholder system exists to prevent,
+    only machine-readable. The deploy workflow sets the real URL; anything that
+    does not, gets no markup.
+  */
+  if (/\.example(\/|$)/.test(brand.url)) return [];
+
+  const local = buildLocalBusinessJsonLd();
+
+  const entity: Record<string, unknown> = local ?? {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: brand.name,
+    url: brand.url,
+    description: brand.positioning,
+  };
+
+  /*
+    The logo ships with the site, so its existence is not in question — but its
+    URL was, briefly. Concatenating brand.url with assetPath() produced
+    .../pw/pw/brand/logo.webp, because brand.url ALREADY ends in the basePath
+    and assetPath prepends it again. Resolving through the URL constructor
+    lets the absolute path replace the base's path exactly once, which is the
+    behaviour wanted and the reason not to do this with string joins.
+  */
+  entity.logo = new URL(assetPath("/brand/pureweight-logo.webp"), brand.url).href;
+
+  const website: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: brand.name,
+    url: brand.url,
+    inLanguage: SITE_LOCALE,
+    publisher: { "@type": local ? "LocalBusiness" : "Organization", name: brand.name },
+  };
+
+  return [entity, website];
 }
 
 export function buildLocalBusinessJsonLd(): Record<string, unknown> | null {

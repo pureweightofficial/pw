@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Eyebrow, Section } from '@/components/ui/primitives';
-import { insightTopics } from '@/lib/site';
+import { allowIndexing, insightTopics } from '@/lib/site';
 import { pageMetadata } from '@/lib/seo';
 import { publishedArticles } from '@/lib/insights';
 
@@ -15,13 +15,24 @@ export const metadata: Metadata = pageMetadata(
   },
   {
     /*
-      Was noindex while every topic was an unwritten stub. Real articles exist
-      now (authored through the Keeper), so the page has substance — but the
-      SITE-WIDE indexing switch still rules: robots.ts keeps everything noindex
-      until NEXT_PUBLIC_ALLOW_INDEXING is set, so flipping this early cannot
-      leak a placeholder site into search.
+      THIS PAGE ONCE ANNOUNCED ITSELF AS INDEXABLE WHILE THE REST OF THE SITE
+      WAS HIDDEN. The old comment here reasoned that robots.txt would hold the
+      line regardless — and on this deployment that reasoning was simply false.
+
+      The site ships to GitHub Pages under basePath /pw, so robots.ts emits at
+      /pw/robots.txt. Crawlers only ever read robots.txt at the ORIGIN root,
+      and pureweightofficial.github.io/robots.txt is a 404 belonging to the
+      user site, not to us. Measured, not assumed. The Disallow therefore
+      reaches nobody, and the per-page robots meta is the ONLY control that
+      works here — which made this one line the single open door on a site
+      still rendering [INSERT VERIFIED TELEPHONE NUMBER].
+
+      So it now obeys the same switch as everything else. Real articles are a
+      reason to be ready to index, not a reason to index early.
     */
-    robots: { index: true, follow: true },
+    robots: allowIndexing
+      ? { index: true, follow: true }
+      : { index: false, follow: false },
   },
 );
 

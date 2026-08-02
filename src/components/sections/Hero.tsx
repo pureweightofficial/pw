@@ -119,7 +119,16 @@ export function Hero() {
             id="hero-heading"
             className="hero-rise font-display text-hero font-normal text-ivory [--rise-delay:120ms]"
           >
-            <span className="block">{heroCopy.heading}</span>
+            {/*
+              The space between these two spans is load-bearing even though
+              both are display:block and it changes nothing visually. Without
+              it the H1's text content is "Where Gold FindsIts True Weight." —
+              which is what a crawler extracts, what an AI answer engine would
+              quote, and what a screen reader announces. Every other section
+              already separates heading from accent with {" "}; the H1, of all
+              places, was the one that did not.
+            */}
+            <span className="block">{heroCopy.heading}</span>{" "}
             <span className="gold-leaf accent-italic block">
               {heroCopy.accent}
             </span>

@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Geist_Mono, Manrope, Playfair_Display, Rye } from 'next/font/google';
 import { assetPath } from '@/lib/asset';
-import { allowIndexing, brand, buildLocalBusinessJsonLd } from '@/lib/site';
+import { allowIndexing, brand, buildSiteJsonLd, SITE_LOCALE } from '@/lib/site';
 import './globals.css';
 
 /**
@@ -202,11 +202,11 @@ const REVEAL_BOOTSTRAP = `
 `;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const jsonLd = buildLocalBusinessJsonLd();
+  const jsonLd = buildSiteJsonLd();
 
   return (
     <html
-      lang="en-GB"
+      lang={SITE_LOCALE}
       className={`${vintage.variable} ${playfair.variable} ${manrope.variable} ${geistMono.variable}`}
       /* CSS url() never receives basePath, so the cracked-gold texture's path is
          injected here through the same helper every other asset uses. */
@@ -234,17 +234,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: REVEAL_BOOTSTRAP }} />
 
         {/*
-          Structured data is emitted ONLY when the minimum verified business
-          details exist. Publishing LocalBusiness markup containing placeholder
-          text would put invented information in front of a search engine, which
-          is materially worse than publishing none.
+          LocalBusiness markup is still emitted ONLY when the minimum verified
+          business details exist — publishing it with placeholder text would
+          put invented information in front of a search engine, which is worse
+          than publishing none.
+
+          But "no LocalBusiness" used to mean NO STRUCTURED DATA AT ALL, and an
+          audit of the live site found eleven of thirteen pages in exactly that
+          state: silent about which entity they belong to. Organization and
+          WebSite say only what this site self-evidently is — its trading name,
+          its own URL, its own logo. Nothing there is a credential or a claim
+          anyone needs to have checked, and it is precisely what an AI answer
+          engine reads to work out who is speaking. See buildSiteJsonLd.
         */}
-        {jsonLd ? (
+        {jsonLd.map((node, i) => (
           <script
+            key={i}
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(node) }}
           />
-        ) : null}
+        ))}
       </head>
 
       {/*

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Eyebrow, Placeholder, Section } from '@/components/ui/primitives';
 import { brand, canonicalPath, ogFor } from '@/lib/site';
+import { composeTitle } from '@/lib/content-schema';
 
 /**
  * LEGAL PAGES
@@ -87,11 +88,22 @@ export async function generateMetadata({
   const doc = DOCS[slug];
   if (!doc) return {};
 
+  /*
+    Composed once and used for both, because these pages used to disagree with
+    themselves: the root layout's title template appended the business name to
+    <title> while og:title received the bare `doc.title`, so a shared link read
+    "Privacy Policy" with no indication of whose. The eight pages wired through
+    pageMetadata already avoid this. The legal pages sit outside SEO_PAGES on
+    purpose — an owner should not be editing the search text of a legal
+    document — so they compose the title here instead of borrowing that route.
+  */
+  const title = composeTitle(doc.title, brand.name);
+
   return {
-    title: doc.title,
+    title: { absolute: title },
     description: doc.intro,
     alternates: { canonical: canonicalPath(`/legal/${slug}`) },
-    openGraph: ogFor({ title: doc.title, description: doc.intro, path: `/legal/${slug}` }),
+    openGraph: ogFor({ title, description: doc.intro, path: `/legal/${slug}` }),
     // Not indexable until the document actually says something.
     robots: { index: false, follow: true },
   };
