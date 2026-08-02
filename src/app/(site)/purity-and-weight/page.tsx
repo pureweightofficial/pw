@@ -74,13 +74,40 @@ export default function PurityAndWeightPage() {
               the number stamped inside your ring band is almost certainly one
               of these:
             </p>
-            <ul>
-              {FINENESS_TABLE.map((row) => (
-                <li key={row.carat}>
-                  <strong>{row.fineness}</strong> — {row.carat}: {row.goldContent}
-                </li>
-              ))}
-            </ul>
+            {/*
+              A REAL TABLE, because this is real tabular data.
+
+              It was a bulleted list, and the constant was already named
+              FINENESS_TABLE — three columns wearing a list's clothes. The
+              audit made the cost concrete: this is the most table-shaped
+              content on the site, and a table snippet is one of the few
+              result formats that can put an entire mapping on screen before
+              anyone clicks. A list cannot win one.
+
+              It also serves the person actually holding the ring better, who
+              wants to find one row rather than read five sentences.
+            */}
+            <table className="fineness-table">
+              <caption className="sr-only">
+                Carat to millesimal fineness, with the gold content of each
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Carat</th>
+                  <th scope="col">Fineness</th>
+                  <th scope="col">Gold content</th>
+                </tr>
+              </thead>
+              <tbody>
+                {FINENESS_TABLE.map((row) => (
+                  <tr key={row.carat}>
+                    <th scope="row">{row.carat}</th>
+                    <td>{row.fineness}</td>
+                    <td>{row.goldContent}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
             <p>
               A ring stamped 750 and a ring sold as 18ct are making exactly
               the same claim. Continental jewellery leans on the millesimal

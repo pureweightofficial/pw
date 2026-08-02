@@ -937,6 +937,56 @@
   text-underline-offset: 3px;
 }
 .article-body a:hover { color: var(--color-gold-high); }
+
+/*
+  TABLES INSIDE ARTICLE PROSE.
+
+  Added for the carat/fineness mapping, which had been a bulleted list — three
+  columns wearing a list's clothes. Styled as a ledger rather than a grid:
+  hairline rules between rows, none between columns, and the row header
+  carrying the gold. Vertical rules would fight the engraved restraint of
+  everything around them.
+
+  `overflow-x: auto` is the part that matters on a phone. Three columns of
+  numbers do not compress below roughly 320px, and a table that cannot shrink
+  is the classic cause of an entire page scrolling sideways — the one layout
+  fault this project has spent the most effort learning to catch.
+*/
+.article-body table {
+  display: block;
+  overflow-x: auto;
+  margin-top: 1.75rem;
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.article-body thead th {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-gold-antique) 45%, transparent);
+  padding: 0 1.25rem 0.6rem 0;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+  white-space: nowrap;
+}
+.article-body tbody th {
+  font-weight: 600;
+  color: var(--color-gold-high);
+  white-space: nowrap;
+}
+.article-body tbody th,
+.article-body tbody td {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-gold-antique) 16%, transparent);
+  padding: 0.7rem 1.25rem 0.7rem 0;
+  text-align: left;
+  vertical-align: baseline;
+}
+.article-body tbody tr:last-child th,
+.article-body tbody tr:last-child td { border-bottom: 0; }
+
 .article-body blockquote {
   margin-top: 1.5rem;
   border-left: 2px solid var(--color-gold-antique);
