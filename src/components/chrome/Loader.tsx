@@ -108,8 +108,35 @@ export function Loader() {
       The skip is recorded as seen, because a curtain that appears on the third
       page of a session reads as a fault rather than an entrance.
     */
+    /*
+      TWO WAYS TO BE TOO SLOW, BECAUSE ONE OF THEM IS INVISIBLE TO LAB TOOLS.
+
+      Elapsed time catches a visit that has ALREADY gone badly. It is the
+      honest signal and it is what fixed the throttled measurements above.
+
+      But it under-fires under simulated throttling — Lighthouse runs the page
+      at close to full speed and models slower timings afterwards, so
+      performance.now() reads fast even while it reports a six-second LCP. That
+      is a limitation of the instrument, not a reason to trust the fast number.
+
+      So the device is asked directly as well. A visitor whose browser reports a
+      2G/3G connection, Data Saver, or very few cores is telling us plainly that
+      a decorative animation is a bad trade, whatever the clock happens to say.
+      Every one of these is optional in the platform, hence the guards.
+    */
+    const nav = navigator as Navigator & {
+      connection?: { effectiveType?: string; saveData?: boolean };
+      deviceMemory?: number;
+    };
+    const conn = nav.connection;
+    const constrained =
+      conn?.saveData === true ||
+      (typeof conn?.effectiveType === "string" && /^(slow-2g|2g|3g)$/.test(conn.effectiveType)) ||
+      (typeof nav.deviceMemory === "number" && nav.deviceMemory <= 2) ||
+      (typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 2);
+
     const elapsed = performance.now();
-    const tooSlow = elapsed > OPENING_BUDGET_MS;
+    const tooSlow = elapsed > OPENING_BUDGET_MS || constrained;
 
     const show = !seen && !reduced && !tooSlow;
     setVisible(show);
