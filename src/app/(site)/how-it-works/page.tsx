@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Eyebrow, Section } from '@/components/ui/primitives';
+import { buildHowToJsonLd } from '@/lib/site';
 import { pageMetadata } from '@/lib/seo';
 
 /**
@@ -28,6 +29,18 @@ export const metadata: Metadata = pageMetadata(
 export default function HowItWorksPage() {
   return (
     <Section material="steel" labelledBy="hiw-heading" className="pb-24 pt-36 lg:pb-36 lg:pt-44">
+      {/*
+        "How does selling gold work" is a spoken question as much as a typed
+        one, and this page has always answered it in four ordered stages — it
+        simply never said so in a form a machine could read. The markup is
+        derived from the same `journey` array that renders those stages, so it
+        cannot come to describe something the visitor is not shown.
+      */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildHowToJsonLd()) }}
+      />
+
       <div className="shell">
         <div className="mx-auto max-w-3xl">
           <Eyebrow className="mb-8">How It Works</Eyebrow>

@@ -683,6 +683,38 @@ export function buildSiteJsonLd(): Record<string, unknown>[] {
   return [entity, website];
 }
 
+/**
+ * HowTo MARKUP FOR THE FOUR STAGES, DERIVED — NOT AUTHORED.
+ *
+ * "How does selling gold work" is a question people type and speak, and it is
+ * the shape of query an answer engine most wants a structured source for. The
+ * page already answers it in four ordered stages; it simply never said so in a
+ * form a machine could read, so the answer was there to be quoted and nothing
+ * marked it as steps.
+ *
+ * Every field below comes from the `journey` array that renders the visible
+ * page. Nothing here is written for the crawler's benefit, which is the whole
+ * point: markup that says something the page does not is the fastest way to
+ * lose the rich result it was added to win.
+ */
+export function buildHowToJsonLd(): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: "How selling gold over the counter works",
+    description:
+      "The four stages of an over-the-counter gold valuation: bringing items in, weighing and examination in front of you, an offer against the market, and your decision.",
+    inLanguage: SITE_LOCALE,
+    step: journey.map((stage, i) => ({
+      "@type": "HowToStep",
+      position: i + 1,
+      name: stage.title,
+      text: stage.body,
+      url: `${brand.url.replace(/\/$/, "")}${canonicalPath("/how-it-works")}`,
+    })),
+  };
+}
+
 export function buildLocalBusinessJsonLd(): Record<string, unknown> | null {
   const address = verifiedValue(business.address);
   const legalName = verifiedValue(business.legalName);
