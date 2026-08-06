@@ -1,14 +1,15 @@
 "use client";
 
-import {
-  AmbientPoster,
-  AmbientScene,
-  type AmbientVariant,
-} from "./AmbientScene";
+import { AmbientScene, type AmbientVariant } from "./AmbientScene";
 import { AssayScene } from "./AssayScene";
 import { FinaleScene } from "./FinaleScene";
 import { FireflyField } from "./FireflyField";
 import { HeroScene } from "./HeroScene";
+// One definition of each poster, in the three-free module. The gated call sites
+// render these WITHOUT loading the renderer; this module renders the same ones
+// underneath a canvas. Two copies would drift, and the drift would only show on
+// the devices least able to report it.
+import { AmbientPoster } from "./posters";
 import { ScalePoster } from "./ScalePoster";
 import { SceneShell } from "./SceneShell";
 

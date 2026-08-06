@@ -96,6 +96,37 @@ ornaments that are legitimately aria-hidden, and a clip box that ran past the
 section into the next one. A reported failure of ~1.0:1 almost certainly means
 the sample is catching something the copy never sits on.
 
+## 4d. Manual gate — 3D payload on data-saving devices
+
+`capability.ts` rates a device advertising Data Saver or a 2g/3g connection as
+tier `"none"` and renders a poster instead of a scene. For a long time it did so
+*after* downloading the renderer: the capability probe lived inside `SceneShell`,
+past the `next/dynamic` boundary, so the phone had to fetch ~600KB of three.js in
+order to learn it should not use it. Measured before the fix, a capable desktop
+and a 2g + Data Saver phone pulled **byte-identical** payloads.
+
+The decision now happens in `lib/scene-gate` before the dynamic import, and every
+canvas call site consults it. That is one careless import away from silently
+reverting — nothing on screen would change — so it is measured:
+
+```bash
+npm run build
+npm run check:3d-payload         # exits non-zero on failure
+```
+
+Current result: capable desktop 1594kB of JS with scenes; 2g + Data Saver 637kB
+with none. **957kB avoided**, ~238kB of it gzipped.
+
+**Run this on a machine with a real GPU.** It is deliberately not in CI: a runner
+falls back to SwiftShader, which `capability.ts` correctly rates tier `"none"`,
+so *both* profiles would skip the renderer and the gate would pass while proving
+nothing. It aborts rather than issuing that vacuous pass — a reported abort about
+a software rasteriser is the instrument being honest, not a failure.
+
+Note that CDP network throttling does **not** move `navigator.connection`, so
+emulating a slow link is not enough to exercise this path; the gate overrides the
+Network Information API directly, which is the signal the code actually reads.
+
 ## 5. Verification after first deploy
 
 ```bash

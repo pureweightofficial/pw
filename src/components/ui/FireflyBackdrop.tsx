@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useSceneGate } from "@/lib/scene-gate";
 
 /**
  * THE SITE-WIDE FIREFLY BACKDROP
@@ -35,12 +36,15 @@ const FireflyCanvas = dynamic(
 );
 
 export function FireflyBackdrop() {
+  // Decided before the renderer is imported — see lib/scene-gate.
+  const gate = useSceneGate();
+
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
     >
-      <FireflyCanvas />
+      {gate === "canvas" ? <FireflyCanvas /> : null}
     </div>
   );
 }

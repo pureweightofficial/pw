@@ -129,33 +129,6 @@ async function measureOpening(browser, url) {
   return r;
 }
 
-/** Kept for reference; superseded by measureOpening above. */
-async function measureLcpOnly(browser, url) {
-  const ctx = await browser.newContext({
-    viewport: { width: 412, height: 915 }, deviceScaleFactor: 2,
-    isMobile: true, hasTouch: true,
-  });
-  const page = await ctx.newPage();
-  const cdp = await ctx.newCDPSession(page);
-  await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
-  await cdp.send("Network.enable");
-  await cdp.send("Network.emulateNetworkConditions", {
-    offline: false, latency: 150,
-    downloadThroughput: (1.6 * 1024 * 1024) / 8, uploadThroughput: (750 * 1024) / 8,
-  });
-  await page.addInitScript(() => {
-    window.__lcp = 0;
-    new PerformanceObserver((l) => {
-      for (const e of l.getEntries()) window.__lcp = Math.round(e.startTime);
-    }).observe({ type: "largest-contentful-paint", buffered: true });
-  });
-  await page.goto(url, { waitUntil: "load", timeout: 120000 });
-  await page.waitForTimeout(11000);
-  const lcp = await page.evaluate(() => window.__lcp);
-  await ctx.close();
-  return lcp;
-}
-
 const original = readFileSync(LOADER, "utf8");
 const chromePath = findChrome();
 if (!chromePath) { console.error("  no Chrome found"); process.exit(1); }

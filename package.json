@@ -17,6 +17,7 @@
     "make:craquelure": "node scripts/make-craquelure.mjs",
     "check:scene-contrast": "node scripts/check-section-scene-contrast.mjs",
     "check:sticky": "node scripts/check-sticky.mjs",
+    "check:3d-payload": "node scripts/check-3d-payload.mjs",
     "check:a11y": "node scripts/check-a11y.mjs",
     "check:keeper-a11y": "node scripts/check-keeper-a11y.mjs",
     "verify:built": "npm run check:a11y && npm run check:keeper-a11y"

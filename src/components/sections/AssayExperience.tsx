@@ -1,6 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useSceneGate } from "@/lib/scene-gate";
+import { ScalePoster } from "@/components/webgl/posters";
 import { Eyebrow, Fact, Section } from "@/components/ui/primitives";
 import { assayFactors, business } from "@/lib/site";
 import { opener } from "@/lib/copy";
@@ -38,6 +40,9 @@ const AssayCanvas = dynamic(
 );
 
 export function AssayExperience() {
+  // Decided before the renderer is imported — see lib/scene-gate.
+  const gate = useSceneGate();
+
   return (
     <Section
       id="assay"
@@ -74,7 +79,7 @@ export function AssayExperience() {
                 data-webgl-surface
                 data-webgl-label="Inspect"
               >
-                <AssayCanvas />
+                {gate === "canvas" ? <AssayCanvas /> : <ScalePoster />}
               </div>
               <p className="mt-5 text-xs leading-relaxed text-ash">
                 Illustrative only. The piece shown carries a millesimal fineness

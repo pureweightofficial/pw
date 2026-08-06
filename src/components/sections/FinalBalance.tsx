@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useSceneGate } from "@/lib/scene-gate";
 import { VisitCta } from "@/components/ui/VisitCta";
 import { ScalePoster } from "@/components/webgl/ScalePoster";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
@@ -33,6 +34,9 @@ const FinaleCanvas = dynamic(
 );
 
 export function FinalBalance() {
+  // Decided before the renderer is imported — see lib/scene-gate.
+  const gate = useSceneGate();
+
   return (
     <section
       id="finale"
@@ -46,7 +50,7 @@ export function FinalBalance() {
         aria-hidden="true"
         data-webgl-surface
       >
-        <FinaleCanvas />
+        {gate === "canvas" ? <FinaleCanvas /> : <ScalePoster />}
       </div>
 
       <div

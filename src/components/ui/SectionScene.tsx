@@ -1,6 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useSceneGate } from "@/lib/scene-gate";
+import { AmbientPoster } from "@/components/webgl/posters";
 import type { AmbientVariant } from "@/components/webgl/AmbientScene";
 
 /**
@@ -60,6 +62,9 @@ export function SectionScene({
   scrim = "veil",
   className = "",
 }: SectionSceneProps) {
+  // Decided before the renderer is imported — see lib/scene-gate.
+  const gate = useSceneGate();
+
   return (
     <div
       aria-hidden="true"
@@ -77,7 +82,11 @@ export function SectionScene({
       // heading's own glyphs against themselves.
       className={`section-scene pointer-events-none absolute inset-0 -z-10 overflow-hidden ${className}`}
     >
-      <AmbientCanvas variant={variant} channel={channel} />
+      {gate === "canvas" ? (
+        <AmbientCanvas variant={variant} channel={channel} />
+      ) : (
+        <AmbientPoster />
+      )}
 
       {/*
         THE SCRIM IS NOT OPTIONAL, WHICH IS WHY IT LIVES HERE AND NOT AT THE

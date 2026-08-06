@@ -547,17 +547,9 @@ export function AmbientScene({
   );
 }
 
-/** Near-black stand-in while the chunk loads. These scenes are pure atmosphere. */
-export function AmbientPoster() {
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        width: "100%",
-        height: "100%",
-        background:
-          "radial-gradient(70% 55% at 30% 40%, rgba(184,121,20,0.07), transparent 70%)",
-      }}
-    />
-  );
-}
+/*
+  AmbientPoster used to live here. It moved to ./posters, which imports no
+  three.js, because declaring it in this module meant every consumer of the
+  still image also pulled in the renderer — the exact cost the poster exists to
+  avoid. Nothing about the poster changed; only where it is declared.
+*/
