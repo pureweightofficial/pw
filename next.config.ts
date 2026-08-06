@@ -3,14 +3,21 @@ import type { NextConfig } from 'next';
 /**
  * Two deployment targets, one codebase.
  *
- * DEFAULT — a Node server (Vercel, Cloudflare, a VPS). Everything works,
- * including the valuation enquiry endpoint.
+ * DEFAULT — a Node server (Vercel, Cloudflare, a VPS). This is the branch that
+ * serves the security headers and the immutable asset caching below. It is
+ * built and served locally as part of go-live prep rather than being taken on
+ * trust; see docs/GO-LIVE.md §4e for what it was observed to return.
  *
- * GITHUB_PAGES=true — a fully static export for GitHub Pages. Pages serves
- * files, not functions, so `/api/valuation` cannot exist there. The CI workflow
- * moves that route aside before building, and the form is switched into a
- * read-only state that says so plainly rather than posting into a void.
- * See .github/workflows/pages.yml.
+ * GITHUB_PAGES=true — a fully static export for GitHub Pages, which serves
+ * files rather than functions.
+ *
+ * This note used to add that `/api/valuation` could not exist on Pages, so CI
+ * moved the route aside before building and the form fell back to a read-only
+ * state. None of that machinery exists any more: the business trades over the
+ * counter, so the enquiry form and its endpoint were removed outright and the
+ * export is an ordinary build with no source surgery. There is no `src/app/api`
+ * directory. The description was left behind by the change that made it false,
+ * which is the most expensive kind of comment to leave behind.
  */
 const isPages = process.env.GITHUB_PAGES === 'true';
 

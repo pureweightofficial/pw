@@ -127,6 +127,39 @@ Note that CDP network throttling does **not** move `navigator.connection`, so
 emulating a slow link is not enough to exercise this path; the gate overrides the
 Network Information API directly, which is the signal the code actually reads.
 
+## 4e. The node target has been exercised — it is not an untested branch
+
+Every build this project ships takes the `GITHUB_PAGES=true` static-export
+branch. The node branch is the *default*, and defaults that never run are how
+go-live day turns into a debugging session. It was built and served locally on
+2026-08-06, and it works. Reproduce with:
+
+```bash
+npm run build            # no GITHUB_PAGES -> node target
+npx next start -p 3123
+```
+
+Verified against that server, so these are observed responses rather than
+intentions:
+
+| Check | Result |
+| --- | --- |
+| Build | Compiles clean, no `/api/*` route (the enquiry endpoint is gone) |
+| CSP | Full policy present on **both** the document and static assets |
+| `connect-src` | Carries `api.github.com` + `raw.githubusercontent.com` — the Keeper works |
+| Other headers | `nosniff`, `SAMEORIGIN`, `strict-origin-when-cross-origin`, `Permissions-Policy` |
+| HTML caching | `Cache-Control: no-cache` |
+| Hashed assets | `public, max-age=31536000, immutable` |
+| Routes | `/`, `what-we-buy`, `purity-and-weight`, `contact`, `faq`, `insights`, `keeper`, `legal/privacy`, `sitemap.xml` — all 200 |
+| Indexing guard | `robots.txt` = `Disallow: /`, plus `<meta name="robots" content="noindex, nofollow, nocache">` |
+
+One structural gain worth knowing before choosing a host: on the node target
+`robots.txt` is served from the **origin root**, where crawlers actually look
+for it. On a Pages *project* site it can only ever live at `/pw/robots.txt`,
+which no crawler reads — the reason indexing control there rests entirely on the
+per-page meta tag. Moving to a node host fixes that class of problem rather than
+working around it.
+
 ## 5. Verification after first deploy
 
 ```bash
