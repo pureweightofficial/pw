@@ -4,7 +4,6 @@ import { AmbientScene, type AmbientVariant } from "./AmbientScene";
 import { AssayScene } from "./AssayScene";
 import { FinaleScene } from "./FinaleScene";
 import { FireflyField } from "./FireflyField";
-import { HeroScene } from "./HeroScene";
 // One definition of each poster, in the three-free module. The gated call sites
 // render these WITHOUT loading the renderer; this module renders the same ones
 // underneath a canvas. Two copies would drift, and the drift would only show on
@@ -87,21 +86,21 @@ export function FireflyCanvas() {
   );
 }
 
-export function HeroCanvas() {
-  return (
-    <SceneShell
-      eager
-      showFallbackNotice
-      camera={{ position: [1.35, 1.65, 7.4], fov: 34 }}
-      /* 1.18, screenshot-verified: at 1.06 the forged-iron column and plinth
-         disappeared into the void and the instrument read as a floating beam. */
-      exposure={1.18}
-      poster={<ScalePoster />}
-    >
-      {(capability) => <HeroScene capability={capability} />}
-    </SceneShell>
-  );
-}
+/*
+  HeroCanvas was removed, along with HeroScene and the bench geometry and
+  material only it used.
+
+  The hero's subject is the supplied film, not a procedural scale — two gold
+  balances on black in one frame read as a mistake, so the WebGL instrument was
+  withdrawn from the hero and kept where it is genuinely interactive. What was
+  left behind was an export nobody called, and dead code that looks live is a
+  trap: the obvious way to "restore" the hero would have been to mount this
+  again, undoing a deliberate art-direction decision.
+
+  It was not free, either. It was the only consumer of drei's ContactShadows,
+  so the whole component shipped in this chunk for every visitor who gets 3D and
+  rendered for none of them.
+*/
 
 export function AssayCanvas() {
   return (

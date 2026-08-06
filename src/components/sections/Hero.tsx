@@ -47,8 +47,24 @@ const heroCopy = opener("hero", {
  * It does NOT remove three.js from the page. The assay and closing sections
  * still reach it through next/dynamic at module scope, and those components
  * render on load, so the chunk is still fetched — deferred and non-blocking, but
- * fetched. Gating that import on viewport proximity is a separate open item on
- * the performance list, and is not claimed here.
+ * fetched.
+ *
+ * This paragraph used to end by listing "gate that import on viewport proximity"
+ * as an open performance item. It was measured, and it is closed: not worth
+ * doing. On a 4x-throttled mobile profile the 950KB chunk is requested at
+ * 8500ms and finishes at 16191ms — the load event is at 6744ms, so the fetch
+ * begins nearly two seconds AFTER the page has loaded. `next/dynamic` has
+ * already moved it clear of the critical path; there is no first-paint left for
+ * proximity gating to win. Measured against the same profile with the scene
+ * skipped entirely: LCP 4932ms with 3D against 4860ms without, a 72ms gap
+ * inside a run-to-run spread of 4924-6156ms. Noise, not signal.
+ *
+ * What the chunk does still cost is 758ms of extra long-task time (1692ms
+ * against 934ms) as three.js compiles — all of it after load. Proximity gating
+ * would not remove that work, only move it to the moment the visitor scrolls a
+ * scene into view, which is the worst moment to spend it. The saving that is
+ * real belongs to lib/scene-gate, which skips the download and the compile
+ * together for anyone who was never going to see a scene.
  *
  * The scrim is heavier here than a WebGL hero needed. The film's backdrop is a
  * mid-grey studio sweep rather than near-black, so the copy column has to be

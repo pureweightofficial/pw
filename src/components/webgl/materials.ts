@@ -301,17 +301,8 @@ export function instrumentPlate(): THREE.MeshStandardMaterial {
 /* ROOM                                                                       */
 /* -------------------------------------------------------------------------- */
 
-/** The floor the instrument stands on — near-black, faintly reflective. */
-export function benchSurface(): THREE.MeshStandardMaterial {
-  return memo(
-    'bench',
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: new THREE.Color('#080807'),
-        metalness: 0.55,
-        roughness: 0.72,
-        roughnessMap: ironRoughnessMap(),
-        envMapIntensity: 0.35,
-      }),
-  );
-}
+/*
+  benchSurface lived here — the near-black floor under the hero instrument. It
+  went with HeroScene, its only consumer. See canvases.tsx for why the hero no
+  longer carries a procedural scale.
+*/

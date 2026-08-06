@@ -268,13 +268,15 @@ src/
       materials.ts         two metals: gold reflects, iron absorbs
       Studio.tsx           the lighting rig
       BalanceScale.tsx     the instrument
-      HeroScene / AssayScene / FinaleScene
+      AmbientScene / AssayScene / FinaleScene / FireflyField
       SceneShell.tsx       gating, fallback, disposal
+      posters.tsx          the stills — imports no three.js, deliberately
       ScalePoster.tsx      the inline-SVG static hero
   lib/
     site.ts                content + the verification guard
     scroll-store.ts        per-frame state, zero re-renders
     capability.ts          GPU / motion / data-saver tiering
+    scene-gate.ts          decides on 3D BEFORE the renderer is imported
 ```
 
 ---

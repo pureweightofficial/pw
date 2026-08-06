@@ -279,10 +279,11 @@ export function stampPlaneGeometry(): THREE.BufferGeometry {
   return memo('stamp-plane', () => new THREE.PlaneGeometry(0.252, 0.14));
 }
 
-/** The bench the instrument stands on. */
-export function benchGeometry(): THREE.BufferGeometry {
-  return memo('bench', () => new THREE.PlaneGeometry(24, 24));
-}
+/*
+  benchGeometry lived here — the 24x24 plane the hero instrument stood on. It
+  went with HeroScene, its only consumer. See canvases.tsx for why the hero no
+  longer carries a procedural scale.
+*/
 
 /* -------------------------------------------------------------------------- */
 /* THE PANS                                                                   */

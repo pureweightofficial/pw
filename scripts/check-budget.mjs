@@ -12,7 +12,6 @@
 
 import {
   beamGeometry,
-  benchGeometry,
   chainLinkGeometry,
   columnGeometry,
   finialGeometry,
@@ -60,7 +59,6 @@ const HERO = [
   ['pan rims (2)', tris(new THREE.CylinderGeometry(0.537, 0.537, 0.026, 64, 1, true)) * 2, 1, 2],
   ['bullion (3 bars + stamp)', tris(ingotGeometry) * 3 + tris(stampPlaneGeometry), 1, 4],
   ['seal block + bands + seal', tris(sealBlockGeometry) + tris(sealBandGeometry) * 2 + tris(new THREE.CylinderGeometry(0.052, 0.056, 0.016, 28)) + tris(new THREE.TorusGeometry(0.038, 0.005, 8, 28)), 1, 5],
-  ['bench plane', tris(benchGeometry), 1, 1],
 ];
 
 const ASSAY = [
