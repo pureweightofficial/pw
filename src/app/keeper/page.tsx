@@ -27,7 +27,14 @@
  * panel polls the build so "published" is a statement, not a hope.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { assetPath } from "@/lib/asset";
 import { brand } from "@/lib/site";
 import {
@@ -47,6 +54,7 @@ import {
   CONTENT_PATHS,
   INSIGHTS_DIR,
   KeeperApiError,
+  REPO,
   listContentEdits,
   listImages,
   listInsightFiles,
@@ -95,6 +103,132 @@ const INPUT_CLASS =
   "w-full border border-gold-antique/25 bg-void/60 px-4 py-3 text-sm text-ivory " +
   "placeholder:text-ash/40 focus:border-gold-rich focus:outline-none " +
   "focus:ring-1 focus:ring-gold-rich/50 transition-colors duration-200";
+
+/**
+ * SECTION ICONS
+ *
+ * Drawn inline rather than pulled from an icon package, for the same reason the
+ * site's 3D is procedural: this panel ships no binary assets and adds no
+ * dependency for nine small glyphs. Each is a 16px stroke drawing on
+ * `currentColor`, so it inherits the nav item's own selected/hover colour
+ * without a second styling rule.
+ *
+ * They are decoration. Every one is aria-hidden and the nav item's text label
+ * stays exactly as it was — an icon that conveyed meaning on its own would put
+ * the whole strip behind a guess for anyone using a screen reader, and the
+ * keeper a11y gate reads those names.
+ */
+const NAV_ICONS: Record<Tab, ReactNode> = {
+  dashboard: (
+    <>
+      <rect x="2" y="2" width="5.5" height="5.5" />
+      <rect x="10.5" y="2" width="5.5" height="5.5" />
+      <rect x="2" y="10.5" width="5.5" height="5.5" />
+      <rect x="10.5" y="10.5" width="5.5" height="5.5" />
+    </>
+  ),
+  business: (
+    <>
+      <path d="M2 16V6l7-4 7 4v10" />
+      <path d="M6.5 16v-5h5v5" />
+    </>
+  ),
+  services: (
+    <>
+      <path d="M9 2v14" />
+      <path d="M3 6h12" />
+      <path d="M3 6 1 11h4L3 6Z" />
+      <path d="M15 6l-2 5h4l-2-5Z" />
+    </>
+  ),
+  testimonials: (
+    <>
+      <path d="M2 3h14v9H6l-4 3V3Z" />
+      <path d="M5.5 7.5h2M9 7.5h3.5" />
+    </>
+  ),
+  faq: (
+    <>
+      <circle cx="9" cy="9" r="7" />
+      <path d="M7 7a2 2 0 1 1 2.6 1.9c-.4.15-.6.5-.6.9v.4" />
+      <path d="M9 13h.01" />
+    </>
+  ),
+  copy: (
+    <>
+      <path d="M3.5 2h7l4 4v10h-11V2Z" />
+      <path d="M10.5 2v4h4" />
+      <path d="M6 9.5h6M6 12.5h6" />
+    </>
+  ),
+  insights: (
+    <>
+      <path d="M3 15.5 2 17l1.5-1" />
+      <path d="M4 14.5 13.5 5a1.8 1.8 0 0 0-2.5-2.5L1.5 12l-.5 4 4-.5Z" />
+      <path d="M10 4.5 13.5 8" />
+    </>
+  ),
+  media: (
+    <>
+      <rect x="2" y="3" width="14" height="12" />
+      <circle cx="6.5" cy="7" r="1.3" />
+      <path d="m2 12 4-3.5 4 3.5 3-2.5 3 2.5" />
+    </>
+  ),
+  seo: (
+    <>
+      <circle cx="7.5" cy="7.5" r="5.5" />
+      <path d="m11.5 11.5 4.5 4.5" />
+    </>
+  ),
+};
+
+function NavIcon({ tab }: { tab: Tab }) {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      viewBox="0 0 18 18"
+      className="h-[1.05rem] w-[1.05rem] shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {NAV_ICONS[tab]}
+    </svg>
+  );
+}
+
+/**
+ * A section with nothing in it yet.
+ *
+ * The editors used to say "No articles yet." on a bare line and leave seven
+ * hundred pixels of black underneath, which reads as a page that failed to load
+ * rather than one that is simply empty. A bordered card the same width as the
+ * content that will eventually replace it says the state is deliberate, and
+ * carries the action that ends it.
+ */
+function EmptyState({
+  title,
+  note,
+  children,
+}: {
+  title: string;
+  note: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="border border-dashed border-gold-antique/25 bg-gold-antique/[0.03] px-8 py-12 text-center">
+      <p className={`${MONO_LABEL} text-gold-antique`}>{title}</p>
+      <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ash">
+        {note}
+      </p>
+      {children ? <div className="mt-7 flex justify-center">{children}</div> : null}
+    </div>
+  );
+}
 
 type Doc = Record<string, unknown>;
 
@@ -576,7 +710,10 @@ export default function KeeperPage() {
       </p>
 
       {/* ---------------------------- sidebar ------------------------- */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-gold-antique/20 lg:flex">
+      {/* w-72, not w-64: at 64 the icon and the "21 still to confirm" badge
+          together pushed "Business Details" into an ellipsis, and a nav item
+          you cannot read is worse than one without an icon. */}
+      <aside className="hidden w-72 shrink-0 flex-col border-r border-gold-antique/20 lg:flex">
         <div className="border-b border-gold-antique/15 px-6 py-7">
           <p className="font-display text-2xl leading-none text-ivory">
             Pureweight
@@ -602,7 +739,10 @@ export default function KeeperPage() {
                   : "border-l-2 border-transparent text-ash hover:bg-gold-antique/5 hover:text-ivory"
               }`}
             >
-              <span>{item.label}</span>
+              <span className="flex min-w-0 items-center gap-3">
+                <NavIcon tab={item.key} />
+                <span className="truncate">{item.label}</span>
+              </span>
               {item.badge ? (
                 <>
                   {/*
@@ -624,23 +764,20 @@ export default function KeeperPage() {
             </button>
           ))}
         </div>
+        {/*
+          Who you are and what you are editing, at the foot of the strip. The
+          identity moved UP into the top bar as well, where a panel of this
+          shape expects it; what stays here is the thing the top bar has no
+          room to say — which repository these commits land in.
+        */}
         <div className="border-t border-gold-antique/15 px-6 py-5">
-          <a
-            href={assetPath("/")}
-            target="_blank"
-            rel="noopener"
-            className={`${MONO_LABEL} block text-ash transition-colors hover:text-gold-high`}
-          >
-            View site ↗
-          </a>
-          <p className="mt-4 truncate text-xs text-ash/70">{signee.login}</p>
-          <button
-            type="button"
-            onClick={signOut}
-            className={`${MONO_LABEL} mt-1 text-gold-antique transition-colors hover:text-gold-high`}
-          >
-            Sign out
-          </button>
+          <p className={`${MONO_LABEL} text-ash/50`}>Editing</p>
+          <p className="mt-2 break-all font-mono text-[0.68rem] leading-relaxed text-ash/80">
+            {REPO}
+          </p>
+          <p className="mt-1 font-mono text-[0.68rem] text-ash/60">
+            branch {branchOverride ?? "main"}
+          </p>
         </div>
       </aside>
 
@@ -654,6 +791,48 @@ export default function KeeperPage() {
           </div>
         ) : null}
 
+        {/*
+          DESKTOP TOP BAR.
+
+          The panel had no header on desktop at all: the section you were in was
+          only stated by the page's own heading, and the two things you reach for
+          when you have finished — the live site, and signing out — were pinned to
+          the bottom edge of a full-height sidebar, below nine nav items and a
+          screen's worth of empty space. On a tall display they sat hundreds of
+          pixels away from anything else and were routinely missed.
+
+          It is a bar, not a banner: no second <h1> (the gate allows exactly one,
+          and the sr-only heading above is it), and no live region (the gate
+          allows exactly one of those too, and the panel already has its voice).
+          It states where you are and offers the two exits.
+        */}
+        <header className="hidden items-center justify-between gap-6 border-b border-gold-antique/20 px-8 py-4 lg:flex">
+          <p className={`${MONO_LABEL} truncate text-gold-high`}>
+            {NAV.find((n) => n.key === tab)?.label ?? tab}
+          </p>
+          <div className="flex shrink-0 items-center gap-6">
+            <a
+              href={assetPath("/")}
+              target="_blank"
+              rel="noopener"
+              className={`${MONO_LABEL} text-ash transition-colors hover:text-gold-high`}
+            >
+              View site ↗
+            </a>
+            <span aria-hidden="true" className="h-4 w-px bg-gold-antique/25" />
+            <p className="max-w-[14rem] truncate font-mono text-[0.68rem] text-ash/70">
+              {signee.login}
+            </p>
+            <button
+              type="button"
+              onClick={signOut}
+              className={`${MONO_LABEL} text-gold-antique transition-colors hover:text-gold-high`}
+            >
+              Sign out
+            </button>
+          </div>
+        </header>
+
         {/* Mobile header + nav (the sidebar is desktop-only). */}
         <header className="border-b border-gold-antique/20 lg:hidden">
           <div className="flex items-center justify-between px-5 py-4">
@@ -663,13 +842,25 @@ export default function KeeperPage() {
               </p>
               <p className={`${MONO_LABEL} mt-1 text-gold-antique`}>The Keeper</p>
             </div>
-            <button
-              type="button"
-              onClick={signOut}
-              className={`${MONO_LABEL} text-gold-antique`}
-            >
-              Sign out
-            </button>
+            {/* Narrow screens never see the sidebar, so this is the only place
+                the live site is reachable from. It was missing entirely. */}
+            <div className="flex items-center gap-4">
+              <a
+                href={assetPath("/")}
+                target="_blank"
+                rel="noopener"
+                className={`${MONO_LABEL} text-ash`}
+              >
+                View site ↗
+              </a>
+              <button
+                type="button"
+                onClick={signOut}
+                className={`${MONO_LABEL} text-gold-antique`}
+              >
+                Sign out
+              </button>
+            </div>
           </div>
           {/*
             The same nine sections as the sidebar, for narrow screens. Both
@@ -1711,10 +1902,10 @@ function TestimonialsEditor({
       />
 
       {list.length === 0 ? (
-        <p className="text-sm text-ash/70">
-          None yet. The site currently shows its honest “no testimonials have
-          been supplied” state — add the first real one below.
-        </p>
+        <EmptyState
+          title="No testimonials yet"
+          note="The site is currently showing its honest “no testimonials have been supplied” state, which is the correct thing for it to show. Add the first real one below — anonymous quotes and quotes containing unverified promises are refused."
+        />
       ) : null}
 
       {list.map((t, i) => (
@@ -2276,6 +2467,18 @@ function InsightsEditor({
   /* ------------------------------- list view ------------------------------ */
 
   if (!editing) {
+    // Declared once: it is the empty state's only action AND the list's footer
+    // button, and two copies of it would drift apart the first time either changed.
+    const writeButton = (
+      <button
+        type="button"
+        onClick={startNew}
+        className={`${MONO_LABEL} border border-gold-rich/60 bg-gold-antique/10 px-6 py-3.5 text-gold-high transition-colors hover:border-gold-high hover:bg-gold-antique/20`}
+      >
+        + Write a new article
+      </button>
+    );
+
     return (
       <div className="space-y-10">
         <SectionHeading
@@ -2286,11 +2489,16 @@ function InsightsEditor({
 
         {files === null ? (
           <p className={`${MONO_LABEL} text-ash`}>Reading the shelf…</p>
+        ) : files.length === 0 ? (
+          <EmptyState
+            title="No articles yet"
+            note="Insights are the only pages here that can be added to over time, and each one becomes its own page in the sitemap. Nothing is published until you remove the draft mark."
+          >
+            {writeButton}
+          </EmptyState>
         ) : (
           <div className="space-y-3">
-            {files.length === 0 ? (
-              <p className="text-sm text-ash/70">No articles yet.</p>
-            ) : (
+            {
               files.map((file) => (
                 <div
                   key={file.slug}
@@ -2317,17 +2525,13 @@ function InsightsEditor({
                   </span>
                 </div>
               ))
-            )}
+            }
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={startNew}
-          className={`${MONO_LABEL} border border-gold-rich/60 bg-gold-antique/10 px-6 py-3.5 text-gold-high transition-colors hover:border-gold-high hover:bg-gold-antique/20`}
-        >
-          + Write a new article
-        </button>
+        {/* The empty state carries its own copy of this, so showing it again
+            below would offer the same action twice on an empty shelf. */}
+        {files && files.length > 0 ? writeButton : null}
       </div>
     );
   }
@@ -2659,7 +2863,10 @@ function MediaLibrary({
       {images === null || articleBodies === null ? (
         <p className={`${MONO_LABEL} text-ash`}>Reading the archive…</p>
       ) : images.length === 0 ? (
-        <p className="text-sm text-ash/70">No images yet.</p>
+        <EmptyState
+          title="No images yet"
+          note="Anything uploaded here is committed to the repository and served from the site's own domain — there is no external image host to depend on. Use the button above to add the first one."
+        />
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {images.map((img) => {

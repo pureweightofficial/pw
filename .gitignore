@@ -10,3 +10,6 @@ npm-debug.log*
 .vercel
 next-env.d.ts
 tsconfig.tsbuildinfo
+
+# Screenshots written by npm run shot:keeper — local only.
+.shots
