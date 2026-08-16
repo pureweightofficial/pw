@@ -49,6 +49,43 @@ const basePath = process.env.BASE_PATH !== undefined
  */
 process.env.NEXT_PUBLIC_BASE_PATH = basePath ?? '';
 
+/**
+ * WHERE THIS BUILD THINKS IT LIVES.
+ *
+ * `brand.url` in src/lib/site.ts falls back to the reserved `.example` domain
+ * when NEXT_PUBLIC_SITE_URL is unset. That fallback is deliberate and it is
+ * load-bearing — buildSiteJsonLd() refuses to emit structured data for a
+ * `.example` host, so an unconfigured build cannot publish a schema record
+ * pointing at a domain nobody owns.
+ *
+ * But it is the wrong answer on Vercel, which builds this repo on every push
+ * with no environment set. Every canonical link, every og:url and every entry
+ * in the sitemap would name www.pureweight.example — a domain that does not
+ * resolve — on a deployment that is genuinely reachable.
+ *
+ * Vercel exposes the deployment's own hostname at build time, so the build can
+ * simply know. The order matters:
+ *
+ *   1. NEXT_PUBLIC_SITE_URL, if set. An explicit answer always wins, which is
+ *      how a custom domain is configured.
+ *   2. VERCEL_PROJECT_PRODUCTION_URL — the project's stable production host,
+ *      the same on every production deployment.
+ *   3. VERCEL_URL — this specific deployment. Only used for previews, where a
+ *      per-deployment canonical is correct rather than wrong.
+ *   4. Nothing, leaving site.ts's `.example` fallback and its JSON-LD guard.
+ *
+ * Assigned here rather than read in site.ts because the value must be inlined
+ * into client bundles, and only NEXT_PUBLIC_* names are. This is the same
+ * mechanism, in the same file, as NEXT_PUBLIC_BASE_PATH above.
+ */
+if (!process.env.NEXT_PUBLIC_SITE_URL) {
+  const vercelHost =
+    process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  if (vercelHost) {
+    process.env.NEXT_PUBLIC_SITE_URL = `https://${vercelHost}`;
+  }
+}
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
