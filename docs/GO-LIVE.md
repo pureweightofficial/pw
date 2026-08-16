@@ -177,7 +177,11 @@ Everything below was observed against the live origin, not inferred:
 | `.example` leakage | none |
 | CSP | present on the live document |
 | Hashed assets | `public, max-age=31536000, immutable` |
-| Visible `[INSERT …]` chips | 40 on the homepage |
+| Hero film | plays at 1440px and 390px; `/video/*.mp4` serve 206 |
+| OG share card | `/opengraph-image` → 200, `image/png`, 276KB, absolute URL on the real host |
+| Twitter card | `summary_large_image` with title, description and image |
+| Rendered check | `npm run shot:live` — no page errors, no failed requests, no sideways scroll |
+| Visible `[INSERT …]` chips | 40 in source, 25 rendered on the homepage |
 
 **Indexing is off, and must stay off** until CONTENT-PLACEHOLDERS.md is cleared.
 Forty placeholder chips are currently rendering under a real business's name;
@@ -209,9 +213,15 @@ curl -s  https://<domain>/robots.txt  # expect Allow with sitemap, NOT "Disallow
 curl -sI https://<domain>/_next/static/...css  # expect immutable, max-age=31536000
 ```
 
-Then: submit a real enquiry end-to-end and confirm it arrives at the webhook;
-check the OG card renders on an actual share (Pages serves it with the wrong
-content-type — node hosts serve it correctly).
+Then: check the OG card renders on an actual share. **This is now confirmed
+working** on the Vercel origin — `/opengraph-image` returns 200 as `image/png`
+with an absolute URL on the real host, which is exactly the thing Pages could
+not do (it served the route with the wrong content-type). The absolute URL is
+only correct because of the host detection in next.config.ts; without it the
+card would point at `www.pureweight.example` and every share would break.
+
+There is no enquiry webhook to test: the valuation form and its API route were
+removed when the business settled on trading over the counter.
 
 ## 6. Rollback
 
