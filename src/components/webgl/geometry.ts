@@ -36,6 +36,204 @@ export function disposeGeometry(): void {
 const v2 = (x: number, y: number) => new THREE.Vector2(x, y);
 
 /* -------------------------------------------------------------------------- */
+/* THE GOLD MASS — the one object the whole site is about                      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Deterministic hash at integer lattice points. Not Math.random: the mass must
+ * be byte-identical on every load and every machine, or the geometry audit
+ * measures a different object each run and the silhouette drifts between the
+ * screenshot that was approved and the one that ships.
+ */
+function latticeHash(ix: number, iy: number, iz: number, seed: number): number {
+  let h = Math.sin(ix * 127.1 + iy * 311.7 + iz * 74.7 + seed * 43.3) * 43758.5453;
+  h -= Math.floor(h);
+  return h * 2 - 1; // -1..1
+}
+
+/**
+ * INTERPOLATED value noise, and the word doing the work is "interpolated".
+ *
+ * The first version of this sampled the hash at ROUNDED coordinates, which
+ * makes the function piecewise constant: every vertex inside the same integer
+ * cell gets an identical displacement, and adjacent cells step against each
+ * other. Rendered, that is not a nugget — it is a pile of flat plates with hard
+ * seams, and it looked exactly like that. Faceting on a metal is unforgiving
+ * because each flat receives one specular value, so the object reads as
+ * cardboard the instant the key light hits it.
+ *
+ * Trilinear interpolation between the eight surrounding lattice points, with a
+ * smootherstep fade so the first and second derivatives are continuous, is what
+ * makes it a surface rather than a staircase.
+ */
+function valueNoise(x: number, y: number, z: number, seed: number): number {
+  const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z);
+  const fx = x - ix, fy = y - iy, fz = z - iz;
+
+  // 6t^5-15t^4+10t^3 — flat at both ends, so cell boundaries are invisible.
+  const fade = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
+  const u = fade(fx), v = fade(fy), w = fade(fz);
+
+  const c = (dx: number, dy: number, dz: number) =>
+    latticeHash(ix + dx, iy + dy, iz + dz, seed);
+
+  const x00 = c(0, 0, 0) + (c(1, 0, 0) - c(0, 0, 0)) * u;
+  const x10 = c(0, 1, 0) + (c(1, 1, 0) - c(0, 1, 0)) * u;
+  const x01 = c(0, 0, 1) + (c(1, 0, 1) - c(0, 0, 1)) * u;
+  const x11 = c(0, 1, 1) + (c(1, 1, 1) - c(0, 1, 1)) * u;
+
+  const y0 = x00 + (x10 - x00) * v;
+  const y1 = x01 + (x11 - x01) * v;
+  return y0 + (y1 - y0) * w;
+}
+
+/** Three octaves: broad lobes, then swellings, then a little tooth. */
+function surfaceNoise(x: number, y: number, z: number): number {
+  return (
+    valueNoise(x * 1.7, y * 1.7, z * 1.7, 1) * 0.64 +
+    valueNoise(x * 3.9, y * 3.9, z * 3.9, 2) * 0.26 +
+    valueNoise(x * 8.3, y * 8.3, z * 8.3, 3) * 0.1
+  );
+}
+
+/**
+ * THE SIGNATURE MASS.
+ *
+ * The brief was explicit about what this must not be: a rectangular ingot
+ * rotating in the middle of the screen. It is a hybrid of the two states gold
+ * passes through in this business — material that came out of the ground, and
+ * material that has been measured.
+ *
+ * So the object is machined at the bottom and raw at the top. The base is a
+ * true plane with a precision chamfer around it, flat enough to sit dead still
+ * on a weighing platform; the crown is displaced by deterministic noise into
+ * soft, heavy lobes. The two meet at a hard cut line, which is the whole idea
+ * in one silhouette: this lump has been through an instrument.
+ *
+ * Weight is carried by proportion. It is wider than it is tall, its mass sits
+ * low, and the top never rises into a peak — tall and pointed reads as a
+ * crystal, low and broad reads as something you would struggle to lift.
+ */
+export function goldMassGeometry(): THREE.BufferGeometry {
+  return memo('gold-mass', () => {
+    // A sphere is the cheapest way to get an all-quad surface with clean normals
+    // and no seam artefacts under a specular key light; everything below turns
+    // it into something that was never a sphere.
+    const geo = new THREE.SphereGeometry(1, 96, 64);
+    const pos = geo.attributes.position as THREE.BufferAttribute;
+    const v = new THREE.Vector3();
+
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+
+      // Squash: broad and low. This is the single biggest contributor to
+      // reading as heavy, and it costs nothing.
+      v.x *= 1.34;
+      v.z *= 1.06;
+      v.y *= 0.62;
+
+      /*
+        THE CUT. Everything below the cut line is flattened onto a plane and
+        left perfectly smooth — the machined face. `raw` fades in above it so
+        the transition is a crisp edge rather than a rubbery blend.
+      */
+      const CUT = -0.3;
+      const raw = THREE.MathUtils.smoothstep(v.y, CUT, CUT + 0.12);
+
+      if (v.y < CUT) {
+        /*
+          Chamfer rather than a raw 90-degree meeting of plane and body: a sharp
+          corner would catch the key light as a white line and read as
+          untextured CG.
+
+          The base is NOT collapsed onto a single exact plane, which is what the
+          first version did. A sphere's bottom cap has every vertex converging on
+          one pole, so flattening the whole cap to one Y put dozens of vertices
+          in coincident positions — zero-area triangles, and
+          computeVertexNormals() cannot derive a normal from a triangle with no
+          area. The result was garbage normals rendering as flat angular plates
+          floating around the object, which is exactly what appeared on screen.
+
+          Keeping a shallow dome toward the centre means no triangle ever loses
+          its area, and the base still reads as flat because the dome is 6mm
+          across a 2-metre object.
+        */
+        const drop = Math.min(1, (CUT - v.y) / 0.42);
+        const pull = Math.min(1, drop * drop * 1.8);
+        const r = Math.hypot(v.x, v.z);
+        const dome = Math.max(0, 0.06 * (1 - r / 0.95));
+        v.y = THREE.MathUtils.lerp(v.y, CUT - 0.075 + dome, Math.min(1, drop * 1.5));
+        v.x *= 1 - pull * 0.14;
+        v.z *= 1 - pull * 0.14;
+      }
+
+      /*
+        The raw crown. The first pass used an amplitude of 0.085, which on a
+        squashed sphere is invisible: it rendered as a smooth rounded box and
+        read as a moulded plastic ingot, which is the exact cliché the brief
+        rules out. Raw gold is LUMPY at low frequency — a few big swellings —
+        and only finely textured on top of that, so most of the amplitude now
+        sits in the broadest octave.
+      */
+      const n = surfaceNoise(v.x, v.y, v.z);
+      const amp = 0.2 * raw;
+      const len = v.length() || 1;
+      v.addScaledVector(v.clone().divideScalar(len), n * amp);
+
+      /*
+        Asymmetry. A form that is symmetrical about any axis reads as
+        manufactured no matter how much noise is on it, so one broad lobe is
+        pushed out along a diagonal. This is what stops the silhouette from
+        being a box with texture.
+      */
+      const lobe = valueNoise(v.x * 0.9 + 3.2, v.y * 0.9, v.z * 0.9 - 1.7, 7);
+      v.x += lobe * 0.14 * raw;
+      v.z += lobe * 0.09 * raw;
+
+      // One shallow machined flat on the upper front face, where the assay
+      // chapter's inspection line lands. Gold that has been sampled has a
+      // window filed into it, and it gives the camera something true to read.
+      const facing = v.z / (len || 1);
+      if (facing > 0.55 && v.y > -0.05) {
+        const flat = THREE.MathUtils.smoothstep(facing, 0.55, 0.82);
+        v.z = THREE.MathUtils.lerp(v.z, 0.98, flat * 0.5);
+      }
+
+      pos.setXYZ(i, v.x, v.y, v.z);
+    }
+
+    pos.needsUpdate = true;
+    geo.computeVertexNormals();
+    geo.computeBoundingSphere();
+    return geo;
+  });
+}
+
+/**
+ * THE WEIGHING PLATFORM.
+ *
+ * A shallow disc with a raised precision rim. It exists to be sat on, so its
+ * top face is dead flat and its rim is the only thing that catches light —
+ * enough to read as an instrument surface without competing with the gold.
+ */
+export function weighPlatformGeometry(): THREE.BufferGeometry {
+  return memo('weigh-platform', () =>
+    new THREE.LatheGeometry(
+      [
+        v2(0.0, 0.0),
+        v2(1.02, 0.0),
+        v2(1.02, 0.014),
+        v2(0.99, 0.03),
+        v2(0.96, 0.036),
+        v2(0.02, 0.036),
+        v2(0.0, 0.03),
+      ],
+      96,
+    ),
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /* THE BASE — a stepped, weighted plinth                                      */
 /* -------------------------------------------------------------------------- */
 
