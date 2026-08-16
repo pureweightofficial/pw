@@ -160,6 +160,46 @@ which no crawler reads — the reason indexing control there rests entirely on t
 per-page meta tag. Moving to a node host fixes that class of problem rather than
 working around it.
 
+## 4f. Production IS live, on Vercel — verified 2026-08-16
+
+**https://pw-peach-psi.vercel.app** — publicly reachable, no authentication wall.
+
+GitHub Pages continues in parallel as the `/pw` preview. Vercel is the node
+target, so it is the deployment that actually serves the headers §4e describes.
+Everything below was observed against the live origin, not inferred:
+
+| Check | Result |
+| --- | --- |
+| All nine routes | 200, including `/keeper` |
+| `robots.txt` | `Disallow: /` — served from the **origin root**, where crawlers look |
+| Meta robots | `noindex, nofollow, nocache` |
+| Canonical + `og:url` | `https://pw-peach-psi.vercel.app` — the real host |
+| `.example` leakage | none |
+| CSP | present on the live document |
+| Hashed assets | `public, max-age=31536000, immutable` |
+| Visible `[INSERT …]` chips | 40 on the homepage |
+
+**Indexing is off, and must stay off** until CONTENT-PLACEHOLDERS.md is cleared.
+Forty placeholder chips are currently rendering under a real business's name;
+that is the system working exactly as designed — nothing is invented — but it is
+not a state to be indexed in. Two independent guards hold the line: the meta tag
+and the origin-root `robots.txt`. Turning indexing on is one env var
+(`NEXT_PUBLIC_ALLOW_INDEXING=true`) and should be the LAST thing done, not an
+early one.
+
+**The canonical URL was a real trap and is now closed.** Vercel builds this repo
+with no environment set, and `brand.url` falls back to `www.pureweight.example`.
+Had that not been fixed in next.config.ts hours before the site went public,
+every canonical, `og:url` and sitemap entry on the live origin would have named
+a domain that does not resolve. See the note there for the resolution order.
+
+**Custom domain.** Vercel's deployment protection on this account uses
+`all_except_custom_domains` — attaching a domain makes it public while leaving
+preview URLs protected. When a real domain is attached, set
+`NEXT_PUBLIC_SITE_URL` on the Vercel project to it; the automatic host detection
+is a safety net for unconfigured builds, not a substitute for saying which
+domain is canonical.
+
 ## 5. Verification after first deploy
 
 ```bash
