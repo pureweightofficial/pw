@@ -76,7 +76,19 @@ export function GoldMass({ capability }: { capability: Capability }) {
     // curve of something heavy arriving, not something light landing.
     const eased = 1 - Math.pow(1 - settle, 3);
     const restY = -0.28;
-    const targetY = THREE.MathUtils.lerp(1.15, restY, eased);
+    /*
+      0.34, not 1.15. At 1.15 the mass sat entirely ABOVE the viewport for the
+      whole hero chapter, so the one frame every visitor certainly sees showed
+      an empty black rectangle. The object might as well not have existed — and
+      to anyone looking at the page, it did not. That is most of the reason this
+      work kept reading as "no change".
+
+      The brief asks for the opposite of absence: begin nearly black, reveal a
+      thin warm edge, expose part of the surface. That needs the mass IN frame
+      and mostly unlit, not out of frame and irrelevant. It still descends the
+      same distance over the same chapter; it just starts where it can be seen.
+    */
+    const targetY = THREE.MathUtils.lerp(0.34, restY, eased);
 
     /*
       ROTATION. Eight degrees, total, across the whole page — the brief's

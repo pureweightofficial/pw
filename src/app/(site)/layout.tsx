@@ -23,27 +23,31 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
   return (
     <MotionProvider>
       {/*
-        The firefly field sits behind everything, on the body's own black, and
+        The firefly field sits behind everything on the body's own black, and
         every section surface above it is translucent so it reads through. It is
-        deliberately OUTSIDE the content stacking context — a fixed element
-        inside a transformed ancestor would be positioned against that ancestor
-        instead of the viewport, and GSAP puts transforms on plenty of things
-        in here.
+        deliberately OUTSIDE the content stacking context — a fixed element in a
+        transformed ancestor is positioned against that ancestor rather than the
+        viewport, and GSAP puts transforms on plenty of things in here.
 
-        THIS IS THE LINE THAT SWITCHES ON THE NEW WORLD, and it is deliberately
-        still pointing at the old backdrop.
+        THE NEW WORLD WAS SWITCHED ON HERE AND SWITCHED BACK OFF, FOR A REASON
+        THAT IS MEASURED RATHER THAN AESTHETIC.
 
-        `@/components/ui/GoldWorld` is the persistent single-canvas world built
-        for the redesign — one context for the whole document, a chapter
-        timeline, a choreographed camera and a studio rig. All of that works and
-        is verified. What is NOT finished is how the signature gold mass LOOKS:
-        rendered, it still shows flat angular plates around the silhouette and
-        the form reads closer to a moulded ingot than to raw metal.
+        `@/components/ui/GoldWorld` renders correctly now — the flat-plate
+        artefact is gone and the metal is believable. But it is a LIT object
+        behind translucent section surfaces, and `npm run check:scene-contrast`
+        put real numbers on what that does to the copy sitting over it:
 
-        Swapping this import before that is solved would make the live page
-        worse than it is today, which is not a trade worth making for the sake
-        of showing progress. The work is committed, documented and one import
-        away; it is not switched on until it earns it.
+            #testimonials   lead 2.32:1   label 2.03:1
+            #insights       lead 2.29:1   label 2.00:1
+            five sections failing in total
+
+        WCAG AA requires 4.5:1. Body text at 2.0:1 is unreadable for a large
+        number of people, and this site is live under a real business's name.
+
+        Swapping the import back is a thirty-second change and the component is
+        right there — but it must be paid for first, by strengthening the
+        section scrims or dimming the world behind copy, and then re-running
+        that gate until every section passes. The gate is the acceptance test.
       */}
       <FireflyBackdrop />
       <Loader />
