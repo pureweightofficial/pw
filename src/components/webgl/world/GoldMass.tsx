@@ -8,8 +8,7 @@ import type { Capability } from "@/lib/capability";
 import { progressThrough } from "@/lib/chapters";
 import { damp, scrollState } from "@/lib/scroll-store";
 import { goldMassGeometry, weighPlatformGeometry } from "../geometry";
-import { goldRoughnessMap } from "../textures";
-import { instrumentPlate } from "../materials";
+import { instrumentPlate, massGold } from "../materials";
 
 /**
  * THE ONE OBJECT.
@@ -30,28 +29,21 @@ import { instrumentPlate } from "../materials";
  */
 
 /**
- * Gold is not a colour. It is a metal with an extremely low roughness floor and
- * a strong dependence on what is around it, which is why this material is
- * defined almost entirely by `metalness: 1` plus an environment, and why the
- * lighting rig matters more than any value set here.
+ * Gold is not a colour. It is a metal with no diffuse term at all, which means
+ * every value you see on it is something else in the room arriving second-hand.
+ * The material therefore lives in the shared library beside the balance's
+ * golds — `massGold()` — so the two objects on this page are demonstrably made
+ * of the same stuff, and so the numbers that were wrong are documented next to
+ * the numbers that were right.
  *
- * The roughness MAP is the difference between metal and plastic: a constant
- * roughness gives a single clean highlight that slides across the surface like
- * a lit balloon. The procedural map breaks that highlight into the flecked,
- * uneven glitter that real cast gold has, and it is the same map the balance
- * uses, so the two objects are made of the same stuff.
+ * The one thing tuned per device here is environment intensity: weak tiers
+ * render the room into a 128px cube whose blurred mips run slightly hotter, and
+ * matching them costs one number rather than a second material.
  */
 function useGoldMaterial(capability: Capability) {
   return useMemo(() => {
-    const mat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color("#bf9a52"),
-      metalness: 1,
-      // Not 0. Mirror-perfect gold reads as chrome tinted yellow; real bullion
-      // scatters enough to show its form rather than only its surroundings.
-      roughness: 0.26,
-      roughnessMap: goldRoughnessMap(),
-      envMapIntensity: capability.tier === "high" ? 1.25 : 1.05,
-    });
+    const mat = massGold();
+    mat.envMapIntensity = capability.tier === "high" ? 1.35 : 1.18;
     return mat;
   }, [capability.tier]);
 }

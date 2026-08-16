@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { sceneQuality, advancedMaterialsEnabled } from './quality';
 import {
+  castGoldNormalMap,
+  castGoldRoughnessMap,
   craquelureNormalMap,
   engravingNormalMap,
   goldRoughnessMap,
@@ -139,6 +141,68 @@ export function bullionGold(): THREE.MeshStandardMaterial {
         roughnessMap: goldRoughnessMap(),
         envMapIntensity: 1.1,
       }),
+  );
+}
+
+/**
+ * THE MASS. The one object the whole site is about, and the one that was wrong.
+ *
+ * Its first material was `roughness: 0.26` with `goldRoughnessMap()`. three
+ * multiplies a roughness map into `material.roughness`, and that map outputs
+ * 0.13–0.34, so the real roughness of the signature object was 0.034–0.088 —
+ * a mirror. Everything downstream followed from that: a mirror in a room built
+ * of rectangular light panels returns rectangles, which is precisely what
+ * appeared on screen as flat khaki plates, and no geometry change can move a
+ * reflection. (Rendering the same mesh with MeshNormalMaterial returns one
+ * continuous smooth form, which settles it.)
+ *
+ * So the numbers here are inverted. `castGoldRoughnessMap` sits at 0.60–1.0 and
+ * the base does the scaling, giving a true roughness around 0.28–0.50: glossy
+ * enough to hold a bright edge, rough enough that the room arrives as gradients
+ * instead of as shapes. The variation across that range is what stops the
+ * highlight behaving like one clean blob sliding over a balloon.
+ *
+ * The colour is deliberately below the brand golds in saturation. At metalness
+ * 1 the albedo IS the specular tint, so it multiplies every reflection; a
+ * saturated albedo under a warm rig compounds into the candy orange this object
+ * used to be. The room is fed nearly white and the metal does its own warming,
+ * which is the same relationship the page's own macro photography has.
+ */
+export function massGold(): THREE.MeshStandardMaterial {
+  return memo('gold-mass', () =>
+    metal({
+      /*
+        WARMTH, RECOVERED. The first pass at this fix set #c2a163 to escape the
+        candy orange the mirror-roughness bug had produced, and overshot: the
+        mass rendered as pale sandstone sitting inches from the page's own macro
+        coin photography, which is warm and rich. It read as stone, not metal.
+
+        The orange was never the albedo's fault — it was a true roughness near
+        0.05 clipping every reflection to white or to the panel colour. With
+        roughness now genuinely 0.28–0.50, chroma is safe to carry again. This
+        sits between the desaturated overcorrection and `bullionGold`'s #e0b44e,
+        because the mass is unrefined material and should read a shade quieter
+        than a finished bar standing next to it.
+      */
+      color: new THREE.Color('#cda256'),
+      metalness: 1,
+      /*
+        0.42, not 0.5. Multiplied by castGoldRoughnessMap's 0.60–1.0 this is a
+        true 0.25–0.42 — still far from the 0.05 mirror that caused the plates,
+        but tight enough to return a HOT highlight rather than a uniform sheen.
+        At 0.5 the whole object sat at one mid tone and read as weathered stone;
+        metal is recognised by bright specular against dark, not by hue.
+      */
+      roughness: 0.42,
+      roughnessMap: castGoldRoughnessMap(),
+      normalMap: castGoldNormalMap(),
+      normalScale: new THREE.Vector2(0.6, 0.6),
+      envMapIntensity: 1,
+      // Buffed, not brushed: a light stretch on the highlight so it reads as a
+      // worked surface rather than an injection moulding.
+      anisotropy: 0.22,
+      anisotropyRotation: Math.PI * 0.18,
+    }),
   );
 }
 

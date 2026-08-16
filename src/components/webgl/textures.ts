@@ -156,8 +156,281 @@ function toTexture(
 }
 
 /* -------------------------------------------------------------------------- */
+/* THE ROOM — an equirectangular studio, painted rather than assembled         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * WHY A PAINTED ROOM AND NOT A SET OF LIGHT PANELS.
+ *
+ * A metal at metalness 1 shows you the room, not itself. The world's first rig
+ * built that room out of drei `<Lightformer form="rect">` planes floating in
+ * `#050505`, and it rendered exactly what that description predicts: a black
+ * object with a handful of flat, hard-edged, uniformly-filled patches on it —
+ * the rectangles, mirrored. Independent reviewers read them as "camouflage
+ * print". They were never geometry. A MeshNormalMaterial pass over the same
+ * mesh comes back as one continuous, perfectly smooth surface.
+ *
+ * Two properties of that rig caused it, and both are fixed here:
+ *
+ *  1. THE PANELS HAD EDGES. A rect emitter is a step function — full radiance
+ *     inside, near-zero outside. Mirrored by anything, it stays a step. Every
+ *     emitter in this map is a radial gradient with a long feathered tail, so
+ *     there is no edge anywhere in the environment to mirror.
+ *
+ *  2. THE ROOM WAS BLACK BETWEEN THEM. With nothing to reflect in 95% of
+ *     directions, the surface between the highlights had no tone at all, so the
+ *     highlights read as separate objects floating on black rather than as the
+ *     bright end of a continuous range. Here every direction returns something:
+ *     a graded shell that runs from a cool skylight at the zenith, through a
+ *     lifted warm horizon, down to a dark floor.
+ *
+ * The canvas is LDR by construction (0..1). Radiance above 1 — which is what
+ * makes a highlight a highlight rather than a grey patch — comes from the
+ * `color` multiplier on the basic material that carries it, applied inside a
+ * half-float cube target with tone mapping off. See WorldLighting.
+ */
+export function studioEnvMap(): THREE.Texture {
+  return memo('studio-env', () => {
+    const W = 1024;
+    const H = 512;
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) throw new Error('2D canvas context unavailable');
+
+    /*
+      THE SHELL. v=0 at the top of the canvas is the zenith (three's sphere UVs
+      put v=1 at +Y and CanvasTexture flips Y, so canvas row 0 lands overhead).
+
+      Deliberately dark. This is the tone the *unlit* side of the mass gets, and
+      the brief asks for gold emerging from darkness — but "dark" has to mean a
+      low value, not the absence of one. Pure black here is what made the object
+      vanish into the page and left only its highlights visible.
+    */
+    const shell = ctx.createLinearGradient(0, 0, 0, H);
+    shell.addColorStop(0.0, '#20242c'); // zenith: cool, like a skylight
+    shell.addColorStop(0.28, '#1b1d22');
+    shell.addColorStop(0.46, '#2a2620'); // the horizon warms
+    shell.addColorStop(0.52, '#332c22'); // …and lifts: a cyc wall catching light
+    shell.addColorStop(0.62, '#1a1611');
+    shell.addColorStop(0.82, '#0b0a08');
+    shell.addColorStop(1.0, '#060505'); // nadir: the floor takes light from nothing
+    ctx.fillStyle = shell;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.globalCompositeOperation = 'lighter';
+
+    /**
+     * A soft emitter. `createRadialGradient` with a single stop pair falls off
+     * linearly and still shows a discernible rim; these stops trace a
+     * smootherstep so the tail runs all the way to zero with no visible
+     * boundary at any exposure. Drawn three times so it wraps in azimuth.
+     */
+    const bloom = (
+      cx: number,
+      cy: number,
+      rx: number,
+      ry: number,
+      peak: number,
+      rgb: [number, number, number],
+    ) => {
+      for (const off of [-W, 0, W]) {
+        ctx.save();
+        ctx.translate(cx + off, cy);
+        ctx.scale(1, ry / rx);
+        const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+        for (let i = 0; i <= 12; i += 1) {
+          const t = i / 12;
+          const s = 1 - t * t * t * (t * (t * 6 - 15) + 10); // 1 -> 0, flat ends
+          g.addColorStop(t, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${(peak * s).toFixed(4)})`);
+        }
+        ctx.fillStyle = g;
+        ctx.fillRect(-rx, -rx, rx * 2, rx * 2);
+        ctx.restore();
+      }
+    };
+
+    /*
+      KEY. Large, high, front-left, near-neutral. Neutral matters: a warm key on
+      a warm metal is how a render turns into candy orange. Gold is allowed to
+      do its own tinting — its albedo IS the specular colour — so the room feeds
+      it white and lets the metal decide how yellow the answer is.
+    */
+    bloom(212, 118, 300, 210, 0.92, [255, 250, 242]);
+    bloom(212, 118, 120, 96, 0.72, [255, 253, 250]); // hotter core, still feathered
+
+    /*
+      RIM. Behind and to the right, narrow-ish, warm. The one line of light that
+      separates the mass from the dark behind it.
+    */
+    bloom(742, 214, 190, 96, 0.95, [255, 226, 184]);
+
+    /*
+      COOL FILL, low and front-right. Keeps the shadow side a *plane* rather
+      than a hole, and its temperature difference from the key is most of what
+      stops the frame reading as one flat wash of amber.
+    */
+    bloom(560, 372, 300, 150, 0.4, [150, 176, 214]);
+
+    /*
+      REFLECTION CARDS. Tall soft columns, never seen directly. On a curved
+      metal these become the long vertical gradients that say "photographed in a
+      studio". Soft-edged on purpose — the hard-edged version of exactly this
+      idea is what produced the plates.
+    */
+    bloom(900, 268, 62, 260, 0.5, [232, 224, 208]);
+    bloom(40, 250, 54, 230, 0.34, [214, 216, 224]);
+
+    /* A wide, very low horizon lift: the room has a far wall. */
+    bloom(500, 250, 520, 62, 0.3, [186, 158, 118]);
+
+    ctx.globalCompositeOperation = 'source-over';
+
+    /*
+      MOTTLE. A real room is not a clean gradient — it has unevenness, and a
+      perfectly clean environment is a large part of why CG metal reads as CG.
+      Multiplicative, shallow, and low-frequency enough never to alias.
+    */
+    const img = ctx.getImageData(0, 0, W, H);
+    for (let y = 0; y < H; y += 1) {
+      for (let x = 0; x < W; x += 1) {
+        const m = 0.9 + fbm(x / 96, y / 96, 3, 61) * 0.2;
+        const i = (y * W + x) * 4;
+        img.data[i] = Math.min(255, img.data[i] * m);
+        img.data[i + 1] = Math.min(255, img.data[i + 1] * m);
+        img.data[i + 2] = Math.min(255, img.data[i + 2] * m);
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 4;
+    tex.needsUpdate = true;
+    return tex;
+  });
+}
+
+/* -------------------------------------------------------------------------- */
 /* MAPS                                                                       */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * ROUGHNESS FOR THE CAST MASS — and the number that mattered most.
+ *
+ * `goldRoughnessMap` returns 0.13–0.34, and three MULTIPLIES a roughness map
+ * into `material.roughness`. The mass was set to roughness 0.26, so its real
+ * roughness was 0.26 × 0.13…0.34 = **0.034 to 0.088**. That is not "polished
+ * bullion", that is a mirror; and a mirror in a room made of hard-edged panels
+ * returns hard-edged panels. No amount of geometry work can fix a mirror.
+ *
+ * So this map is built for the opposite job: it sits high (0.60–1.0) and
+ * *varies*, and the material's base roughness does the scaling. The variation is
+ * the point — a constant roughness gives one clean highlight sliding over the
+ * surface like a lit balloon, which is the plastic look. Rougher cast skin,
+ * smoother where a face has been handled, and fine porosity throughout.
+ */
+export function castGoldRoughnessMap(): THREE.Texture {
+  return memo('cast-gold-rough', () => {
+    const size = mapSize();
+    const [canvas, ctx] = makeCanvas(size);
+    const img = ctx.createImageData(size, size);
+
+    for (let y = 0; y < size; y += 1) {
+      for (let x = 0; x < size; x += 1) {
+        // Broad zones: where the skin is raw, where it has been rubbed.
+        const broad = fbm(x / 110, y / 110, 3, 41);
+        // Fine porosity — the flecked glitter of a cast surface.
+        const fine = fbm(x / 13, y / 13, 3, 43);
+        let v = 0.6 + broad * 0.34 + (fine - 0.5) * 0.14;
+        v = Math.max(0.42, Math.min(1, v));
+
+        const i = (y * size + x) * 4;
+        img.data[i] = img.data[i + 1] = img.data[i + 2] = v * 255;
+        img.data[i + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+
+    // Burnished passes: narrow smoother streaks where the mass has been
+    // handled. These are what let a highlight *travel* rather than sit.
+    ctx.globalCompositeOperation = 'darken';
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 90; i += 1) {
+      const x = hash2(i, 5, 71) * size;
+      const y = hash2(i, 9, 73) * size;
+      const len = size * (0.05 + hash2(i, 13, 79) * 0.22);
+      const angle = -0.5 + (hash2(i, 17, 83) - 0.5) * 1.1;
+      const v = Math.round((0.4 + hash2(i, 19, 89) * 0.16) * 255);
+      ctx.strokeStyle = `rgb(${v},${v},${v})`;
+      ctx.lineWidth = 2 + hash2(i, 23, 97) * 9;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+
+    return toTexture(canvas, { repeat: 2 });
+  });
+}
+
+/**
+ * NORMAL MAP FOR THE CAST MASS.
+ *
+ * Detail this fine belongs in a normal map, not in vertices: it is what breaks
+ * one large specular reflection into the flecked, restless surface real cast
+ * metal has, and it costs nothing in the triangle budget. Three things are
+ * layered — the slow undulation of metal that cooled unevenly, the shrinkage
+ * dimples it cools *into*, and a fine grain over the whole of it.
+ */
+export function castGoldNormalMap(): THREE.Texture {
+  return memo('cast-gold-normal', () => {
+    const size = mapSize();
+    const [height, hctx] = makeCanvas(size);
+    const img = hctx.createImageData(size, size);
+
+    for (let y = 0; y < size; y += 1) {
+      for (let x = 0; x < size; x += 1) {
+        const slow = fbm(x / 78, y / 78, 3, 101);
+        const grain = fbm(x / 9, y / 9, 3, 103);
+        const v = 0.5 + (slow - 0.5) * 0.72 + (grain - 0.5) * 0.3;
+        const i = (y * size + x) * 4;
+        img.data[i] = img.data[i + 1] = img.data[i + 2] =
+          Math.max(0, Math.min(255, v * 255));
+        img.data[i + 3] = 255;
+      }
+    }
+    hctx.putImageData(img, 0, 0);
+
+    // Shrinkage dimples. Drawn wrapped so the map still tiles.
+    hctx.globalCompositeOperation = 'multiply';
+    for (let i = 0; i < 150; i += 1) {
+      const cx = hash2(i, 3, 211) * size;
+      const cy = hash2(i, 7, 223) * size;
+      const r = size * (0.008 + hash2(i, 11, 227) * 0.035);
+      const depth = 0.5 + hash2(i, 13, 229) * 0.35;
+      for (const [ox, oy] of [
+        [0, 0], [-size, 0], [size, 0], [0, -size], [0, size],
+      ]) {
+        const g = hctx.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, r);
+        g.addColorStop(0, `rgba(0,0,0,${(1 - depth).toFixed(3)})`);
+        g.addColorStop(0.55, `rgba(90,90,90,${((1 - depth) * 0.5).toFixed(3)})`);
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        hctx.fillStyle = g;
+        hctx.beginPath();
+        hctx.arc(cx + ox, cy + oy, r, 0, Math.PI * 2);
+        hctx.fill();
+      }
+    }
+    hctx.globalCompositeOperation = 'source-over';
+
+    return toTexture(heightToNormal(height, 1.9), { repeat: 3 });
+  });
+}
 
 /**
  * Roughness map for polished gold: a lightly cloudy base with fine directional

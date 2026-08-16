@@ -1,35 +1,67 @@
 "use client";
 
-import { Environment, Lightformer } from "@react-three/drei";
+import { Environment } from "@react-three/drei";
+import { useMemo } from "react";
+import { BackSide, Color } from "three";
 import type { Capability } from "@/lib/capability";
+import { studioEnvMap } from "../textures";
 
 /**
  * LIGHTING IS THE MATERIAL.
  *
  * Gold has no colour of its own worth speaking of — it is a mirror with a warm
  * bias. What makes rendered gold look like gold rather than like yellow plastic
- * is almost entirely what it has to reflect, which is why the largest part of
- * this file is a set of shapes floating in the dark whose only job is to be
- * reflected.
+ * is almost entirely what it has to reflect. So the largest thing in this file
+ * is a room.
  *
- * Three sources, and each has one job:
+ * WHAT THE PREVIOUS RIG DID WRONG, MEASURED RATHER THAN GUESSED.
  *
- *   KEY        large, soft, neutral. Defines the form. Everything else is
- *              subordinate to it and none of the others cast the primary shadow.
- *   WARM RIM   narrow and hot, raking from behind. This is the single line of
- *              light that separates the mass from the black behind it, and it
- *              is what makes the object read as premium rather than merely lit.
- *   COOL FILL  barely there. Without it the shadow side clips to dead black and
- *              the object loses its volume; with too much of it, the scene
- *              turns grey and stops feeling expensive.
+ * It was a near-black cube containing five drei `<Lightformer form="rect">`
+ * panels. Rendered, the mass came back as a black lump carrying roughly eight
+ * flat, hard-edged, uniformly-filled khaki patches — reviewers called it
+ * camouflage. Three separate geometry fixes had already been aimed at those
+ * patches and none of them moved. They were never geometry: swapping the gold
+ * for MeshNormalMaterial, which draws pure surface orientation with no lighting
+ * at all, returns one continuous perfectly smooth form with no facets anywhere.
  *
- * There is deliberately no bloom. The brief is right that bloom is the usual
- * substitute for lighting you have not done, and on a metal this rough it would
- * smear exactly the flecked highlight the roughness map exists to create.
+ * The patches were the panels, mirrored, for two compounding reasons:
+ *
+ *  1. THE METAL WAS A MIRROR. `roughness: 0.26` multiplied by a roughness map
+ *     that outputs 0.13–0.34 gives a true roughness around 0.05. At 0.05 a
+ *     rectangle reflects as a rectangle. It is fixed in the material.
+ *  2. THE PANELS WERE STEP FUNCTIONS ON BLACK. Full radiance inside a straight
+ *     edge, nothing outside it, nothing at all in the 95% of directions with no
+ *     panel in them. Every reflected value was therefore either clipped white
+ *     or zero — a two-tone image, which is what a flat plate with one uniform
+ *     fill actually is.
+ *
+ * So there are no light panels here any more. The room is a single painted
+ * equirectangular shell (see `studioEnvMap`) in which every emitter is a
+ * feathered radial bloom and every direction returns a value: cool skylight
+ * overhead, a warm lifted horizon, a dark floor. There is no edge left in the
+ * environment for the metal to find.
+ *
+ * HDR FROM AN LDR CANVAS. The shell's basic material is given a `color`
+ * brighter than white, which multiplies the map. drei renders this portal into
+ * a half-float cube target with tone mapping off, so values above 1 survive —
+ * that is what makes the key a highlight rather than a grey patch, without ever
+ * introducing a hard boundary.
+ *
+ * There is deliberately no bloom. Bloom is the usual substitute for lighting
+ * you have not done.
  */
 
 export function WorldLighting({ capability }: { capability: Capability }) {
   const high = capability.tier === "high";
+  const room = useMemo(() => studioEnvMap(), []);
+
+  /*
+    The exposure of the room itself. Above 1 in every channel: this is the
+    single HDR control, and it is what decides whether the gold reads as lit or
+    as merely visible. Slightly lower on weak tiers because they render into a
+    128px cube whose mips blur less predictably.
+  */
+  const roomGain = useMemo(() => new Color(high ? 3.2 : 2.8, high ? 3.05 : 2.66, high ? 2.9 : 2.5), [high]);
 
   return (
     <>
@@ -41,86 +73,42 @@ export function WorldLighting({ capability }: { capability: Capability }) {
       */}
       <fog attach="fog" args={["#070707", 6.5, 19]} />
 
-      {/* Just off black. Zero ambient means the shadow side is a silhouette. */}
+      {/*
+        Near nothing, and it is not doing what it looks like it is doing: a
+        metal has no diffuse term, so ambient light never touches the mass. It
+        exists for the weighing platform, which is not metal.
+      */}
       <ambientLight intensity={0.14} color="#171310" />
 
       <Environment resolution={high ? 256 : 128} frames={1}>
-        {/* The room itself: near black, so the metal has somewhere to be dark. */}
-        <color attach="background" args={["#050505"]} />
-
         {/*
-          KEY. Wide and soft and high, slightly to the left. A large emitter is
-          what produces the long gradient down a curved metal surface; a small
-          one produces a dot, which is the giveaway of a cheap render.
+          THE ROOM. One inverted sphere carrying the painted studio. Rendered
+          from the inside, so its own geometry is never a silhouette — only its
+          gradient reaches the metal.
         */}
-        <Lightformer
-          form="rect"
-          intensity={2.5}
-          position={[-3.2, 4.4, 3.6]}
-          rotation={[-0.5, -0.35, 0]}
-          scale={[9, 6, 1]}
-          color="#fff6e8"
-        />
-
-        {/*
-          WARM RIM. Narrow, behind and to the right, hot enough to blow out
-          slightly along the crown's edge. This is the most important single
-          light in the scene for making gold look like gold.
-        */}
-        <Lightformer
-          form="rect"
-          intensity={high ? 6.5 : 5.2}
-          position={[3.6, 1.9, -3.4]}
-          rotation={[0.2, 2.4, 0]}
-          scale={[5.5, 1.1, 1]}
-          color="#ffcf8a"
-        />
-
-        {/*
-          COOL FILL, from below and behind the camera. Cool because a warm fill
-          on a warm key flattens everything into one temperature; the slight
-          blue is what keeps the shadow side reading as a separate plane.
-        */}
-        <Lightformer
-          form="rect"
-          intensity={0.85}
-          position={[2.2, -2.4, 3.2]}
-          rotation={[0.9, 0.4, 0]}
-          scale={[6, 3.4, 1]}
-          color="#8fa6c4"
-        />
-
-        {/*
-          REFLECTION CARDS. These are never seen directly. They exist so the
-          curved surfaces have recognisable straight-edged gradients running
-          across them — the visual language of a studio, and the thing that
-          separates "photographed" from "rendered".
-        */}
-        {high ? (
-          <>
-            <Lightformer
-              form="rect" intensity={1.4}
-              position={[-4.6, 0.4, -2.2]} rotation={[0, -1.1, 0]}
-              scale={[3.2, 4.5, 1]} color="#e8dcc8"
-            />
-            <Lightformer
-              form="rect" intensity={1.1}
-              position={[0, 5.2, -4.5]} rotation={[1.3, 0, 0]}
-              scale={[7, 3, 1]} color="#d8cdbb"
-            />
-          </>
-        ) : null}
+        <mesh scale={30}>
+          <sphereGeometry args={[1, 48, 32]} />
+          <meshBasicMaterial
+            map={room}
+            color={roomGain}
+            side={BackSide}
+            toneMapped={false}
+            depthWrite={false}
+            fog={false}
+          />
+        </mesh>
       </Environment>
 
       {/*
-        The only real-time light, and the only shadow caster. One shadow, from
-        the same direction as the key, is enough to ground the mass; a second
-        would double the cost to say something the first already said.
+        THE ONE REAL LIGHT, and the only shadow caster. On a metal a direct
+        light contributes specular only, so this is not "the key" in the usual
+        sense — the room is the key. This is the tight secondary glint that
+        keeps a crown edge crisp, plus the shadow that seats the mass.
       */}
       <directionalLight
         position={[-2.6, 5.2, 3.1]}
-        intensity={1.5}
-        color="#ffeedd"
+        intensity={1.15}
+        color="#fff2e2"
         castShadow={capability.shadows}
         shadow-mapSize-width={high ? 1024 : 512}
         shadow-mapSize-height={high ? 1024 : 512}
@@ -132,6 +120,13 @@ export function WorldLighting({ capability }: { capability: Capability }) {
         shadow-camera-bottom={-4}
         shadow-bias={-0.0012}
       />
+
+      {/*
+        A cool counter-glint from behind right, on the same axis as the room's
+        warm rim. Two specular lobes of different temperature crossing a curved
+        surface is most of what separates metal from a warm gradient.
+      */}
+      <directionalLight position={[4.4, 1.6, -3.6]} intensity={0.7} color="#9fb4d0" />
     </>
   );
 }
