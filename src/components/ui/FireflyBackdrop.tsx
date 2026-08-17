@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useSceneGate } from "@/lib/scene-gate";
 
 /**
@@ -38,6 +39,23 @@ const FireflyCanvas = dynamic(
 export function FireflyBackdrop() {
   // Decided before the renderer is imported — see lib/scene-gate.
   const gate = useSceneGate();
+
+  /*
+    THE HOMEPAGE HAS ITS OWN WORLD NOW, so this stands down there.
+
+    The persistent gold world (components/ui/GoldWorld) carries the weight →
+    purity → market → value story, and that story only exists on the homepage:
+    on /contact or /faq a scroll-driven gold narrative is decoration behind a
+    form, and a second WebGL context behind the first is waste twice over.
+    Every other page keeps the field it has always had.
+
+    Decided by path rather than by a prop so the two backdrops cannot both be
+    mounted by accident. Two lit layers would blow the contrast budget that
+    --surface-alpha was measured against, and that failure would stay invisible
+    until someone happened to run the gate.
+  */
+  const pathname = usePathname();
+  if (pathname === "/") return null;
 
   return (
     <div

@@ -242,9 +242,37 @@
     Lower = more visible fireflies and less contrast headroom. The materials
     are all within a few percent of black to begin with, so even at this alpha
     the page still reads as "rooms of one dark building".
+
+    RAISED 55% -> 81% WHEN THE PERSISTENT GOLD WORLD WAS MOUNTED.
+
+    55% was measured against the firefly field, which is a scatter of small
+    dim points. The world in src/components/webgl/world is a LIT SOLID whose
+    specular highlight clips to near-white. At 55% the gate measured the
+    composite behind the #story copy at rgb(125,120,111) — body text at
+    1.94:1, which is unreadable. Back-solving that through the 55/45 mix puts
+    the world itself at roughly rgb(255,251,236) where it meets that text.
+
+    The replacement number was binary-searched with
+    `npm run check:scene-contrast`, not chosen. #story is the binding section
+    every time; each row below is a measured run, not an extrapolation:
+
+        79%   #story  lead 4.38:1  FAIL   last failing value
+        80%   #story  lead 4.50:1  pass   raw 4.5039 — 0.004 over the line,
+                                          one 8-bit channel of headroom
+        81%   #story  lead 4.58:1  PASS   shipped
+        82%   #story  lead 4.72:1  pass
+
+    80% is the true threshold. 81% ships because 80% clears AA by less than
+    one unit of the backdrop's red channel — a single LSB of GPU rounding on
+    another machine flips it to FAIL, and a gate that only passes on the
+    machine that tuned it has not really passed. The extra point costs the
+    world 1% of its contribution to the composite and buys twice the margin.
+
+    #story is the binding section: it is the brightest place the world reaches
+    behind text anywhere on the page. Every other section clears 4.7:1 here.
   */
   :root {
-    --surface-alpha: 55%;
+    --surface-alpha: 81%;
   }
 
   /* Blackened steel — brushed, directional, faint horizontal tooling marks. */
