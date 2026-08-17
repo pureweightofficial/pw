@@ -5,6 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { detectCapability, type Capability } from "@/lib/capability";
 import { useDocumentVisible } from "@/lib/hooks";
+import {
+  retainSharedResources,
+  releaseSharedResources,
+} from "../shared-resources";
+import { setSceneQuality } from "../quality";
 import { GoldMass } from "./GoldMass";
 import { WorldCamera } from "./WorldCamera";
 import { WorldLighting } from "./WorldLighting";
@@ -43,6 +48,28 @@ export function WorldCanvas() {
   useEffect(() => {
     setCapability(detectCapability());
   }, []);
+
+  /*
+    JOIN THE SHARED RESOURCE COUNT.
+
+    GoldMass and WorldLighting draw goldMassGeometry, massGold, instrumentPlate
+    and studioEnvMap from the memoised caches in geometry/materials/textures.
+    Those caches are disposed by whoever puts the count back to zero, and until
+    this effect existed the world was reading from them without ever being
+    counted — so an unrelated SceneShell scene unmounting mid-page disposed the
+    geometry and the environment map out from under a canvas that was still
+    rendering, and the mass went black several chapters in.
+
+    Quality tier is set here for the same reason SceneShell sets it: the
+    factories bake the tier into what they build AND into their cache keys, so
+    it has to be right before the first material is constructed, not after.
+  */
+  useEffect(() => {
+    if (!capability || capability.tier === "none") return;
+    setSceneQuality(capability.tier);
+    retainSharedResources();
+    return releaseSharedResources;
+  }, [capability]);
 
   /*
     A LOST CONTEXT MUST NOT TAKE THE PAGE WITH IT.

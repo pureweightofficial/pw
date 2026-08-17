@@ -4,11 +4,24 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { Capability } from "@/lib/capability";
-// chapterWindow returns with the platform — see the note in useFrame below.
-import { progressThrough } from "@/lib/chapters";
+import { chapterWindow, progressThrough } from "@/lib/chapters";
 import { damp, scrollState } from "@/lib/scroll-store";
 import { goldMassGeometry, weighPlatformGeometry } from "../geometry";
 import { instrumentPlate, massGold } from "../materials";
+
+/*
+  THE WEIGHING PLATFORM IS OFF.
+
+  Rendered, it read as two flat grazing-angle plates competing with the object
+  it exists to support — it needs its own lighting pass, since the rig is tuned
+  entirely for gold. It was previously "off" by setting a visibility factor to
+  zero, which left it building a 96-segment lathe geometry, sitting in the scene
+  graph, and taking five transform writes every frame to stay invisible.
+
+  Off now means off. Flip this to re-enable it; the geometry, the placement and
+  the settle-response are all still here and correct.
+*/
+const PLATFORM_ENABLED = false;
 
 /**
  * THE ONE OBJECT.
@@ -53,10 +66,16 @@ export function GoldMass({ capability }: { capability: Capability }) {
   const mass = useRef<THREE.Mesh>(null);
   const platform = useRef<THREE.Group>(null);
   const material = useGoldMaterial(capability);
-  const plate = useMemo(() => instrumentPlate(), []);
+  const plate = useMemo(
+    () => (PLATFORM_ENABLED ? instrumentPlate() : null),
+    [],
+  );
 
   const geo = useMemo(() => goldMassGeometry(), []);
-  const platformGeo = useMemo(() => weighPlatformGeometry(), []);
+  const platformGeo = useMemo(
+    () => (PLATFORM_ENABLED ? weighPlatformGeometry() : null),
+    [],
+  );
 
   // Live state, held in refs so nothing here ever triggers a React render.
   const state = useRef({ y: 0, rotY: 0, rotX: 0, px: 0, py: 0 });
@@ -127,29 +146,13 @@ export function GoldMass({ capability }: { capability: Capability }) {
       load, which is the difference between an object resting on a plane and an
       object intersecting one.
     */
-    if (platform.current) {
-      /*
-        HELD BACK, DELIBERATELY, AND NOT DELETED.
-
-        Rendered, this read as two large flat khaki plates cutting across the
-        frame — a dull disc caught at a grazing angle, competing with the object
-        it exists to support. It needs its own pass: it is currently lit by a
-        rig tuned entirely for gold, and its form reads as a plate rather than
-        an instrument surface.
-
-        Shipping it in that state would make the page worse than no platform at
-        all, so it is off. The geometry, the placement and the settle-response
-        are wired and correct; only the look is unfinished. Restore by swapping
-        in the commented expression.
-      */
-      const shown = 0;
-      // chapterWindow("weight", p, 0.22) + chapterWindow("purity", p, 0.3) * 0.6
+    if (PLATFORM_ENABLED && platform.current) {
+      const shown = chapterWindow("weight", p, 0.22)
+        + chapterWindow("purity", p, 0.3) * 0.6;
       platform.current.visible = shown > 0.01;
       const give = eased * 0.004;
       platform.current.position.y = restY - 0.52 - give;
-      const s = Math.min(1, shown);
-      platform.current.scale.setScalar(0.9 + s * 0.1);
-      (platform.current.children[0] as THREE.Mesh | undefined)?.scale.setScalar(1);
+      platform.current.scale.setScalar(0.9 + Math.min(1, shown) * 0.1);
     }
   });
 
@@ -173,13 +176,15 @@ export function GoldMass({ capability }: { capability: Capability }) {
         </group>
       </group>
 
-      {/* The instrument the gold is measured on. Present only while it is
-          relevant; a weighing platform under the final CTA would be scenery. */}
-      <group position={[0.92, 0, 0]} scale={0.63}>
-        <group ref={platform} visible={false}>
-          <mesh geometry={platformGeo} material={plate} receiveShadow />
+      {/* The instrument the gold is measured on. Not mounted while disabled —
+          an invisible mesh is still a mesh the renderer has to consider. */}
+      {PLATFORM_ENABLED && platformGeo && plate ? (
+        <group position={[0.92, 0, 0]} scale={0.63}>
+          <group ref={platform} visible={false}>
+            <mesh geometry={platformGeo} material={plate} />
+          </group>
         </group>
-      </group>
+      ) : null}
     </group>
   );
 }

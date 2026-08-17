@@ -15,11 +15,12 @@ import * as THREE from "three";
 import type { Capability } from "@/lib/capability";
 import { markHeroReady } from "@/lib/readiness";
 import { useCapability, useDocumentVisible, useInViewport } from "@/lib/hooks";
-import { disposeGeometry } from "./geometry";
-import { disposeMaterials } from "./materials";
 import { setSceneQuality } from "./quality";
+import {
+  retainSharedResources,
+  releaseSharedResources,
+} from "./shared-resources";
 import { ScalePoster } from "./ScalePoster";
-import { disposeTextures } from "./textures";
 
 /**
  * SCENE SHELL
@@ -47,22 +48,13 @@ import { disposeTextures } from "./textures";
 /* -------------------------------------------------------------------------- */
 /* SHARED RESOURCE LIFETIME                                                   */
 /* -------------------------------------------------------------------------- */
-
-let mountedScenes = 0;
-
-function retainSharedResources() {
-  mountedScenes += 1;
-}
-
-function releaseSharedResources() {
-  mountedScenes -= 1;
-  if (mountedScenes <= 0) {
-    mountedScenes = 0;
-    disposeGeometry();
-    disposeMaterials();
-    disposeTextures();
-  }
-}
+/*
+  The counter used to live here, privately. It moved to ./shared-resources the
+  moment this stopped being the only thing drawing from the shared caches: the
+  persistent world does not mount through SceneShell, so a private count here
+  read zero while the world was still holding geometry, and disposed it. See
+  that file for the failure it caused.
+*/
 
 /* -------------------------------------------------------------------------- */
 /* ERROR BOUNDARY                                                             */
