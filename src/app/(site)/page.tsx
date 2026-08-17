@@ -12,7 +12,6 @@ import { TrustEvidence } from "@/components/sections/TrustEvidence";
 import { TrustStatement } from "@/components/sections/TrustStatement";
 import { ValuationJourney } from "@/components/sections/ValuationJourney";
 import { WhyPureweight } from "@/components/sections/WhyPureweight";
-import { GoldWorld } from "@/components/ui/GoldWorld";
 
 /*
   Title and description come from src/content/seo.json via the Keeper. The
@@ -74,7 +73,6 @@ export default function HomePage() {
         AA floor of 4.5:1. Re-run that gate after touching the world, this page,
         or that variable.
       */}
-      <GoldWorld />
       <Hero />
       <TrustStatement />
       <ValuationJourney />

@@ -169,7 +169,7 @@ export function GoldMass({ capability }: { capability: Capability }) {
       */}
       <group position={[0.92, 0, 0]} scale={0.63}>
         <group ref={group}>
-          <mesh ref={mass} geometry={geo} material={material} castShadow receiveShadow />
+          <mesh ref={mass} geometry={geo} material={material} />
         </group>
       </group>
 

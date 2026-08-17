@@ -1,0 +1,105 @@
+/**
+ * IS THE PAGE ACTUALLY SMOOTH?
+ *
+ * Scrolls a running site and reports frame times, dropped frames and long-task
+ * time. It exists because "the website is a little slow, not smooth" was the
+ * only report of a problem that no gate in this repository could see, and the
+ * cause turned out to be structural and long-standing rather than recent.
+ *
+ * WHAT IT FOUND, on one machine, one build apart, scrolling the homepage:
+ *
+ *     no backdrop canvas    59.9fps    0 of 798 frames dropped    1.8s long tasks
+ *     the firefly field     14.3fps  295 of 356 dropped          18.9s long tasks
+ *     the gold world        17.1fps  273 of 315 dropped          26.7s long tasks
+ *     world + section scenes 15.9fps                             42.8s long tasks
+ *
+ * A fixed full-viewport WebGL canvas under this page's translucent section
+ * surfaces costs about 43fps, and the cost is NOT the scene: removing the
+ * environment map, the shadows, the physical material and half the pixel ratio
+ * together moved it by roughly one frame. The firefly field had been charging
+ * that price for months without anyone measuring it.
+ *
+ * Run it against production or a local `next start`. Note that `next start`
+ * reads .next at BOOT — rebuilding underneath a running server measures the
+ * old build, which cost an hour here before it was noticed.
+ *
+ * Usage:  npm run check:perf [url] [cpuThrottle]
+ */
+import { chromium } from "playwright-core";
+import { existsSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+
+const URL = process.argv[2] || "https://pw-peach-psi.vercel.app/";
+const CPU = Number(process.argv[3] || 1); // 1 = no throttle, 4 = mid mobile
+
+function findChrome() {
+  for (const x of [process.env.CHROME_PATH,
+    "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "/usr/bin/google-chrome"].filter(Boolean)) if (existsSync(x)) return x;
+  const cache = join(process.env.LOCALAPPDATA || "", "ms-playwright");
+  for (const d of readdirSync(cache)) {
+    const e = join(cache, d, "chrome-win64", "chrome.exe");
+    if (existsSync(e)) return e;
+  }
+  return null;
+}
+
+const browser = await chromium.launch({ executablePath: findChrome() });
+const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+const page = await ctx.newPage();
+const cdp = await ctx.newCDPSession(page);
+if (CPU > 1) await cdp.send("Emulation.setCPUThrottlingRate", { rate: CPU });
+
+await page.addInitScript(() => {
+  window.__frames = [];
+  let last = performance.now();
+  const tick = (t) => { window.__frames.push(t - last); last = t; requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+  window.__long = 0;
+  try {
+    new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__long += e.duration; })
+      .observe({ type: "longtask", buffered: true });
+  } catch {}
+});
+
+await page.goto(URL, { waitUntil: "load", timeout: 90000 });
+await page.waitForTimeout(9000);
+
+// Steady-state canvas count and WebGL context count at several depths.
+const travel = await page.evaluate(
+  () => document.documentElement.scrollHeight - window.innerHeight);
+
+await page.evaluate(() => { window.__frames.length = 0; });
+
+const counts = [];
+for (const f of [0.1, 0.25, 0.4, 0.55, 0.7, 0.85]) {
+  await page.evaluate((y) => window.scrollTo({ top: y, behavior: "smooth" }), Math.round(travel * f));
+  await page.waitForTimeout(2200);
+  counts.push(await page.evaluate(() => document.querySelectorAll("canvas").length));
+}
+
+const r = await page.evaluate(() => {
+  const f = window.__frames.filter((d) => d > 0 && d < 500);
+  f.sort((a, b) => a - b);
+  const pct = (p) => f[Math.floor(f.length * p)] || 0;
+  const mean = f.reduce((s, x) => s + x, 0) / (f.length || 1);
+  return {
+    frames: f.length,
+    meanMs: +mean.toFixed(1),
+    fps: +(1000 / mean).toFixed(1),
+    p50: +pct(0.5).toFixed(1),
+    p95: +pct(0.95).toFixed(1),
+    worst: +(f[f.length - 1] || 0).toFixed(1),
+    janky: f.filter((d) => d > 33).length,
+    longMs: Math.round(window.__long),
+  };
+});
+
+console.log(`  ${URL}  (cpu x${CPU})`);
+console.log(`  canvases while scrolling: ${counts.join(" → ")}   peak ${Math.max(...counts)}`);
+console.log(`  mean ${r.meanMs}ms  =>  ${r.fps} fps`);
+console.log(`  p50 ${r.p50}ms   p95 ${r.p95}ms   worst ${r.worst}ms`);
+console.log(`  frames over 33ms (dropped below 30fps): ${r.janky} of ${r.frames}`);
+console.log(`  long-task time during scroll: ${r.longMs}ms`);
+
+await browser.close();

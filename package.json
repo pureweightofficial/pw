@@ -17,6 +17,7 @@
     "make:craquelure": "node scripts/make-craquelure.mjs",
     "check:scene-contrast": "node scripts/check-section-scene-contrast.mjs",
     "check:sticky": "node scripts/check-sticky.mjs",
+    "check:perf": "node scripts/check-perf.mjs",
     "shot:live": "node scripts/shot-live.mjs",
     "shot:world": "node scripts/shot-world.mjs",
     "shot:keeper": "node scripts/shot-keeper.mjs",

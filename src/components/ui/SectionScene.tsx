@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useSceneGate } from "@/lib/scene-gate";
 import { AmbientPoster } from "@/components/webgl/posters";
 import type { AmbientVariant } from "@/components/webgl/AmbientScene";
@@ -65,6 +66,26 @@ export function SectionScene({
   // Decided before the renderer is imported — see lib/scene-gate.
   const gate = useSceneGate();
 
+  /*
+    ON THE HOMEPAGE THE PERSISTENT WORLD IS THE BACKDROP, so these stand down.
+
+    All four callers of this component are homepage sections, and the moment
+    GoldWorld mounted they became a second, third and fourth WebGL renderer
+    drawing atmosphere behind atmosphere. Measured on the live site with all of
+    them running: peak 3 simultaneous canvases, a mean frame time of 62.7ms —
+    15.9fps — with 268 of 305 frames missing 30fps and 42.8 SECONDS of
+    long-task time accumulated across one scroll of the page.
+
+    Every one of them is doing the job the world now does better and once. So
+    on "/" they render their poster, which is the same still image they already
+    show on weak devices and while their chunk loads — no layout change, no
+    visual hole, just one renderer instead of four.
+
+    Other pages have no world, so they keep their scenes.
+  */
+  const pathname = usePathname();
+  const worldOwnsTheBackdrop = pathname === "/";
+
   return (
     <div
       aria-hidden="true"
@@ -82,7 +103,7 @@ export function SectionScene({
       // heading's own glyphs against themselves.
       className={`section-scene pointer-events-none absolute inset-0 -z-10 overflow-hidden ${className}`}
     >
-      {gate === "canvas" ? (
+      {gate === "canvas" && !worldOwnsTheBackdrop ? (
         <AmbientCanvas variant={variant} channel={channel} />
       ) : (
         <AmbientPoster />

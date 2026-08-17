@@ -73,8 +73,8 @@ export function WorldCanvas() {
       // Never the paint-blocking element: the DOM hero renders first and this
       // arrives underneath it.
       frameloop={shouldRender ? "always" : "never"}
-      dpr={high ? [1, 1.75] : [1, 1.25]}
-      shadows={capability.shadows}
+      dpr={high ? [1, 1.25] : [1, 1]}
+      shadows={false}
       gl={{
         antialias: high,
         alpha: true,

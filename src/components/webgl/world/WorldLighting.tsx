@@ -109,16 +109,6 @@ export function WorldLighting({ capability }: { capability: Capability }) {
         position={[-2.6, 5.2, 3.1]}
         intensity={1.15}
         color="#fff2e2"
-        castShadow={capability.shadows}
-        shadow-mapSize-width={high ? 1024 : 512}
-        shadow-mapSize-height={high ? 1024 : 512}
-        shadow-camera-near={1}
-        shadow-camera-far={14}
-        shadow-camera-left={-4}
-        shadow-camera-right={4}
-        shadow-camera-top={4}
-        shadow-camera-bottom={-4}
-        shadow-bias={-0.0012}
       />
 
       {/*

@@ -41,18 +41,24 @@ export function FireflyBackdrop() {
   const gate = useSceneGate();
 
   /*
-    THE HOMEPAGE HAS ITS OWN WORLD NOW, so this stands down there.
+    NO BACKDROP CANVAS ON THE HOMEPAGE. This is a PERFORMANCE decision, and it
+    is the one measurement that mattered most in this whole effort.
 
-    The persistent gold world (components/ui/GoldWorld) carries the weight →
-    purity → market → value story, and that story only exists on the homepage:
-    on /contact or /faq a scroll-driven gold narrative is decoration behind a
-    form, and a second WebGL context behind the first is waste twice over.
-    Every other page keeps the field it has always had.
+    A fixed full-viewport WebGL canvas underneath this page's large translucent
+    section surfaces costs about 43fps. Measured on one machine, one build apart,
+    scrolling the same homepage:
 
-    Decided by path rather than by a prop so the two backdrops cannot both be
-    mounted by accident. Two lit layers would blow the contrast budget that
-    --surface-alpha was measured against, and that failure would stay invisible
-    until someone happened to run the gate.
+        no backdrop canvas   59.9fps   0 of 798 frames dropped   1.8s long tasks
+        this firefly field   14.3fps   295 of 356 dropped       18.9s long tasks
+        the gold world       17.1fps   273 of 315 dropped       26.7s long tasks
+
+    The cost is structural, not scene content: stripping the environment map,
+    the shadows, the physical material and half the pixel ratio moved it by
+    about a frame. Any canvas here costs it; an empty page does not.
+
+    So the field that shipped here for months was holding the homepage at 14fps.
+    It stands down on "/" and every other page keeps it, because those pages are
+    short and carry far less translucent surface.
   */
   const pathname = usePathname();
   if (pathname === "/") return null;
