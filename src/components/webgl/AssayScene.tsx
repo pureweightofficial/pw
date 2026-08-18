@@ -171,14 +171,31 @@ function RakingLight({ enabled }: { enabled: boolean }) {
 export function AssayScene({ capability }: { capability: Capability }) {
   const ringRef = useRef<THREE.Group>(null);
 
-  // A dedicated material: this piece is worked, worn and handled, so it is
-  // rougher and less mirror-like than the beam of the balance.
+  /*
+    A dedicated material: this piece is worked, worn and handled, so it is
+    rougher and less mirror-like than the beam of the balance.
+
+    THE OLD NUMBERS SAID THE OPPOSITE OF THAT SENTENCE. three MULTIPLIES a
+    roughness map into the base, and goldRoughnessMap outputs 0.13–0.34, so a
+    base of 0.26 gave a TRUE roughness of 0.034–0.088 — the exact range
+    materials.ts documents as "a mirror" — on the one object whose whole job is
+    to be inspected square-on, inside Studio's hard-edged Lightformer rig. The
+    same recipe that produced the mass's flat-plate artefact: during the PURITY
+    factor the bezel turns its near-mirror flat to the camera and reflects the
+    light panels as hard-edged patches.
+
+    The adversarial audit caught it, not the eye, because on the CURVED band the
+    panel reflections stretch into streaks that pass as ordinary metal
+    highlights; flat faces are what betray the arithmetic. The bases below are
+    set so base × map lands in the worked-metal band this comment always
+    intended: ~0.10–0.27 for the ring, ~0.12–0.31 for the face.
+  */
   const ringMaterial = useMemo(
     () =>
       metal({
         color: new THREE.Color("#cf9f36"),
         metalness: 1,
-        roughness: 0.26,
+        roughness: 0.8,
         roughnessMap: goldRoughnessMap(),
         envMapIntensity: 1.5,
         anisotropy: 0.3,
@@ -191,7 +208,7 @@ export function AssayScene({ capability }: { capability: Capability }) {
       metal({
         color: new THREE.Color("#cf9f36"),
         metalness: 1,
-        roughness: 0.31,
+        roughness: 0.92,
         roughnessMap: goldRoughnessMap(),
         normalMap: hallmarkNormalMap(),
         normalScale: new THREE.Vector2(1.1, 1.1),

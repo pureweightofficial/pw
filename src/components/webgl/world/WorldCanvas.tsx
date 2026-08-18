@@ -65,11 +65,21 @@ export function WorldCanvas() {
     it has to be right before the first material is constructed, not after.
   */
   useEffect(() => {
-    if (!capability || capability.tier === "none") return;
+    /*
+      `failed` is deliberately part of this effect, not just the render guard.
+      On a genuine context loss the component keeps rendering (as null), so it
+      never unmounts — and an effect keyed only on capability would keep its
+      retain held forever. The refcount would sit above zero for the rest of
+      the session with no canvas alive, and "last one out disposes" would never
+      fire again. With `failed` in the deps, the flip to true re-runs the
+      effect: the previous cleanup releases, the new run early-returns without
+      retaining, and the count is honest again.
+    */
+    if (!capability || capability.tier === "none" || failed) return;
     setSceneQuality(capability.tier);
     retainSharedResources();
     return releaseSharedResources;
-  }, [capability]);
+  }, [capability, failed]);
 
   /*
     A LOST CONTEXT MUST NOT TAKE THE PAGE WITH IT.

@@ -81,19 +81,41 @@ export function WorldCamera({ reducedMotion }: { reducedMotion: boolean }) {
       hard-coding animation to individual DOM sections applies just as much to
       hard-coding it to numbers scattered across files.
     */
+    /*
+      EACH CHAPTER ARRIVES AT ITS OWN MARK — travel first, then hold.
+
+      The first version blended from mark[i] to mark[i+1] WHILE INSIDE chapter
+      i, which is off by one in the way that quietly destroys a shot list: the
+      camera occupied each chapter's authored framing only for the instant the
+      chapter began, then spent the whole chapter leaving for the next one. The
+      purity close-up retreated exactly while the mass turned its machined flat
+      toward the lens; "market: pulls back and holds" and "trust: static" were
+      spent gliding; the hero composition held only at scroll position zero.
+      Two audit finders caught it independently, against the shot list this
+      file itself documents.
+
+      Now chapter i blends from mark[i-1] TO mark[i] across the first 45% of
+      the chapter and HOLDS its own mark for the remaining 55% — a dolly move
+      into the shot, then the shot. Arrival is smoothstepped so the hold does
+      not begin with a visible stop.
+    */
+    const ARRIVE = 0.45;
     let from = MARKS[ORDER[0]];
     let to = MARKS[ORDER[0]];
     let t = 0;
     for (let i = 0; i < ORDER.length; i++) {
       const done = progressThrough(ORDER[i], p);
       if (done > 0 && done < 1) {
-        from = MARKS[ORDER[i]];
-        to = MARKS[ORDER[Math.min(i + 1, ORDER.length - 1)]];
-        t = done;
+        from = MARKS[ORDER[Math.max(i - 1, 0)]];
+        to = MARKS[ORDER[i]];
+        const a = Math.min(1, done / ARRIVE);
+        t = a * a * (3 - 2 * a);
         break;
       }
       if (done >= 1) {
-        from = MARKS[ORDER[Math.min(i + 1, ORDER.length - 1)]];
+        // This chapter is fully behind us: rest at ITS mark until a later
+        // chapter reports in-progress and takes over via the branch above.
+        from = MARKS[ORDER[i]];
         to = from;
         t = 0;
       }

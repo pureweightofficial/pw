@@ -94,6 +94,21 @@ class WebGLBoundary extends Component<BoundaryProps, { failed: boolean }> {
  * Watches real frame timing and lowers resolution before the visitor can
  * perceive a stutter. Measured performance beats device sniffing — a flagship
  * phone in a warm pocket is a mid-range phone.
+ *
+ * WHY THIS DRIVES DPR FROM `onChange`'S CONTINUOUS FACTOR, and not from
+ * incline/decline/fallback callbacks: drei's PerformanceMonitor counts EVERY
+ * incline and decline event toward `flipflops`. The previous version used
+ * flipflops={3} with onFallback={() => setDpr(1)} as an "oscillation brake" —
+ * but a perfectly healthy machine fires several inclines in its first seconds
+ * as the monitor calibrates, each one counted as a "flip". Roughly ten seconds
+ * in, every high-tier visitor's canvas was quietly forced to DPR 1 and held
+ * there for the life of the page. The best hardware got the worst picture, and
+ * no gate saw it because screenshots are taken long after the clamp lands.
+ *
+ * The continuous factor has no flip counter to poison: it eases toward 1 while
+ * frames are healthy and toward 0 under load, and DPR follows it between 1 and
+ * the tier cap. A struggling device still sheds resolution; a healthy one now
+ * keeps what it earned.
  */
 function AdaptiveQuality({ cap }: { cap: number }) {
   const setDpr = useThree((s) => s.setDpr);
@@ -101,11 +116,7 @@ function AdaptiveQuality({ cap }: { cap: number }) {
   return (
     <PerformanceMonitor
       bounds={() => [50, 60]}
-      flipflops={3}
-      onIncline={() => setDpr(cap)}
-      onDecline={() => setDpr(Math.max(1, cap * 0.72))}
-      // After three oscillations, stop chasing and hold the low setting.
-      onFallback={() => setDpr(1)}
+      onChange={({ factor }) => setDpr(Math.max(1, 1 + (cap - 1) * factor))}
     />
   );
 }

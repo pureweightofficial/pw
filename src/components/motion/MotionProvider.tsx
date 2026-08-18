@@ -11,6 +11,7 @@ import {
   useRef,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 import { clamp, resetScroll, setScroll } from "@/lib/scroll-store";
 
 /**
@@ -60,13 +61,30 @@ export const useMotion = () => useContext(MotionContext);
 
 export function MotionProvider({ children }: { children: ReactNode }) {
   const lenisRef = useRef<Lenis | null>(null);
+  const reducedRef = useRef(false);
+  const pathname = usePathname();
 
+  /*
+    EFFECT A — THE PERSISTENT MACHINERY. Runs once for the life of the site
+    layout: Lenis, the GSAP ticker, the pointer listener, and the one trigger
+    whose element (documentElement) survives every navigation.
+
+    EFFECT B, below, owns everything that queries the PAGE's DOM. The split is
+    the fix for a real, confirmed bug: all of this used to live in one []-dep
+    effect, which bound reveals, section progress, balance and parallax exactly
+    once — against the first page's elements. After any client-side navigation
+    the new page's .will-reveal content had no trigger and stayed invisible,
+    the scenes' progress channels went dead, and returning to the homepage left
+    the assay and finale scenes frozen. It looked like the site worked, because
+    the FIRST page always did.
+  */
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
+    reducedRef.current = reduced;
 
     let lenis: Lenis | null = null;
 
@@ -98,23 +116,73 @@ export function MotionProvider({ children }: { children: ReactNode }) {
       (lenis as unknown as { __raf?: (t: number) => void }).__raf = raf;
     }
 
-    /* ---------------------------------------------------------------- */
-    /* SECTION PROGRESS                                                  */
-    /* ---------------------------------------------------------------- */
+    // Whole-document progress: documentElement outlives every route, so this
+    // belongs with the persistent machinery, not with the page triggers.
+    const docTrigger = ScrollTrigger.create({
+      trigger: document.documentElement,
+      start: "top top",
+      end: "bottom bottom",
+      onUpdate: (self) => setScroll({ progress: self.progress }),
+    });
+
+    let pointerRaf = 0;
+    let pendingX = 0;
+    let pendingY = 0;
+
+    const flushPointer = () => {
+      pointerRaf = 0;
+      setScroll({ pointerX: pendingX, pointerY: pendingY });
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+      pendingX = (event.clientX / window.innerWidth) * 2 - 1;
+      pendingY = -((event.clientY / window.innerHeight) * 2 - 1);
+      if (!pointerRaf) pointerRaf = requestAnimationFrame(flushPointer);
+    };
+
+    if (!reduced)
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+
+    return () => {
+      docTrigger.kill();
+      window.removeEventListener("pointermove", onPointerMove);
+      if (pointerRaf) cancelAnimationFrame(pointerRaf);
+
+      const raf = (lenis as unknown as { __raf?: (t: number) => void } | null)
+        ?.__raf;
+      if (raf) gsap.ticker.remove(raf);
+      lenis?.destroy();
+      lenisRef.current = null;
+
+      ScrollTrigger.getAll().forEach((t) => t.kill());
+      resetScroll();
+      delete document.documentElement.dataset.revealsReady;
+    };
+  }, []);
+
+  /*
+    EFFECT B — THE PAGE'S TRIGGERS. Re-runs on every pathname change, so each
+    page's actual elements get their own triggers and the previous page's are
+    reverted with it. Everything in here queries the DOM, which is exactly why
+    none of it may live in the effect above.
+  */
+  useEffect(() => {
+    const reduced = reducedRef.current;
+
+    // The previous page's channels must not keep driving scenes and cursors
+    // that now belong to different elements — or to none.
+    setScroll({
+      hero: 0,
+      journey: 0,
+      assay: 0,
+      finale: 0,
+      journeyStage: -1,
+      assayFactor: -1,
+    });
 
     const ctx = gsap.context(() => {
-      // Whole-document progress.
-      ScrollTrigger.create({
-        trigger: document.documentElement,
-        start: "top top",
-        end: "bottom bottom",
-        onUpdate: (self) => setScroll({ progress: self.progress }),
-      });
-
-      const section = (
-        name: string,
-        key: "hero" | "journey" | "assay" | "finale",
-      ) => {
+      const section = (name: string, key: "journey" | "assay" | "finale") => {
         const el = document.querySelector<HTMLElement>(
           `[data-scroll-section="${name}"]`,
         );
@@ -153,7 +221,14 @@ export function MotionProvider({ children }: { children: ReactNode }) {
       const journey = document.querySelector<HTMLElement>(
         '[data-scroll-section="journey"]',
       );
-      if (journey) {
+      if (journey && !reduced) {
+        /*
+          `!reduced` is part of this condition because the trigger used to be
+          created unconditionally — and its first onUpdate promptly clobbered
+          the reduced-motion override (balance = 1, --beam-tilt: 0deg) set in
+          the reduced branch below. A visitor who asked for no motion got the
+          tilting hairlines anyway. Under reduced motion the rules rest level.
+        */
         ScrollTrigger.create({
           trigger: journey,
           start: "top 80%",
@@ -171,6 +246,11 @@ export function MotionProvider({ children }: { children: ReactNode }) {
             );
           },
         });
+      } else if (!journey) {
+        // No instrument on this page: the rules rest level rather than holding
+        // whatever tilt the previous page left behind.
+        setScroll({ balance: 1 });
+        document.documentElement.style.setProperty("--beam-tilt", "0deg");
       }
 
       /* -------------------------------------------------------------- */
@@ -215,7 +295,9 @@ export function MotionProvider({ children }: { children: ReactNode }) {
         // does not un-hide everything three seconds from now.
         document.documentElement.dataset.revealsReady = "1";
 
-        ScrollTrigger.batch(".will-reveal", {
+        // :not(.reveal-done) — elements revealed on a previous visit to this
+        // page in this session must not be re-hidden and re-animated.
+        ScrollTrigger.batch(".will-reveal:not(.reveal-done)", {
           start: "top 88%",
           once: true,
           onEnter: (batch) => {
@@ -264,48 +346,14 @@ export function MotionProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    // Fonts change metrics, which changes every trigger position.
+    // New page, new element positions — including font-metric shifts.
+    ScrollTrigger.refresh();
     document.fonts?.ready.then(() => ScrollTrigger.refresh());
-
-    /* ---------------------------------------------------------------- */
-    /* POINTER                                                           */
-    /* ---------------------------------------------------------------- */
-
-    let pointerRaf = 0;
-    let pendingX = 0;
-    let pendingY = 0;
-
-    const flushPointer = () => {
-      pointerRaf = 0;
-      setScroll({ pointerX: pendingX, pointerY: pendingY });
-    };
-
-    const onPointerMove = (event: PointerEvent) => {
-      if (event.pointerType !== "mouse") return;
-      pendingX = (event.clientX / window.innerWidth) * 2 - 1;
-      pendingY = -((event.clientY / window.innerHeight) * 2 - 1);
-      if (!pointerRaf) pointerRaf = requestAnimationFrame(flushPointer);
-    };
-
-    if (!reduced)
-      window.addEventListener("pointermove", onPointerMove, { passive: true });
 
     return () => {
       ctx.revert();
-      window.removeEventListener("pointermove", onPointerMove);
-      if (pointerRaf) cancelAnimationFrame(pointerRaf);
-
-      const raf = (lenis as unknown as { __raf?: (t: number) => void } | null)
-        ?.__raf;
-      if (raf) gsap.ticker.remove(raf);
-      lenis?.destroy();
-      lenisRef.current = null;
-
-      ScrollTrigger.getAll().forEach((t) => t.kill());
-      resetScroll();
-      delete document.documentElement.dataset.revealsReady;
     };
-  }, []);
+  }, [pathname]);
 
   const scrollTo = useCallback(
     (

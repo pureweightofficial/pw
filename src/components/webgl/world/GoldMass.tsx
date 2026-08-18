@@ -78,11 +78,35 @@ export function GoldMass({ capability }: { capability: Capability }) {
   );
 
   // Live state, held in refs so nothing here ever triggers a React render.
-  const state = useRef({ y: 0, rotY: 0, rotX: 0, px: 0, py: 0 });
+  // Seeded lazily on the first frame — see below.
+  const state = useRef({ y: 0, rotY: 0, rotX: 0, px: 0, py: 0, seeded: false });
 
   useFrame((_, delta) => {
     if (!group.current || !mass.current) return;
     const p = scrollState.progress;
+
+    /*
+      SEED ON THE FIRST FRAME, from wherever the visitor actually is.
+
+      The ref used to initialise at y:0 — but the hero target is y:0.34, so on
+      every load at the top of the page the mass spent its first second visibly
+      FLOATING UPWARD into position. The entire motion design is built on the
+      claim that this object never rises ("gold that has been weighed does not
+      float back up"), and the very first thing it did was rise. Worse on a
+      mid-page reload: it drifted from the origin to wherever scroll restoration
+      put it, announcing itself with exactly the weightless glide the brief
+      forbids. Damping is for CHANGES; the first frame is not a change.
+    */
+    if (!state.current.seeded) {
+      const s0 = progressThrough("weight", p);
+      const e0 = 1 - Math.pow(1 - s0, 3);
+      state.current.y = THREE.MathUtils.lerp(0.34, -0.28, e0);
+      state.current.rotY = THREE.MathUtils.degToRad(
+        -4 + progressThrough("purity", p) * 8,
+      );
+      state.current.rotX = THREE.MathUtils.degToRad(s0 * 2.5);
+      state.current.seeded = true;
+    }
 
     /*
       HEIGHT. The mass begins high and slightly out of frame, descends through
