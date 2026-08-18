@@ -58,10 +58,24 @@ for (const name of names) {
   await page.goto(`http://127.0.0.1:${port}/pw${route}`, { waitUntil: "load" });
   await page.waitForTimeout(name === "home" ? 7000 : 4000);
   await page.screenshot({ path: join(shots, `local-${name}-top.png`) });
+  /*
+    WHEEL steps, never window.scrollTo. Lenis owns scrolling on this site and
+    a programmatic jump does not emit the scroll events ScrollTrigger listens
+    for — so reveals never fire, and the frame captures a page of opacity-0
+    content. That exact artefact produced a convincing all-black "regression"
+    screenshot that cost a diagnosis cycle: the page was fine, the probe was
+    scrolling in a way no human can.
+  */
   const travel = await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight);
   if (travel > 400) {
-    await page.evaluate((y) => window.scrollTo(0, y), Math.round(travel * 0.4));
-    await page.waitForTimeout(2000);
+    let scrolled = 0;
+    const target = Math.round(travel * 0.45);
+    while (scrolled < target) {
+      await page.mouse.wheel(0, 700);
+      scrolled += 700;
+      await page.waitForTimeout(260);
+    }
+    await page.waitForTimeout(1800);
     await page.screenshot({ path: join(shots, `local-${name}-mid.png`) });
   }
   console.log(`  ${name} captured`);

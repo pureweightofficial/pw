@@ -3,7 +3,6 @@
 import { AmbientScene, type AmbientVariant } from "./AmbientScene";
 import { AssayScene } from "./AssayScene";
 import { FinaleScene } from "./FinaleScene";
-import { FireflyField } from "./FireflyField";
 // One definition of each poster, in the three-free module. The gated call sites
 // render these WITHOUT loading the renderer; this module renders the same ones
 // underneath a canvas. Two copies would drift, and the drift would only show on
@@ -11,6 +10,7 @@ import { FireflyField } from "./FireflyField";
 import { AmbientPoster } from "./posters";
 import { ScalePoster } from "./ScalePoster";
 import { SceneShell } from "./SceneShell";
+import { SpecimenScene } from "./SpecimenScene";
 
 /**
  * CANVAS ENTRY POINTS
@@ -60,31 +60,11 @@ export function AmbientCanvas({
   );
 }
 
-/**
- * The site-wide firefly backdrop. One canvas, fixed to the viewport, behind
- * every section.
- *
- * `eager` because this is never off-screen — it IS the screen — so the
- * viewport gating that unmounts section scenes has nothing to gate on. The
- * flat orthographic-ish framing (wide FOV, camera on axis) keeps the field
- * even from edge to edge; a subject-scene camera would bunch the motes toward
- * the centre.
- *
- * Exposure 1.0: the shader already carries its own brightness budget in
- * uOpacity, and that number is bounded by the contrast gate rather than taste.
- */
-export function FireflyCanvas() {
-  return (
-    <SceneShell
-      eager
-      camera={{ position: [0, 0, 6], fov: 60 }}
-      exposure={1}
-      poster={<div style={{ width: "100%", height: "100%" }} />}
-    >
-      {(capability) => <FireflyField capability={capability} />}
-    </SceneShell>
-  );
-}
+/*
+  FireflyCanvas lived here. It left with the firefly field: a full-viewport
+  atmosphere canvas cost ~43fps of recompositing and, once the page surfaces
+  went opaque, was invisible while still paying it. Windowed scenes only.
+*/
 
 /*
   HeroCanvas was removed, along with HeroScene and the bench geometry and
@@ -101,6 +81,24 @@ export function FireflyCanvas() {
   so the whole component shipped in this chunk for every visitor who gets 3D and
   rendered for none of them.
 */
+
+/**
+ * The specimen: raw gold presented inside the valuation journey's window.
+ * Camera close and slightly high — an object on a bench being examined, not a
+ * product on a turntable. Exposure up like the `bar` ambient variant, because
+ * a presented object needs the room lit for it.
+ */
+export function SpecimenCanvas() {
+  return (
+    <SceneShell
+      camera={{ position: [0.1, 0.35, 5.6], fov: 30 }}
+      exposure={1.3}
+      poster={<AmbientPoster />}
+    >
+      {(capability) => <SpecimenScene capability={capability} />}
+    </SceneShell>
+  );
+}
 
 export function AssayCanvas() {
   return (

@@ -87,21 +87,15 @@ const server = createServer((req, res) => {
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const port = server.address().port;
 /*
-  NOT THE HOMEPAGE ANY MORE.
-
-  This gate proves that a data-saving device never downloads the renderer, and
-  it does that by comparing a capable profile against a Data Saver one. That
-  comparison is only meaningful on a page where a capable device DOES render
-  something — otherwise both profiles skip the renderer and the gate passes
-  while proving nothing, which is the vacuous pass it already refuses to issue.
-
-  The homepage stopped being such a page when its backdrop canvas was removed
-  for performance (see (site)/page.tsx). /what-we-buy still mounts the firefly
-  field, so it is the honest subject now. The gate aborted loudly rather than
-  passing when this changed, which is exactly what it was built to do.
+  THE HOMEPAGE AGAIN — it is the only page with 3D now that the firefly field
+  is retired (windowed scenes: assay and finale, plus the specimen window).
+  The gate once believed the homepage had no canvas and aborted; the real
+  problem was its OWN scroll loop, which walked five viewport-heights down a
+  twelve-screen page and never reached the assay section. It now scrolls the
+  whole document by fractions of the real height.
 */
-const PAGE = process.env.PAYLOAD_PAGE || "what-we-buy";
-const url = `http://127.0.0.1:${port}/pw/${PAGE}/`;
+const PAGE = process.env.PAYLOAD_PAGE || "";
+const url = `http://127.0.0.1:${port}/pw/${PAGE ? PAGE + "/" : ""}`;
 
 function findChrome() {
   const candidates = [
@@ -149,10 +143,14 @@ async function profile(browser, { dataSaver }) {
   jsBytes = 0;
   await page.goto(url, { waitUntil: "load" });
   await page.waitForTimeout(6500);
-  // Scroll the page so every lazily-mounted scene has had its chance to load.
-  for (const n of [1, 2, 3, 4, 5]) {
-    await page.evaluate((y) => window.scrollTo(0, y * window.innerHeight), n);
-    await page.waitForTimeout(1200);
+  // Scroll the WHOLE page so every lazily-mounted scene has had its chance —
+  // fixed viewport counts under-ran a twelve-screen homepage and reported the
+  // capable profile as sceneless.
+  const travel = await page.evaluate(
+    () => document.documentElement.scrollHeight - window.innerHeight);
+  for (const f of [0.2, 0.4, 0.6, 0.8, 1]) {
+    await page.evaluate((y) => window.scrollTo(0, y), Math.round(travel * f));
+    await page.waitForTimeout(1400);
   }
   await page.waitForTimeout(1500);
 

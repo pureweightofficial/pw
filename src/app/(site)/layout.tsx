@@ -3,12 +3,11 @@ import { Loader } from '@/components/chrome/Loader';
 import { Nav } from '@/components/chrome/Nav';
 import { SceneCursor } from '@/components/chrome/SceneCursor';
 import { MotionProvider } from '@/components/motion/MotionProvider';
-import { FireflyBackdrop } from '@/components/ui/FireflyBackdrop';
 
 /**
  * THE SITE'S CHROME — everything that makes the public pages an EXPERIENCE
  * rather than a document: the opening curtain, the fixed navigation, the
- * firefly field, the custom cursor, Lenis smooth scrolling and the footer.
+ * custom cursor, Lenis smooth scrolling and the footer.
  *
  * It lives in this route group, not the root layout, because not every route
  * is a marketing page. The keeper (/keeper, the owner's admin panel) shares
@@ -23,33 +22,14 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
   return (
     <MotionProvider>
       {/*
-        The firefly field sits behind everything on the body's own black, and
-        every section surface above it is translucent so it reads through. It is
-        deliberately OUTSIDE the content stacking context — a fixed element in a
-        transformed ancestor is positioned against that ancestor rather than the
-        viewport, and GSAP puts transforms on plenty of things in here.
-
-        THE NEW WORLD WAS SWITCHED ON HERE AND SWITCHED BACK OFF, FOR A REASON
-        THAT IS MEASURED RATHER THAN AESTHETIC.
-
-        `@/components/ui/GoldWorld` renders correctly now — the flat-plate
-        artefact is gone and the metal is believable. But it is a LIT object
-        behind translucent section surfaces, and `npm run check:scene-contrast`
-        put real numbers on what that does to the copy sitting over it:
-
-            #testimonials   lead 2.32:1   label 2.03:1
-            #insights       lead 2.29:1   label 2.00:1
-            five sections failing in total
-
-        WCAG AA requires 4.5:1. Body text at 2.0:1 is unreadable for a large
-        number of people, and this site is live under a real business's name.
-
-        Swapping the import back is a thirty-second change and the component is
-        right there — but it must be paid for first, by strengthening the
-        section scrims or dimming the world behind copy, and then re-running
-        that gate until every section passes. The gate is the acceptance test.
+        NO SITE-WIDE BACKDROP CANVAS, and the reasons are measured, not
+        aesthetic. The firefly field that lived here cost ~43fps of whole-page
+        recompositing wherever it mounted (scripts/check-perf.mjs header) — and
+        since the surfaces went opaque (--surface-alpha: 100%) it was an
+        INVISIBLE canvas still charging that bill on every subpage. WebGL on
+        this site is windowed: scenes mount inside their own sections through
+        SceneShell, where they are content rather than atmosphere.
       */}
-      <FireflyBackdrop />
       <Loader />
       <SceneCursor />
       <div className="relative z-10">

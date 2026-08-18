@@ -58,16 +58,19 @@ const original = readFileSync(LAYOUT, "utf8");
 
 try {
   // Mount the world in place of the shipped backdrop, for this build only.
+  // The firefly anchors are gone (the field is retired); mount the world by
+  // inserting alongside the chrome instead.
   const patched = original
     .replace(
-      "import { FireflyBackdrop } from '@/components/ui/FireflyBackdrop';",
-      "import { GoldWorld } from '@/components/ui/GoldWorld';",
+      "import { Footer } from '@/components/chrome/Footer';",
+      "import { GoldWorld } from '@/components/ui/GoldWorld';\n" +
+        "import { Footer } from '@/components/chrome/Footer';",
     )
-    .replace("<FireflyBackdrop />", "<GoldWorld />");
+    .replace("<Loader />", "<GoldWorld />\n      <Loader />");
 
   if (patched === original) {
     console.error("  could not mount the world — layout.tsx no longer matches.");
-    console.error("  Expected an import of FireflyBackdrop and a <FireflyBackdrop /> element.");
+    console.error("  Expected the Footer chrome import and a <Loader /> element.");
     process.exit(1);
   }
   writeFileSync(LAYOUT, patched);

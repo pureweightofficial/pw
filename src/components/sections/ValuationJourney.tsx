@@ -43,7 +43,15 @@ export function ValuationJourney() {
       {/* The right-hand column of this section's grid is genuinely empty on
           desktop, and `links` read as black there. A single presented gold bar
           fills it and turns as the reader advances the four stages. */}
-      <SectionScene variant="bar" channel="journey" scrim="reveal" />
+      {/*
+          The presented object itself, not an ambient suggestion of one. This
+          slot was designed for a presented object from the start — the
+          `reveal` scrim clears the right column for it — and the specimen is
+          the first scene of the windowed-WebGL architecture: the same
+          procedural mass and shared gold material as the world, framed where
+          the copy describes what happens to it.
+        */}
+        <SectionScene variant="bar" channel="journey" scrim="reveal" scene="specimen" />
       <div className="shell">
         <div className="max-w-3xl">
           <Eyebrow className="mb-8 will-reveal">{copy.eyebrow}</Eyebrow>
