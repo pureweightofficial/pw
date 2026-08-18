@@ -233,7 +233,7 @@ export function Nav() {
                 <Link
                   href={item.href}
                   onClick={(e) => handleNavClick(e, item.href)}
-                  className="flex items-baseline gap-4 py-5 font-display text-3xl font-normal text-ivory transition-colors duration-300 hover:text-gold-high"
+                  className="flex items-baseline gap-4 py-5 font-display text-3xl text-ivory transition-colors duration-300 hover:text-gold-high"
                 >
                   <span className="font-sans text-[0.6rem] tracking-[0.24em] text-gold-antique">
                     {String(index + 1).padStart(2, "0")}

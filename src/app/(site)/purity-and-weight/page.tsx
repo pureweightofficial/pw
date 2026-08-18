@@ -37,7 +37,7 @@ export default function PurityAndWeightPage() {
       <div className="shell">
         <div className="mx-auto max-w-3xl">
           <Eyebrow className="mb-8">Purity &amp; Weight</Eyebrow>
-          <h1 id="pw-heading" className="font-display text-chapter font-normal text-ivory">
+          <h1 id="pw-heading" className="font-display text-chapter text-ivory">
             Value is not guessed.
             <span className="accent-italic text-gold-high/90"> It is measured.</span>
           </h1>

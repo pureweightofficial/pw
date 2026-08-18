@@ -52,7 +52,7 @@ export function WhyPureweight() {
           </Eyebrow>
           <h2
             id="pillars-heading"
-            className="font-display text-chapter font-normal text-ivory will-reveal"
+            className="font-display text-chapter text-ivory will-reveal"
           >
             {/* Not "three things" any more — the heading used to hardcode the count
                 and would have silently gone wrong when the pillars became four. */}
@@ -76,7 +76,7 @@ export function WhyPureweight() {
                 <Medallion index={index} label={pillar.title} />
               </div>
 
-              <h3 className="mt-9 font-display text-3xl font-normal text-ivory will-reveal lg:text-4xl">
+              <h3 className="mt-9 font-display text-3xl text-ivory will-reveal lg:text-4xl">
                 {pillar.title}
               </h3>
 

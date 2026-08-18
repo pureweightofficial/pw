@@ -97,7 +97,7 @@ export function Services() {
             <Eyebrow className="mb-8 will-reveal">{copy.eyebrow}</Eyebrow>
             <h2
               id="services-heading"
-              className="font-display text-chapter font-normal text-ivory will-reveal"
+              className="font-display text-chapter text-ivory will-reveal"
             >
               {copy.heading}{" "}
               <span className="accent-italic text-gold-high/90">
@@ -166,7 +166,7 @@ export function Services() {
                     ) : (
                       <ServicePlate index={index} title={service.title} />
                     )}
-                    <span className="absolute left-5 top-5 font-display text-6xl font-normal text-gold-antique/75">
+                    <span className="absolute left-5 top-5 font-display text-6xl text-gold-antique/75">
                       {service.index}
                     </span>
                   </div>
@@ -182,7 +182,7 @@ export function Services() {
                       </p>
                     ) : null}
 
-                    <h3 className="font-display text-4xl font-normal text-ivory lg:text-5xl">
+                    <h3 className="font-display text-4xl text-ivory lg:text-5xl">
                       {service.title}
                     </h3>
 

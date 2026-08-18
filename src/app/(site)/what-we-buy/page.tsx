@@ -31,7 +31,7 @@ export default function WhatWeBuyPage() {
       <div className="shell">
         <div className="mx-auto max-w-3xl">
           <Eyebrow className="mb-8">What We Buy</Eyebrow>
-          <h1 id="wwb-heading" className="font-display text-chapter font-normal text-ivory">
+          <h1 id="wwb-heading" className="font-display text-chapter text-ivory">
             Gold, silver, coins
             <span className="accent-italic text-gold-high/90"> and bullion</span>
           </h1>

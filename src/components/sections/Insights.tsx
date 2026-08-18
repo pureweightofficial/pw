@@ -31,7 +31,7 @@ export function Insights() {
             <Eyebrow className="mb-8 will-reveal">Insights</Eyebrow>
             <h2
               id="insights-heading"
-              className="font-display text-chapter font-normal text-ivory will-reveal"
+              className="font-display text-chapter text-ivory will-reveal"
             >
               Know what you hold
               <span className="accent-italic text-gold-high/90">
@@ -65,12 +65,12 @@ export function Insights() {
                     <span className="text-[0.58rem] tracking-[0.22em] text-gold-antique uppercase">
                       {topic.category}
                     </span>
-                    <span className="font-display text-2xl font-normal text-gold-antique/75">
+                    <span className="font-display text-2xl text-gold-antique/75">
                       {String(index + 1).padStart(2, "0")}
                     </span>
                   </div>
 
-                  <h3 className="mt-7 font-display text-2xl font-normal leading-tight text-ivory transition-colors duration-500 group-hover:text-gold-high">
+                  <h3 className="mt-7 font-display text-2xl leading-tight text-ivory transition-colors duration-500 group-hover:text-gold-high">
                     {topic.title}
                   </h3>
                 </div>

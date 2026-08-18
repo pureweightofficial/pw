@@ -64,7 +64,7 @@ export function FinalBalance() {
 
           <h2
             id="finale-heading"
-            className="font-display text-chapter font-normal text-ivory will-reveal"
+            className="font-display text-chapter text-ivory will-reveal"
           >
             {copy.heading}
             <br />

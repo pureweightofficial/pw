@@ -74,7 +74,7 @@ export default async function ArticlePage({
           <Eyebrow className="mb-8">Insights</Eyebrow>
           <h1
             id="article-heading"
-            className="font-display text-chapter font-normal leading-tight text-ivory"
+            className="font-display text-chapter leading-tight text-ivory"
           >
             {article.title}
           </h1>

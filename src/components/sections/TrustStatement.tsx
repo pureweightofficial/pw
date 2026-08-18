@@ -36,7 +36,7 @@ export function TrustStatement() {
 
             <h2
               id="trust-heading"
-              className="font-display text-statement font-normal text-ivory will-reveal"
+              className="font-display text-statement text-ivory will-reveal"
             >
               Every gram carries value.
               <br />

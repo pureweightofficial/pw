@@ -49,7 +49,7 @@ export function BrandStory() {
               <Eyebrow className="mb-8 will-reveal">{copy.eyebrow}</Eyebrow>
               <h2
                 id="story-heading"
-                className="font-display text-chapter font-normal text-ivory will-reveal"
+                className="font-display text-chapter text-ivory will-reveal"
               >
                 {copy.heading}
                 <br />

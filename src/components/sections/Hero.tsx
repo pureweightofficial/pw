@@ -133,7 +133,7 @@ export function Hero() {
 
           <h1
             id="hero-heading"
-            className="hero-rise font-display text-hero font-normal text-ivory [--rise-delay:120ms]"
+            className="hero-rise font-display text-hero text-ivory [--rise-delay:120ms]"
           >
             {/*
               The space between these two spans is load-bearing even though

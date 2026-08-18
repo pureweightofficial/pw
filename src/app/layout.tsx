@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist_Mono, Manrope, Playfair_Display, Rye } from 'next/font/google';
+import { Geist_Mono, Manrope, Playfair_Display } from 'next/font/google';
 import { assetPath } from '@/lib/asset';
 import { allowIndexing, brand, buildSiteJsonLd, SITE_LOCALE } from '@/lib/site';
 import './globals.css';
@@ -7,73 +7,31 @@ import './globals.css';
 /**
  * ROOT LAYOUT
  *
- * TYPE PAIRING — four faces, each with one job.
+ * TYPE PAIRING — three faces, each with one job.
  *
- *   CINZEL           upright display. Engraved Roman capitals, chosen to sit
- *                    with the logo's heavy Victorian lettering rather than
- *                    against it. Set at 600, because the mark is heavy and a
- *                    lighter weight reads as a different brand beside it.
- *   PLAYFAIR ITALIC  the accent counterpoint. No vintage display face on Google
- *                    Fonts ships an italic, and the design uses italic serif
- *                    accents in 21 places, so the italic stays calligraphic.
- *                    Engraved roman against calligraphic italic is a deliberate
- *                    pairing, not a leftover.
- *   MANROPE          body, navigation, forms. Everything that must simply read.
- *   GEIST MONO       micro-labels only, at 10px with 0.42em tracking.
+ *   MANROPE          display AND body. Large, tight editorial headlines and
+ *                    everything that must simply read — one voice, the way an
+ *                    institutional financial platform speaks. Weights to 800
+ *                    for display, because a geometric sans at 400 reads as UI,
+ *                    not as a headline.
+ *   PLAYFAIR ITALIC  the accent counterpoint, demoted to occasional editorial
+ *                    lines. A calligraphic italic against a disciplined sans is
+ *                    the one flourish the system keeps.
+ *   GEIST MONO       micro-labels and MEASUREMENTS: tabular numerals for every
+ *                    weight and price, tracked labels at 10px.
+ *
+ * RYE IS GONE FROM THE PAGE, DELIBERATELY. The Victorian display face carried
+ * the previous identity; the overhaul's agreed direction is institutional
+ * premium ("Swiss private banking, not jewellery shop"), and a decorative
+ * saloon slab is the single loudest element arguing against that. The engraved
+ * lettering SURVIVES where it belongs — inside the logo image in the nav and
+ * footer, which never rendered in Rye anyway. Dropping the webfont also drops
+ * its ~20KB and its display:block paint hold from every page.
  *
  * All self-hosted at build time by next/font: no third-party request, and a
  * metric-matched fallback so nothing shifts when they arrive.
  */
 
-/**
- * THE VINTAGE DISPLAY FACE — Rye, chosen from the type specimen against the
- * actual logo. It is a genuine Victorian slab/Tuscan display: heavy, blunt,
- * flared serifs — the closest letterform match to the mark's engraved
- * lettering among the free candidates (Cinzel matched the *feeling* but its
- * fine tapered serifs were the wrong shape; Yeseva One read as signwriting).
- *
- * RYE SHIPS EXACTLY ONE WEIGHT: 400, and it is already heavy by design.
- * Nothing may set a heavier weight on display type — the browser would
- * synthesize a faux-bold and the letterforms turn to mush. font-synthesis is
- * disabled in globals.css as a hard stop, and the previous font-normal
- * utilities were swept back to font-normal in the same change.
- *
- * Unlike Cinzel, Rye has true lowercase, so headlines are mixed-case again.
- */
-const vintage = Rye({
-  subsets: ['latin'],
-  weight: '400',
-  variable: '--font-vintage',
-  /**
-   * `block`, NOT `swap`, and this is the fix for the reported "old design then
-   * new design" flash on landing.
-   *
-   * `swap` paints the metric-matched fallback immediately and swaps when the
-   * real face arrives. For body text that is right — a brief substitution beats
-   * invisible words. For THIS face it is wrong: Rye is a Victorian slab with
-   * flared serifs and nothing in any fallback stack resembles it, so the swap
-   * does not read as a font loading. It reads as the page changing design.
-   *
-   * `block` renders the text invisible for a short block period (~3s) and then
-   * paints it once, in Rye. There is no wrong-font state to see.
-   *
-   * The usual objection to `block` — briefly invisible headings — barely applies
-   * here, because the opening curtain covers the first ~2.4s of a first visit,
-   * so the block period elapses behind it. Repeat visitors have the face in
-   * cache. Reduced-motion visitors skip the curtain and may see a short blank,
-   * which is still less jarring than watching the headline change typeface.
-   */
-  display: 'block',
-  preload: true,
-});
-
-/**
- * Retained ONLY for italic accent lines. No vintage display face on Google
- * Fonts ships an italic, and this design uses italic serif accents in 21
- * places — so rather than lose them, the italic counterpoint stays Playfair.
- * An engraved roman against a calligraphic italic is a deliberate pairing, not
- * a leftover.
- */
 const playfair = Playfair_Display({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
@@ -89,7 +47,9 @@ const playfair = Playfair_Display({
 
 const manrope = Manrope({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
+  // 700/800 are the display weights — headlines need real weight, and Manrope
+  // at 400 is a UI face, not a headline face.
+  weight: ['400', '500', '600', '700', '800'],
   variable: '--font-manrope',
   /**
    * Stays `swap`, deliberately. This carries the body copy, and invisible body
@@ -207,7 +167,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang={SITE_LOCALE}
-      className={`${vintage.variable} ${playfair.variable} ${manrope.variable} ${geistMono.variable}`}
+      className={`${playfair.variable} ${manrope.variable} ${geistMono.variable}`}
       /* CSS url() never receives basePath, so the cracked-gold texture's path is
          injected here through the same helper every other asset uses. */
       style={{ '--craquelure': `url(${assetPath('/brand/craquelure.png')})` } as React.CSSProperties}

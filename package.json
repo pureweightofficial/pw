@@ -19,6 +19,7 @@
     "check:sticky": "node scripts/check-sticky.mjs",
     "check:canonical": "node scripts/check-canonical.mjs",
     "check:perf": "node scripts/check-perf.mjs",
+    "shot:local": "node scripts/shot-local.mjs",
     "shot:live": "node scripts/shot-live.mjs",
     "shot:world": "node scripts/shot-world.mjs",
     "shot:keeper": "node scripts/shot-keeper.mjs",

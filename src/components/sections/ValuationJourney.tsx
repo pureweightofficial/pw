@@ -49,7 +49,7 @@ export function ValuationJourney() {
           <Eyebrow className="mb-8 will-reveal">{copy.eyebrow}</Eyebrow>
           <h2
             id="journey-heading"
-            className="font-display text-chapter font-normal text-ivory will-reveal"
+            className="font-display text-chapter text-ivory will-reveal"
           >
             {copy.heading}{" "}
             <span className="accent-italic text-gold-high/90">{copy.accent}</span>
@@ -77,10 +77,10 @@ export function ValuationJourney() {
               >
                 <div className="will-reveal">
                   <div className="flex items-baseline gap-6">
-                    <span className="font-display text-5xl font-normal text-gold-antique/75 transition-colors duration-700 group-hover:text-gold-antique lg:text-6xl">
+                    <span className="font-display text-5xl text-gold-antique/75 transition-colors duration-700 group-hover:text-gold-antique lg:text-6xl">
                       {stage.step}
                     </span>
-                    <h3 className="font-display text-3xl font-normal tracking-tight text-ivory lg:text-4xl">
+                    <h3 className="font-display text-3xl tracking-tight text-ivory lg:text-4xl">
                       {stage.title}
                     </h3>
                   </div>

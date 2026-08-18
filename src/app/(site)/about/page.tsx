@@ -33,7 +33,7 @@ export default function AboutPage() {
       <div className="shell">
         <div className="mx-auto max-w-3xl">
           <Eyebrow className="mb-8">About</Eyebrow>
-          <h1 id="about-heading" className="font-display text-chapter font-normal text-ivory">
+          <h1 id="about-heading" className="font-display text-chapter text-ivory">
             Weight can be measured.
             <span className="accent-italic text-gold-high/90"> Trust must be earned.</span>
           </h1>

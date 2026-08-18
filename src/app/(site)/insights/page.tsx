@@ -56,7 +56,7 @@ export default function InsightsPage() {
       <div className="shell">
         <div className="max-w-3xl">
           <Eyebrow className="mb-8">Insights</Eyebrow>
-          <h1 id="insights-heading" className="font-display text-chapter font-normal text-ivory">
+          <h1 id="insights-heading" className="font-display text-chapter text-ivory">
             Know what you hold
             <span className="accent-italic text-gold-high/90"> before you sell it</span>
           </h1>
@@ -77,7 +77,7 @@ export default function InsightsPage() {
                     className="group block py-8 transition-colors"
                   >
                     <div className="flex flex-wrap items-baseline justify-between gap-3">
-                      <h3 className="font-display text-2xl font-normal leading-tight text-ivory transition-colors group-hover:text-gold-high lg:text-3xl">
+                      <h3 className="font-display text-2xl leading-tight text-ivory transition-colors group-hover:text-gold-high lg:text-3xl">
                         {article.title}
                       </h3>
                       <span className="text-[0.62rem] tracking-[0.2em] text-ash uppercase">
@@ -111,11 +111,11 @@ export default function InsightsPage() {
                   <span className="text-[0.58rem] tracking-[0.22em] text-gold-antique uppercase">
                     {topic.category}
                   </span>
-                  <span className="font-display text-2xl font-normal text-gold-antique/75">
+                  <span className="font-display text-2xl text-gold-antique/75">
                     {String(index + 1).padStart(2, '0')}
                   </span>
                 </div>
-                <h2 className="mt-6 font-display text-2xl font-normal leading-tight text-ivory lg:text-3xl">
+                <h2 className="mt-6 font-display text-2xl leading-tight text-ivory lg:text-3xl">
                   {topic.title}
                 </h2>
               </div>
@@ -134,7 +134,7 @@ export default function InsightsPage() {
           claim about how Pureweight prices anything.
         */}
         <div className="mt-20 max-w-3xl">
-          <h2 className="font-display text-3xl font-normal text-ivory">
+          <h2 className="font-display text-3xl text-ivory">
             In the meantime — three things worth knowing
           </h2>
 

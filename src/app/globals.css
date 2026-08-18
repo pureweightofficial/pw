@@ -59,9 +59,16 @@
   --color-ash: #cba85f; /* secondary type and fine print — muted gold */
 
   /* --- Type ------------------------------------------------------------- */
-  /* Upright display: engraved Roman capitals, matched to the logo's lettering. */
+  /*
+    Display is the SAME voice as body — Manrope, heavier and tighter. The
+    agreed institutional direction: one disciplined sans speaking at two
+    volumes, not a decorative face shouting over a quiet one. Rye is gone from
+    the page (the engraved lettering lives on inside the logo image, where it
+    always actually was); its webfont, its ~20KB and its display:block paint
+    hold left with it.
+  */
   --font-display:
-    var(--font-vintage), "Rye", "Playfair Display", Georgia, serif;
+    var(--font-manrope), "Manrope", ui-sans-serif, system-ui, sans-serif;
   /* Italic counterpoint: no vintage display face ships an italic, so the accent
      lines keep a calligraphic serif. The contrast is intentional. */
   --font-accent: var(--font-playfair), "Playfair Display", Georgia, serif;
@@ -75,12 +82,19 @@
      cap-width. At 8.2vw the headline wrapped to four lines on a 1400px laptop
      and pushed the primary CTA below the fold — screenshot-verified. 5.5vw
      holds "Where Gold Finds" to one line inside its measure. */
-  --text-hero: clamp(2.6rem, 5.5vw, 6.75rem);
-  --text-hero--line-height: 0.92;
-  --text-chapter: clamp(2.1rem, 5.2vw, 4.75rem);
-  --text-chapter--line-height: 0.98;
+  /*
+    Retuned for Manrope. The old 0.92/0.98 line-heights were set for Rye's
+    all-but-caps letterforms; mixed-case with real descenders clips at 0.92
+    ("g", "y" collide with the next line). And a sans sets ~15% narrower than
+    the slab did, so the vw coefficients rise a step without re-triggering the
+    four-line-headline wrap that 8.2vw caused and 5.5vw fixed.
+  */
+  --text-hero: clamp(2.7rem, 6vw, 7rem);
+  --text-hero--line-height: 1.02;
+  --text-chapter: clamp(2.2rem, 5.4vw, 5rem);
+  --text-chapter--line-height: 1.05;
   --text-statement: clamp(1.65rem, 3.4vw, 3.1rem);
-  --text-statement--line-height: 1.16;
+  --text-statement--line-height: 1.2;
   --text-lead: clamp(1rem, 1.25vw, 1.2rem);
   --text-lead--line-height: 1.7;
 
@@ -90,6 +104,13 @@
   --dur-slow: 1400ms;
   --dur-mid: 780ms;
   --dur-quick: 340ms;
+}
+
+/* Measurements and prices: fixed-advance digits so numbers align in columns
+   and do not judder when they tick. The brief calls for tabular numerals on
+   every weight and price; this is the one class that delivers it. */
+.tabular {
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* ==========================================================================
@@ -161,12 +182,15 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    /* Rye ships ONE weight — 400, already heavy by design. Anything heavier
-       would be browser-synthesized faux-bold, so synthesis is switched off
-       outright: a declared 600 now renders as true 400 instead of as mush. */
-    font-weight: 400;
-    font-synthesis: none;
-    letter-spacing: 0.01em;
+    /*
+      750, and NEGATIVE tracking. A geometric sans headline earns its authority
+      from weight and tightness — at 400/+0.01em (the old Rye settings) Manrope
+      reads as interface chrome, not as a headline. The old font-synthesis
+      guard is gone with the single-weight face that needed it; 750 is a real
+      loaded weight, not synthesis.
+    */
+    font-weight: 750;
+    letter-spacing: -0.022em;
     text-wrap: balance;
     margin: 0;
   }
@@ -272,7 +296,18 @@
     behind text anywhere on the page. Every other section clears 4.7:1 here.
   */
   :root {
-    --surface-alpha: 81%;
+    --surface-alpha: 100%;
+    /*
+      100% — surfaces are OPAQUE now, and this is a PERFORMANCE decision as
+      much as a design one. Translucent section surfaces over a live canvas
+      forced the browser to recomposite the page every frame: measured at
+      ~43fps of cost regardless of scene content (scripts/check-perf.mjs
+      header). The overhaul's windowed-WebGL architecture depends on cheap
+      opaque surfaces, with 3D appearing in deliberate framed windows instead
+      of bleeding through the whole page. The variable stays (rather than
+      deleting the color-mix machinery) so the decision is one number to
+      revisit — with the contrast and perf gates as the acceptance test.
+    */
   }
 
   /* Blackened steel — brushed, directional, faint horizontal tooling marks. */

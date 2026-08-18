@@ -56,7 +56,7 @@ export function AssayExperience() {
           <Eyebrow className="mb-8 will-reveal">{copy.eyebrow}</Eyebrow>
           <h2
             id="assay-heading"
-            className="font-display text-chapter font-normal text-ivory will-reveal"
+            className="font-display text-chapter text-ivory will-reveal"
           >
             {copy.heading}
             <br />
@@ -104,7 +104,7 @@ export function AssayExperience() {
                         <span className="font-sans text-[0.6rem] tracking-[0.24em] text-gold-antique">
                           {String(index + 1).padStart(2, "0")}
                         </span>
-                        <h3 className="font-display text-2xl font-normal text-ivory lg:text-3xl">
+                        <h3 className="font-display text-2xl text-ivory lg:text-3xl">
                           {factor.label}
                         </h3>
                       </div>

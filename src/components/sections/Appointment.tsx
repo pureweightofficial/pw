@@ -82,7 +82,7 @@ export function Appointment() {
 
             <h2
               id="appointment-heading"
-              className="font-display text-chapter font-normal text-ivory will-reveal"
+              className="font-display text-chapter text-ivory will-reveal"
             >
               Bring it in, and
               <span className="accent-italic text-gold-high/90">
