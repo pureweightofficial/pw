@@ -326,6 +326,19 @@ export default function KeeperPage() {
   const [baseSha, setBaseSha] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [pendingImages, setPendingImages] = useState<Record<string, PreparedImage>>({});
+  /*
+    Two refs that exist because SAVING IS NOT INSTANT and the owner keeps
+    typing. `editSeq` increments on every edit; doSave captures it before the
+    network round-trip and only clears `dirty` if nothing moved meanwhile —
+    the old unconditional setDirty(false) silently marked mid-save edits as
+    saved, and they were lost on the next navigation with no warning.
+    `pristine` holds the serialised form of every content file as last LOADED
+    or SAVED, so a save can send ONLY what actually changed: sending all six
+    files re-based a stale snapshot over any concurrent commit and silently
+    reverted it (confirmed against the real retry path in github.ts).
+  */
+  const editSeq = useRef(0);
+  const pristine = useRef<Record<string, string>>({});
 
   const [tab, setTab] = useState<Tab>("dashboard");
   const [focusField, setFocusField] = useState<string | null>(null);
@@ -391,6 +404,11 @@ export default function KeeperPage() {
   }, []);
 
   const signOut = useCallback(() => {
+    // The panel does not unmount on sign-out — state just flips — so the
+    // publish poll must be stopped here or it keeps calling api.github.com
+    // every 15 seconds with a token the owner believes is out of use.
+    if (pollRef.current) window.clearInterval(pollRef.current);
+    setPublish(null);
     localStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setSignee(null);
@@ -412,6 +430,10 @@ export default function KeeperPage() {
         const loaded = await loadContent(token);
         if (cancelled) return;
         setDocs(loaded.files);
+        // The comparison baseline for only-sending-what-changed, below.
+        pristine.current = Object.fromEntries(
+          Object.entries(loaded.files).map(([k, v]) => [k, JSON.stringify(v)]),
+        );
         setBaseSha(loaded.headSha);
       } catch (error) {
         if (!cancelled)
@@ -437,6 +459,7 @@ export default function KeeperPage() {
   const update = useCallback(
     (path: string, next: Doc) => {
       setDocs((prev) => (prev ? { ...prev, [path]: next } : prev));
+      editSeq.current += 1;
       setDirty(true);
       setPublish(null);
     },
@@ -459,34 +482,21 @@ export default function KeeperPage() {
 
   /* ------------------------------ save ------------------------------ */
 
-  const doSave = useCallback(async () => {
-    if (!token || !docs || !baseSha || issues.length > 0) return;
-    setSaving(true);
-    setSaveError(null);
-    announce("Saving your changes.");
-    try {
-      const binaries: Record<string, Uint8Array> = {};
-      for (const img of Object.values(pendingImages)) {
-        binaries[img.repoPath] = img.bytes;
-      }
-      const result = await save(token, {
-        json: docs,
-        binaries,
-        message: `Keeper: content update by ${signee?.login ?? "owner"}`,
-        baseSha,
-        branch: branchOverride,
-      });
-      setDirty(false);
-      setPendingImages({});
-      setBaseSha(result.commitSha);
+  /*
+    One publish-watcher for EVERY commit this panel makes. Article saves and
+    media uploads used to set { state: "publishing" } and then never poll, so
+    the bar said "Publishing…" forever until a page reload — the state machine
+    had states nothing could leave.
+  */
+  const watchPublish = useCallback(
+    (commitSha: string) => {
+      if (!token) return;
       setPublish({ state: "publishing" });
-      announce("Saved. The site is rebuilding — this usually takes a few minutes.");
-
-      // Poll the build until it settles. 15s cadence; a build takes minutes.
       if (pollRef.current) window.clearInterval(pollRef.current);
+      // 15s cadence; a build takes minutes.
       pollRef.current = window.setInterval(async () => {
         try {
-          const status = await publishStatus(token, result.commitSha);
+          const status = await publishStatus(token, commitSha);
           if (status.state === "published" || status.state === "failed") {
             setPublish(status);
             announce(
@@ -500,6 +510,78 @@ export default function KeeperPage() {
           /* transient poll failure — keep trying */
         }
       }, 15000);
+    },
+    [token, announce],
+  );
+
+  const doSave = useCallback(async () => {
+    if (!token || !docs || !baseSha || issues.length > 0) return;
+    setSaving(true);
+    setSaveError(null);
+    announce("Saving your changes.");
+    try {
+      const binaries: Record<string, Uint8Array> = {};
+      const imagesInFlight = pendingImages;
+      for (const img of Object.values(imagesInFlight)) {
+        binaries[img.repoPath] = img.bytes;
+      }
+
+      /*
+        ONLY THE FILES THAT CHANGED. Sending all six re-based this panel's
+        stale snapshot of untouched files onto whatever HEAD had become — so a
+        colleague's concurrent commit to, say, services.json was silently
+        reverted by an owner who only edited the FAQ. The audit confirmed the
+        full chain through the 422 retry in github.ts. Diffing against the
+        pristine serialisation confines every save to what the owner actually
+        did.
+      */
+      const changed: Record<string, Doc> = {};
+      const changedSerialised: Record<string, string> = {};
+      for (const [path, value] of Object.entries(docs)) {
+        const now = JSON.stringify(value);
+        if (pristine.current[path] !== now) {
+          changed[path] = value;
+          changedSerialised[path] = now;
+        }
+      }
+
+      if (Object.keys(changed).length === 0 && Object.keys(binaries).length === 0) {
+        setDirty(false);
+        announce("Nothing has changed since the last save.");
+        return;
+      }
+
+      const seqAtSave = editSeq.current;
+      const result = await save(token, {
+        json: changed,
+        binaries,
+        message: `Keeper: content update by ${signee?.login ?? "owner"}`,
+        baseSha,
+        branch: branchOverride,
+      });
+
+      // What we sent is the new baseline for those paths.
+      Object.assign(pristine.current, changedSerialised);
+      setBaseSha(result.commitSha);
+
+      /*
+        Edits made WHILE the request was in flight stay dirty. The old
+        unconditional setDirty(false) marked them as saved; they were not, and
+        left with the next navigation. Same for images: clear only the ones
+        this save actually carried, not whatever was staged since.
+      */
+      setPendingImages((prev) => {
+        const next = { ...prev };
+        for (const [key, img] of Object.entries(imagesInFlight)) {
+          if (next[key] === img) delete next[key];
+        }
+        return next;
+      });
+      if (editSeq.current === seqAtSave) {
+        setDirty(false);
+      }
+      announce("Saved. The site is rebuilding — this usually takes a few minutes.");
+      watchPublish(result.commitSha);
     } catch (error) {
       const friendly =
         error instanceof KeeperApiError ? error.friendly : String(error);
@@ -508,7 +590,7 @@ export default function KeeperPage() {
     } finally {
       setSaving(false);
     }
-  }, [token, docs, baseSha, issues, pendingImages, signee, branchOverride, announce]);
+  }, [token, docs, baseSha, issues, pendingImages, signee, branchOverride, announce, watchPublish]);
 
   useEffect(() => () => {
     if (pollRef.current) window.clearInterval(pollRef.current);
@@ -932,7 +1014,7 @@ export default function KeeperPage() {
               issues={issues}
               onChange={(next) => update(servicesPath, next)}
               onImage={(img) =>
-                setPendingImages((prev) => ({ ...prev, [img.repoPath]: img }))
+                { editSeq.current += 1; setPendingImages((prev) => ({ ...prev, [img.repoPath]: img })); }
               }
             />
           ) : null}
@@ -942,7 +1024,7 @@ export default function KeeperPage() {
               issues={issues}
               onChange={(next) => update(testimonialsPath, next)}
               onImage={(img) =>
-                setPendingImages((prev) => ({ ...prev, [img.repoPath]: img }))
+                { editSeq.current += 1; setPendingImages((prev) => ({ ...prev, [img.repoPath]: img })); }
               }
             />
           ) : null}
@@ -965,7 +1047,7 @@ export default function KeeperPage() {
               token={token!}
               signee={signee}
               branchOverride={branchOverride}
-              onPublishStateChange={setPublish}
+              onPublishStateChange={watchPublish}
             />
           ) : null}
           {tab === "seo" ? (
@@ -981,14 +1063,14 @@ export default function KeeperPage() {
               docs={docs!}
               signee={signee}
               branchOverride={branchOverride}
-              onPublishStateChange={setPublish}
+              onPublishStateChange={watchPublish}
             />
           ) : null}
         </div>
       </div>
 
       {/* ---------------------------- save bar ------------------------ */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gold-antique/25 bg-void/95 backdrop-blur lg:left-64">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gold-antique/25 bg-void/95 backdrop-blur lg:left-72">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-4">
           <div className="min-w-0 flex-1">
             {issues.length > 0 ? (
@@ -1695,6 +1777,7 @@ function ServicesEditor({
 }) {
   const issueFor = (field: string) => issues.filter((i) => i.field === field);
   const [imgBusy, setImgBusy] = useState<string | null>(null);
+  const [imgError, setImgError] = useState<string | null>(null);
 
   return (
     <div className="space-y-14">
@@ -1752,16 +1835,26 @@ function ServicesEditor({
                       e.target.value = "";
                       if (!file) return;
                       setImgBusy(id);
+                      setImgError(null);
                       try {
                         const prepared = await prepareImage(file);
                         onImage(prepared);
                         setSvc({ image: prepared.contentPath });
+                      } catch {
+                        // Without this, a photo the browser cannot decode was
+                        // an unhandled rejection: busy spinner ends, nothing
+                        // appears, no message, no error. Silence reads as "it
+                        // worked" right up until the site shows no photo.
+                        setImgError(id);
                       } finally {
                         setImgBusy(null);
                       }
                     }}
                   />
                 </label>
+                {imgError === id ? (
+                  <IssueLine text="That image could not be read. Try a different photo (JPG or PNG)." />
+                ) : null}
                 {issueFor(`${id}.image`).map((issue, i) => (
                   <IssueLine key={i} text={issue.message} />
                 ))}
@@ -1877,6 +1970,7 @@ function TestimonialsEditor({
   onImage: (img: PreparedImage) => void;
 }) {
   const [photoBusy, setPhotoBusy] = useState<number | null>(null);
+  const [photoError, setPhotoError] = useState<number | null>(null);
   const list = (Array.isArray(doc.testimonials) ? doc.testimonials : []) as {
     quote?: string;
     name?: string;
@@ -1997,18 +2091,25 @@ function TestimonialsEditor({
                     e.target.value = "";
                     if (!file) return;
                     setPhotoBusy(i);
+                    setPhotoError(null);
                     try {
                       const prepared = await prepareImage(file);
                       onImage(prepared);
                       const next = [...list];
                       next[i] = { ...t, photo: prepared.contentPath };
                       setList(next);
+                    } catch {
+                      // Same silent-failure class as the service uploader.
+                      setPhotoError(i);
                     } finally {
                       setPhotoBusy(null);
                     }
                   }}
                 />
               </label>
+              {photoError === i ? (
+                <IssueLine text="That photo could not be read. Try a different file (JPG or PNG)." />
+              ) : null}
               {t.photo ? (
                 <button
                   type="button"
@@ -2318,7 +2419,14 @@ function InsightsEditor({
   token: string;
   signee: Signee | null;
   branchOverride?: string;
-  onPublishStateChange: (s: PublishStatus | null) => void;
+  /*
+    Called with the COMMIT SHA so the parent can poll that build to a
+    terminal state. The old contract took a PublishStatus, and the children
+    passed { state: "publishing" } — a state nothing could ever leave,
+    because nothing polled these commits. The save bar said "Publishing…
+    this takes a few minutes" forever, until a full page reload.
+  */
+  onPublishStateChange: (commitSha: string) => void;
 }) {
   const [files, setFiles] = useState<InsightFile[] | null>(null);
   const [editing, setEditing] = useState<{ doc: Doc; originalSlug: string | null } | null>(null);
@@ -2399,7 +2507,7 @@ function InsightsEditor({
         editing?.originalSlug && editing.originalSlug !== slug
           ? [`${INSIGHTS_DIR}/${editing.originalSlug}.json`]
           : [];
-      await save(token, {
+      const committed = await save(token, {
         json: { [path]: doc },
         binaries: {},
         deletes,
@@ -2407,7 +2515,7 @@ function InsightsEditor({
         baseSha: head.headSha,
         branch: branchOverride,
       });
-      onPublishStateChange({ state: "publishing" });
+      onPublishStateChange(committed.commitSha);
       setEditing(null);
       /*
         Optimistic, THEN refreshed. The Contents API can lag a freshly
@@ -2438,7 +2546,7 @@ function InsightsEditor({
     setError(null);
     try {
       const head = await loadContent(token);
-      await save(token, {
+      const committed = await save(token, {
         json: {},
         binaries: {},
         deletes: [file.path],
@@ -2446,7 +2554,7 @@ function InsightsEditor({
         baseSha: head.headSha,
         branch: branchOverride,
       });
-      onPublishStateChange({ state: "publishing" });
+      onPublishStateChange(committed.commitSha);
       await refresh();
     } catch (e) {
       setError(e instanceof KeeperApiError ? e.friendly : String(e));
@@ -2723,7 +2831,14 @@ function MediaLibrary({
   docs: Record<string, Doc>;
   signee: Signee | null;
   branchOverride?: string;
-  onPublishStateChange: (s: PublishStatus | null) => void;
+  /*
+    Called with the COMMIT SHA so the parent can poll that build to a
+    terminal state. The old contract took a PublishStatus, and the children
+    passed { state: "publishing" } — a state nothing could ever leave,
+    because nothing polled these commits. The save bar said "Publishing…
+    this takes a few minutes" forever, until a full page reload.
+  */
+  onPublishStateChange: (commitSha: string) => void;
 }) {
   const [images, setImages] = useState<RepoImage[] | null>(null);
   const [articleBodies, setArticleBodies] = useState<Record<string, string> | null>(null);
@@ -2790,14 +2905,14 @@ function MediaLibrary({
     try {
       const prepared = await prepareImage(file);
       const head = await loadContent(token);
-      await save(token, {
+      const committed = await save(token, {
         json: {},
         binaries: { [prepared.repoPath]: prepared.bytes },
         message: `Keeper: add image ${prepared.repoPath.split("/").pop()} by ${signee?.login ?? "owner"}`,
         baseSha: head.headSha,
         branch: branchOverride,
       });
-      onPublishStateChange({ state: "publishing" });
+      onPublishStateChange(committed.commitSha);
       setImages((prev) => [
         ...(prev ?? []),
         { name: prepared.repoPath.split("/").pop()!, path: prepared.repoPath, size: prepared.bytes.length },
@@ -2818,7 +2933,7 @@ function MediaLibrary({
     setError(null);
     try {
       const head = await loadContent(token);
-      await save(token, {
+      const committed = await save(token, {
         json: {},
         binaries: {},
         deletes: [img.path],
@@ -2826,7 +2941,7 @@ function MediaLibrary({
         baseSha: head.headSha,
         branch: branchOverride,
       });
-      onPublishStateChange({ state: "publishing" });
+      onPublishStateChange(committed.commitSha);
       setImages((prev) => (prev ?? []).filter((i) => i.path !== img.path));
     } catch (e) {
       setError(e instanceof KeeperApiError ? e.friendly : String(e));

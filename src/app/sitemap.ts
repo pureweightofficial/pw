@@ -26,7 +26,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const articles = publishedArticles().map((article) => ({
     url: `${base}${canonicalPath(`/insights/${article.slug}`)}`,
-    lastModified: new Date(article.date),
+    // Guarded: an Invalid Date here does not fail this build, it fails EVERY
+    // build until the JSON is hand-edited, because Next calls toISOString()
+    // on whatever this returns. The validators now refuse impossible dates,
+    // but the sitemap must not be the layer that turns a bad commit into a
+    // bricked deploy pipeline.
+    lastModified: Number.isNaN(new Date(article.date).getTime())
+      ? lastModified
+      : new Date(article.date),
     changeFrequency: 'yearly' as const,
     priority: 0.6,
   }));

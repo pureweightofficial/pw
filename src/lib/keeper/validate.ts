@@ -17,7 +17,7 @@ import {
   DAYS,
   TIME_PATTERN,
   FORBIDDEN_IN_PROSE,
-  INSIGHT_DATE_PATTERN,
+  isRealCalendarDate,
   INSIGHT_SLUG_PATTERN,
   SEO_PAGES,
   SERVICE_IDS,
@@ -281,10 +281,14 @@ export function validateInsight(
       field: "insight.slug",
       message: "Another article already uses this web address.",
     });
-  if (!new RegExp(INSIGHT_DATE_PATTERN).test(s(doc.date)))
+  if (!isRealCalendarDate(s(doc.date)))
     issues.push({
       field: "insight.date",
-      message: "The date must look like 2026-08-01 (year-month-day).",
+      // Round-trip validity, not just shape: "2026-00-10" matches the pattern
+      // and then kills every subsequent BUILD when the sitemap calls
+      // toISOString() on Invalid Date. See isRealCalendarDate.
+      message:
+        "The date must be a real calendar date like 2026-08-01 (year-month-day).",
     });
   for (const field of ["title", "summary", "body"] as const) {
     const hit = forbiddenIn(s(doc[field]));
@@ -323,5 +327,32 @@ export function validateSeo(doc: Record<string, unknown>): FieldIssue[] {
       }
     }
   }
+
+  /*
+    CROSS-PAGE DUPLICATES, because the CI gate refuses them and this validator
+    is supposed to be the same law applied live. Without this check the panel
+    happily enabled Save for two pages sharing a title, the commit landed, and
+    the BUILD then failed — the exact "failure with no factory" this panel
+    exists to prevent: the owner did everything the interface allowed and got
+    a broken deploy with no field to point at.
+  */
+  for (const field of ["title", "description"] as const) {
+    const seen = new Map<string, string>();
+    for (const [key, meta] of Object.entries(SEO_PAGES)) {
+      const page = (doc[key] ?? {}) as Record<string, unknown>;
+      const value = s(page[field]).trim().toLowerCase();
+      if (value === "") continue;
+      const already = seen.get(value);
+      if (already) {
+        issues.push({
+          field: `seo.${key}.${field}`,
+          message: `${meta.label}: this ${field} is identical to ${already}'s. Every page must say something different in search results, and the build refuses duplicates.`,
+        });
+      } else {
+        seen.set(value, meta.label);
+      }
+    }
+  }
+
   return issues;
 }

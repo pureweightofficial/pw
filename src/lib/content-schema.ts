@@ -269,6 +269,32 @@ export const INSIGHT_SLUG_PATTERN = "^[a-z0-9]+(?:-[a-z0-9]+)*$";
 export const INSIGHT_DATE_PATTERN = "^\\d{4}-\\d{2}-\\d{2}$";
 
 /**
+ * A date can match the pattern and still not exist. "2026-00-10" and
+ * "2026-13-05" both satisfy \d{4}-\d{2}-\d{2}, and both used to sail through
+ * every validator — the Keeper's, the CI gate's, and the panel's plain text
+ * input — because the pattern was the only check anywhere.
+ *
+ * The consequence was found by the audit and reproduced against this repo's
+ * own Next: publishedArticles() compares date STRINGS, so "2026-00-10" counts
+ * as published immediately; sitemap.ts then builds `new Date("2026-00-10")`,
+ * which is Invalid Date, and Next's sitemap resolver calls .toISOString() on
+ * it — RangeError, and EVERY subsequent build on both hosts fails until the
+ * committed JSON is hand-edited. The month-13 variant is worse: it
+ * string-compares as future, deploys green for months, and starts crashing
+ * every build on New Year's Day with zero content changes.
+ *
+ * So validity means the date ROUND-TRIPS: parse as UTC, print it back,
+ * get the same string. Day overflow is caught too ("2026-02-31" silently
+ * becomes March 3rd in V8, which would put one date on the page and a
+ * different one in the sitemap).
+ */
+export function isRealCalendarDate(value: string): boolean {
+  if (!new RegExp(INSIGHT_DATE_PATTERN).test(value)) return false;
+  const d = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
+}
+
+/**
  * PHRASES THE OWNER'S PROSE MAY NOT CONTAIN.
  *
  * The credential fields are gated, but prose fields (founder message, service
@@ -280,17 +306,27 @@ export const INSIGHT_DATE_PATTERN = "^\\d{4}-\\d{2}-\\d{2}$";
  *
  * Case-insensitive regex sources, matched by scripts/check-content.mjs.
  */
+/*
+  WORD BOUNDARIES ARE LOAD-BEARING HERE, and their absence was a live bug.
+  scripts/check-content.mjs carries its own copies of these patterns WITH
+  \b anchors; these shared strings lacked them, and the Keeper's live
+  validator uses the shared strings. Result: the panel refused "unlicensed",
+  "uninsured", "uncertified" — words an honest description of the trade can
+  legitimately contain, and which the CI gate would have accepted. The owner
+  was blocked in the editor by a rule the build did not actually have.
+  If these ever change, change the literals in check-content.mjs to match.
+*/
 export const FORBIDDEN_IN_PROSE: readonly { pattern: string; why: string }[] = [
   { pattern: "same[ -]day", why: "a turnaround promise nobody has verified" },
-  { pattern: "instant(ly)?", why: "a speed promise nobody has verified" },
-  { pattern: "guarantee[ds]?", why: "a guarantee is a legal commitment" },
+  { pattern: "\\binstant(ly)?\\b", why: "a speed promise nobody has verified" },
+  { pattern: "guarantee[ds]?\\b", why: "a guarantee is a legal commitment" },
   { pattern: "(best|highest|top) (price|rate|value)", why: "an unverifiable market claim" },
-  { pattern: "no (fee|charge|cost)s?", why: "a pricing promise nobody has verified" },
+  { pattern: "no (fee|charge|cost)s?\\b", why: "a pricing promise nobody has verified" },
   { pattern: "free valuation", why: "a pricing promise nobody has verified" },
   { pattern: "within \\d+ ?(minute|hour|day)s?", why: "a turnaround promise nobody has verified" },
   { pattern: "\\d+ ?%", why: "percentages read as offers or rates" },
   {
-    pattern: "(licen[cs]ed|certified|insured|accredited|regulated|registered with)",
+    pattern: "\\b(licen[cs]ed|certified|insured|accredited|regulated|registered with)\\b",
     why: "credentials may only be claimed through their own evidence-gated field",
   },
 ];

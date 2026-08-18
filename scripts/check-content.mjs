@@ -338,7 +338,15 @@ for (const file of insightFiles) {
   }
   if (seenSlugs.has(s(a.slug))) fail(`${at}: duplicate slug "${s(a.slug)}"`);
   seenSlugs.add(s(a.slug));
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(s(a.date))) {
+  // Shape AND round-trip: "2026-00-10" matches the shape, publishes at once
+  // (string comparison), then crashes every build in the sitemap's
+  // toISOString(). "2026-13-05" is worse — green until New Year's Day.
+  const dateOk = (v) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+    const d = new Date(`${v}T00:00:00Z`);
+    return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
+  };
+  if (!dateOk(s(a.date))) {
     fail(`${at}: date "${s(a.date)}" must be YYYY-MM-DD — it feeds the article's structured data`);
   }
   for (const field of ["title", "summary", "body"]) {

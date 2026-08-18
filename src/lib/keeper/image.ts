@@ -58,7 +58,23 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
   });
 
   const stamp = new Date().toISOString().slice(0, 10);
-  const filename = `${slugify(file.name)}-${stamp}.jpg`;
+
+  /*
+    A content fingerprint in the name, because slug+date is not unique enough
+    for real photo libraries: two different photos both exported as
+    "IMG_0001.jpg" and uploaded the same day used to land on the SAME repo
+    path, and the second silently replaced the first everywhere it was already
+    used on the site. FNV-1a over the encoded bytes — deterministic, no
+    Math.random, and two files collide only if they are the same file.
+  */
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let h = 0x811c9dc5;
+  for (let i = 0; i < bytes.length; i++) {
+    h ^= bytes[i];
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  const fingerprint = h.toString(36).slice(0, 6);
+  const filename = `${slugify(file.name)}-${stamp}-${fingerprint}.jpg`;
 
   return {
     repoPath: `public/img/${filename}`,
@@ -66,7 +82,7 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
     // render time. Writing /pw here would double the path on a custom domain
     // — the exact 404 class that shipped once via the logo.
     contentPath: `/img/${filename}`,
-    bytes: new Uint8Array(await blob.arrayBuffer()),
+    bytes,
     width,
     height,
   };

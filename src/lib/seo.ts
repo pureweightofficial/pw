@@ -72,6 +72,18 @@ export function pageMetadata(
     description,
     alternates: { canonical: canonicalPath(path) },
     openGraph: ogFor({ title: full, description, path }),
+    /*
+      Twitter/X reads its own tags, and Next merges metadata per TOP-LEVEL key
+      — a page defining none inherits the root layout's whole twitter object.
+      Which is exactly what happened: every page on the site shipped the
+      homepage's card, generic title and generic description, on /faq, on
+      /contact, everywhere. The card now says what the page says.
+    */
+    twitter: {
+      card: "summary_large_image",
+      title: full,
+      description,
+    },
     ...extra,
   };
 }
