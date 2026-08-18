@@ -7,7 +7,13 @@
  * permanent tool. The design overhaul runs on it: every visual phase is
  * accepted by looking at frames, not by reading diffs.
  *
- * Usage: npm run shot:local [path ...]   (default: / and /faq)
+ * Usage: npm run shot:local [page ...]   (default: home faq)
+ *
+ * Pages are named WITHOUT slashes — `home`, `faq`, `what-we-buy` — because
+ * under Git Bash on Windows a bare "/" argument is MSYS path-mangled into
+ * "C:/Program Files/Git/" before node ever sees it, which sent this script's
+ * first run to http://host/pwC:/Program%20Files/Git/. Names sidestep the
+ * rewriting entirely.
  * Frames land in .shots/local-<name>.png
  */
 import { chromium } from "playwright-core";
@@ -46,11 +52,11 @@ function findChrome() {
 const browser = await chromium.launch({ executablePath: findChrome() });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 
-const paths = process.argv.slice(2).length ? process.argv.slice(2) : ["/", "/faq"];
-for (const p of paths) {
-  const name = p === "/" ? "home" : p.replace(/\//g, "-").replace(/^-|-$/g, "");
-  await page.goto(`http://127.0.0.1:${port}/pw${p.endsWith("/") ? p : p + "/"}`.replace(/\/\/$/, "/"), { waitUntil: "load" });
-  await page.waitForTimeout(p === "/" ? 7000 : 4000);
+const names = process.argv.slice(2).length ? process.argv.slice(2) : ["home", "faq"];
+for (const name of names) {
+  const route = name === "home" ? "/" : `/${name}/`;
+  await page.goto(`http://127.0.0.1:${port}/pw${route}`, { waitUntil: "load" });
+  await page.waitForTimeout(name === "home" ? 7000 : 4000);
   await page.screenshot({ path: join(shots, `local-${name}-top.png`) });
   const travel = await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight);
   if (travel > 400) {
@@ -58,7 +64,8 @@ for (const p of paths) {
     await page.waitForTimeout(2000);
     await page.screenshot({ path: join(shots, `local-${name}-mid.png`) });
   }
-  console.log(`  ${p} captured`);
+  console.log(`  ${name} captured`);
 }
+
 await browser.close();
 server.close();
