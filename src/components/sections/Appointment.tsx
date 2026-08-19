@@ -39,7 +39,9 @@ import { SectionScene } from "@/components/ui/SectionScene";
  *
  * The ADDRESS is now a verified fact (supplied 2026-07-31) and renders as a
  * live directions link. The hours, the phone number and how settlement is made
- * are still unconfirmed and still render through `Fact` as visible placeholders
+ * are still unconfirmed and, under hide-until-verified, render as nothing at
+ * all — their whole row is withheld by <WhenVerified> rather than shown as a
+ * gap (this line described the retired placeholder chips)
  * rather than plausible guesses.
  */
 

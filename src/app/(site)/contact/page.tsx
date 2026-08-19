@@ -13,7 +13,7 @@ export const metadata: Metadata = pageMetadata('contact', '/contact', {
 /**
  * CONTACT
  *
- * Every detail on this page is a verified field or a visible slot. Contact
+ * Every detail on this page is a verified field, or absent. Contact
  * pages are where placeholder addresses and invented phone numbers most often
  * survive to launch — and a wrong number on a gold business's contact page
  * sends people carrying valuables to the wrong door.

@@ -329,4 +329,34 @@ export const FORBIDDEN_IN_PROSE: readonly { pattern: string; why: string }[] = [
     pattern: "\\b(licen[cs]ed|certified|insured|accredited|regulated|registered with)\\b",
     why: "credentials may only be claimed through their own evidence-gated field",
   },
+  /*
+    THE COPY MUST NOT DESCRIBE A UI THAT NO LONGER EXISTS.
+
+    Until the hide-until-verified change, unverified facts rendered as visible
+    "[INSERT ...]" chips, and several sections explained that to the reader in
+    their own body copy — most prominently the trust section, whose lead read
+    "anything below that is not filled in ... is shown as an open slot rather
+    than filled with something plausible."
+
+    The chips were retired; that sentence was not. For a release the trust
+    section told visitors to look at open slots that had not been on the page
+    for weeks, which is a page contradicting itself in the one section whose
+    entire subject is whether it can be believed.
+
+    A comment could not have caught that, and no visual gate did: the words
+    render beautifully. These patterns catch it, so the policy and the prose
+    can never drift apart again silently.
+  */
+  {
+    pattern: "(open|empty|visible|blank) slots?\\b",
+    why: "the placeholder slots were retired; copy must not point at them",
+  },
+  {
+    pattern: "shown as (an? )?(open|empty|visible|blank)",
+    why: "the placeholder slots were retired; copy must not point at them",
+  },
+  {
+    pattern: "\\bnot (yet )?been verified\\b",
+    why: "unverified facts are now absent, not annotated in prose",
+  },
 ];

@@ -10,10 +10,20 @@ import { AmbientGlow } from "@/components/ui/AmbientGlow";
  * is a forgery with rounded corners.
  *
  * Instead: a ledger of the things that can actually be checked — registration,
- * premises, memberships, insurance, equipment, security procedure — each
- * rendering either the client's confirmed detail or a visible slot. The empty
- * slots are the point. They tell an honest reviewer exactly what has been
- * verified and what has not.
+ * premises, memberships, insurance, equipment, security procedure — listing
+ * ONLY what the business has confirmed.
+ *
+ * It used to render an unverified entry as a visible empty slot, and both this
+ * comment and the section's own lead copy said so in as many words. Phase 4
+ * retired the slots from the public site: unverified facts are now absent
+ * rather than advertised. The copy did not follow, so the section spent a
+ * release telling readers to look at open slots that were no longer there —
+ * a page contradicting itself in its own trust section, which is the worst
+ * possible section for that. Fixed here.
+ *
+ * The Keeper still holds the full list, still shows the owner every gap, and
+ * still refuses invented values. The ledger of what is missing belongs there;
+ * this page carries only the ledger of what is true.
  */
 
 const evidence = [
@@ -82,7 +92,8 @@ const evidence = [
 export function TrustEvidence() {
   // Hide-until-verified, section grade: with nothing verified there is no
   // evidence to show, and an empty ledger reads worse than no ledger.
-  if (!evidence.some((item) => isVerified(item.field))) return null;
+  const verified = evidence.filter((item) => isVerified(item.field));
+  if (verified.length === 0) return null;
 
   return (
     <Section
@@ -127,21 +138,30 @@ export function TrustEvidence() {
                 </span>
               </h2>
               <p className="mt-7 max-w-md text-lead text-ash will-reveal">
-                Anything below that is not filled in has not been verified, and
-                is shown as an open slot rather than filled with something
-                plausible. That is deliberate.
+                Every entry below has been confirmed by the business and can be
+                checked independently. Nothing is listed here on the strength
+                of a plausible guess, and nothing is listed until it is
+                verified — so this list grows rather than starts complete.
               </p>
             </div>
           </div>
 
-          <div className="lg:col-span-7">
+          {/*
+            The ledger column narrows when the ledger is short.
+
+            With a single verified entry, a 7-column table laid one label and
+            one value across 1,049px and left roughly 700px of nothing under
+            them — a design review read the whole section as "promises evidence
+            and shows one row", and the emptiness was doing most of that work.
+            Two or fewer entries get a column sized to them instead, so a short
+            ledger reads as a short ledger rather than as a broken table.
+          */}
+          <div className={verified.length <= 2 ? "lg:col-span-6" : "lg:col-span-7"}>
             <dl className="border-t border-gold-antique/16">
               {/* Only rows somebody has actually verified. An empty ledger
                   would be a section with nothing to say — it collapses via the
                   shown-guard below rather than rendering a frame of absences. */}
-              {evidence
-                .filter((item) => isVerified(item.field))
-                .map((item) => (
+              {verified.map((item) => (
                 <div
                   key={item.label}
                   className="grid gap-2 border-b border-gold-antique/12 py-6 will-reveal sm:grid-cols-5 sm:items-baseline sm:gap-6"
