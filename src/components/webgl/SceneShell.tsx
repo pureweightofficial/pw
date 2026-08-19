@@ -171,6 +171,25 @@ export function SceneShell({
 
   const supported =
     Boolean(capability?.webgl) && capability?.tier !== "none" && !failed;
+  /*
+    SCENES UNMOUNT WHEN FAR AWAY. This policy was challenged once and survives
+    — with an honest asterisk.
+
+    The challenger: mount once, keep the context, park the frameloop off-screen,
+    so the mount/unmount spikes (p95 82ms, worst 283ms) disappear. Implemented
+    and measured, it looked decisively worse (~22fps vs ~32, long tasks tripled)
+    and was reverted. But the control run later measured 14fps ON THE SAME
+    REVERTED CODE, because the dev machine had 1.4GB of 7.8GB free and a full
+    browser running: the comparison was confounded by machine load, and the
+    absolute numbers from that evening are not trustworthy either way.
+
+    What survives scrutiny: retained scenes DO overlap as "active" around
+    section boundaries (both inside the 300px margin), so sticky mounting adds
+    sustained double-rendering in exchange for removing occasional spikes —
+    a plausible loss on mid hardware even before the confound. Teardown stays.
+    If anyone re-opens this, do it with interleaved A/B runs on a quiet
+    machine, per scripts/check-perf.mjs.
+  */
   const shouldMount = supported && (eager || inViewport);
   const active = shouldMount && inViewport && documentVisible;
 

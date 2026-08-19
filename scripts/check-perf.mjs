@@ -23,6 +23,14 @@
  * reads .next at BOOT — rebuilding underneath a running server measures the
  * old build, which cost an hour here before it was noticed.
  *
+ * ABSOLUTE NUMBERS ARE ONLY COMPARABLE BACK-TO-BACK ON A QUIET MACHINE.
+ * The same build measured 31.7fps and 14.1fps a few hours apart on the dev
+ * machine — the second run with 1.4GB of 7.8GB RAM free under a full browser.
+ * A/B comparisons must be interleaved (A,B,A,B) within minutes, and a control
+ * re-run of the baseline belongs at the END of any session that concludes
+ * anything. One sticky-mount experiment was nearly recorded as "3x worse"
+ * when much of the difference was the machine, not the code.
+ *
  * Usage:  npm run check:perf [url] [cpuThrottle]
  */
 import { chromium } from "playwright-core";
