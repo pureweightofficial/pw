@@ -29,7 +29,8 @@
     "verify:built": "npm run check:a11y && npm run check:keeper-a11y && npm run check:prose",
     "shot:sweep": "node scripts/shot-sweep.mjs",
     "shot:scene": "node scripts/shot-scene.mjs",
-    "check:prose": "node scripts/check-prose.mjs"
+    "check:prose": "node scripts/check-prose.mjs",
+    "check:voids": "node scripts/check-voids.mjs"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.3.6",

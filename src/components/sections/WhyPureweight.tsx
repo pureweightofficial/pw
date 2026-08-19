@@ -41,7 +41,7 @@ export function WhyPureweight() {
       id="pillars"
       material="stone"
       labelledBy="pillars-heading"
-      className="py-24 lg:py-40"
+      className="py-20 lg:py-28"
     >
       <SectionScene variant="seal" />
       <AmbientGlow intensity="normal" placement="split" />

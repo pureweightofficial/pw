@@ -39,7 +39,7 @@ export function BrandStory() {
       id="story"
       material="walnut"
       labelledBy="story-heading"
-      className="py-24 lg:py-40"
+      className="py-20 lg:py-28"
     >
       <AmbientGlow intensity="normal" placement="split" />
       <div className="shell">
