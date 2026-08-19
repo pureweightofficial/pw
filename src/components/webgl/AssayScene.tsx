@@ -4,7 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { Capability } from "@/lib/capability";
-import { damp, mapRange, scrollState, smoothstep } from "@/lib/scroll-store";
+import { damp, scrollState, smoothstep } from "@/lib/scroll-store";
 import { CameraRig } from "./CameraRig";
 import { metal } from "./materials";
 import { signetFaceGeometry, signetRingGeometry } from "./geometry";
@@ -252,7 +252,31 @@ export function AssayScene({ capability }: { capability: Capability }) {
     [ringMaterial, faceMaterial],
   );
 
-  useFrame((_, rawDelta) => {
+  /*
+    YAW IS CLAMPED, AND THAT IS A CONTENT REQUIREMENT RATHER THAN A TASTE ONE.
+
+    The caption under this canvas reads: "The piece shown carries a millesimal
+    fineness mark of 916." The previous rotation swept the ring through
+    Math.PI * 1.15 — 207 degrees — which necessarily passes through 90, where a
+    torus is exactly edge-on. At that point the piece rendered as a vertical
+    brass sliver about 85px wide inside a 520px frame, with the marked face
+    pointing away from the lens entirely.
+
+    So for a good part of this section the page showed an unreadable tube
+    beneath a sentence telling the reader to look at a hallmark on it. A design
+    review filed it CRITICAL and was right to: on a site whose entire argument
+    is that it shows you the evidence, promising a mark the render cannot
+    contain is the one kind of mistake this project cannot afford.
+
+    The piece now stays within +/-34 degrees of face-on for the whole range,
+    and goes dead square during the PURITY factor, when the copy beside it is
+    explicitly about reading fineness. It still moves — a torus held at one
+    angle is a photograph — but it moves the way an object being examined in
+    the hand moves, which never includes turning its face away.
+  */
+  const MAX_YAW = 0.6; // ~34 degrees, either side of face-on.
+
+  useFrame((state, rawDelta) => {
     const dt = Math.min(rawDelta, 0.05);
     const ring = ringRef.current;
     if (!ring) return;
@@ -263,13 +287,16 @@ export function AssayScene({ capability }: { capability: Capability }) {
       return;
     }
 
-    // The mark faces the viewer squarely during PURITY, then the piece
-    // continues turning slowly through the remaining factors.
-    const markFacing =
-      scrollState.assayFactor === 1
-        ? 0
-        : mapRange(scrollState.assay, 0, 1, -0.5, Math.PI * 1.15);
-    ring.rotation.y = damp(ring.rotation.y, markFacing, 1.9, dt);
+    // Square to the lens while PURITY is the live factor; a shallow sway
+    // either side of face-on the rest of the time, never past the clamp.
+    const sway = Math.sin(scrollState.assay * Math.PI * 2) * MAX_YAW * 0.6;
+    const markFacing = scrollState.assayFactor === 1 ? 0 : sway;
+    ring.rotation.y = damp(
+      ring.rotation.y,
+      Math.max(-MAX_YAW, Math.min(MAX_YAW, markFacing)),
+      1.9,
+      dt,
+    );
 
     // Tips toward the viewer as the section is entered, so the flat bezel and
     // the curved band are both legible at once.
@@ -280,8 +307,16 @@ export function AssayScene({ capability }: { capability: Capability }) {
       dt,
     );
 
-    // A very slow idle turn, so a paused reader never faces a freeze-frame.
-    ring.rotation.z += dt * 0.035;
+    /*
+      A slow idle roll, so a paused reader never faces a freeze-frame — but
+      BOUNDED. This used to be `ring.rotation.z += dt * 0.035`, an unbounded
+      accumulator: leave the section on screen for a minute and the piece has
+      rolled 2 radians, past every angle the composition was designed for.
+      Reviews describing "stray geometry" and "a broken smear" were looking at
+      a ring that had quietly rotated somewhere nobody chose. A sine keeps the
+      life and cannot wander.
+    */
+    ring.rotation.z = Math.sin(state.clock.elapsedTime * 0.22) * 0.06;
   });
 
   return (

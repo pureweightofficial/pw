@@ -107,19 +107,23 @@ export function FinaleScene({ capability }: { capability: Capability }) {
       — under the old scrim the one sliver still in frame was also the part
       painted over. Fixing the scrim revealed the framing fault underneath it.
 
-      Scale 0.46 puts the pivot at 0.856 local; +0.08 lands it at world 0.936,
-      which is screen y ~697 — clear of the CTA at ~575 — with the beam
-      spanning screen 451-989, the pans hanging to ~840, and the column
-      running out of frame beneath. The instrument the page opened with is
-      what it now closes standing on.
+      THE WHOLE INSTRUMENT HAS TO FIT, not just the interesting part of it.
 
-      (Scale 0.8 was the first solution to the arithmetic and it was right
-      about the height and wrong about the size: the beam ran past both frame
-      edges and the pans sat on top of the CTA. Sizing has to satisfy the
-      WIDTH too — beam half-span 1.62 means the instrument is 3.24 units
-      across before any scaling, against a frame 3.98 units wide.)
+      BalanceScale runs from a plinth at local y ~0 to a beam pivot at 1.86,
+      with pans hanging to ~1.24 — call it 2.0 units tall and 3.24 wide at the
+      beam. The frame is 2.49 units tall and 3.98 wide. So the instrument can
+      only ever be whole at a scale around 0.42, and every larger value crops
+      it somewhere: 0.8 ran the beam past both frame edges, 0.46 fitted the
+      beam and pans but left the pillar and foot below the section's bottom
+      edge, which is what three reviews called "amputated".
+
+      0.42 with the group lifted to +0.46 puts the plinth at world 0.46 —
+      screen ~869, just inside the section — and the pivot at 1.24, screen
+      ~587, below the copy block that now sits in the upper portion of the
+      section. Beam half-span 0.68 world, so the pans land at screen 475 and
+      965, well clear of both edges. Whole, and standing on its own base.
     */
-    <group position={[0, 0.08, 0]} scale={0.46}>
+    <group position={[0, 0.46, 0]} scale={0.42}>
       <Studio capability={capability} intimate />
       <CameraRig mode="finale" capability={capability} compact={compact} />
 

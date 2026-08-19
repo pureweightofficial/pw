@@ -133,8 +133,21 @@ export function SectionScene({
     where it belongs anyway: a viewport-sized box clipping a viewport-sized
     canvas.
   */
+  /*
+    IT STICKS BELOW THE BAR, NOT UNDER IT.
+
+    `top-0` put the canvas top at the viewport top, which is behind the fixed
+    navigation — so at the tail of the section, as the sticky frame rides up
+    with the container, the presented object went up behind the bar and the
+    visitor's last look at it was a half-object under a menu. Three separate
+    review passes caught it ("cut in half by the header", "exits behind the
+    nav bar", "abandons step 04").
+
+    Offsetting by --nav-h costs nothing and makes the intersection impossible
+    rather than unlikely.
+  */
   const stickyFrame = sticky
-    ? "sticky top-0 h-[100svh] w-full overflow-hidden"
+    ? "sticky top-[var(--nav-h)] h-[calc(100svh-var(--nav-h))] w-full overflow-hidden"
     : "absolute inset-0";
 
   return (

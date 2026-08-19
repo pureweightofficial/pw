@@ -63,8 +63,25 @@ export function SpecimenScene({ capability }: { capability: Capability }) {
     const targetRotX = THREE.MathUtils.degToRad(
       -4 + Math.sin(p * Math.PI) * 11,
     );
-    // Rises into frame and sinks out of it, never leaving the safe area.
-    const targetY = THREE.MathUtils.lerp(-0.12, 0.12, p);
+    /*
+      TRAVEL, PLUS AN EXIT THAT FIGHTS THE SLAB.
+
+      A sticky element stops sticking once its container's bottom reaches it,
+      and then rides up with the page. This canvas is one viewport inside a
+      ~2,000px section, so it un-sticks with roughly a third of the section
+      still to scroll and climbs about a full world unit — carrying the
+      specimen up and out through the top of the frame.
+
+      Clearing the navigation (see SectionScene) stops it being clipped by the
+      bar, but it was still the wrong exit: an object that has been presented
+      for four steps should settle out of frame, not escape upward past the
+      reader. So past 70% the specimen is driven down by up to 1.15 units,
+      which is about what the slab climbs. Net: it sinks out of the bottom of
+      its window as the last step is read.
+    */
+    const exit = Math.max(0, (p - 0.7) / 0.3);
+    const targetY =
+      THREE.MathUtils.lerp(-0.12, 0.12, p) - exit * exit * 1.15;
     // Breathes 5% larger at the moment of presentation. Barely nameable,
     // clearly felt — the same trick a camera push does in film.
     const targetScale = 1 + Math.sin(p * Math.PI) * 0.05;

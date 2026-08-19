@@ -120,7 +120,16 @@ export function Services() {
           return (
             <article
               key={service.title}
-              className="shell border-t border-gold-antique/16 py-16 first:border-t-0 lg:py-24"
+              /*
+                `group` so the plate can answer a pointer anywhere in the
+                spread, not only over the image itself. A review read these
+                four spreads as having "zero motion staging": they DO carry a
+                30px parallax on the plate (see MotionProvider's data-parallax
+                handler, which is live and measured), but parallax is
+                ambient — it happens whether or not anyone is there. Nothing
+                on the spread responded to a person.
+              */
+              className="group shell border-t border-gold-antique/16 py-16 first:border-t-0 lg:py-24"
             >
               <div
                 className={`grid items-center gap-12 lg:grid-cols-12 lg:gap-20 ${
@@ -130,7 +139,19 @@ export function Services() {
                 {/* --- Plate --------------------------------------- */}
                 <div className="lg:col-span-5">
                   <div
-                    className="relative aspect-4/5 w-full overflow-hidden border border-gold-antique/18 bg-void will-reveal"
+                    /*
+                      The frame does not move; what is INSIDE it does. Scaling
+                      the frame would drag its 1px border with it and push the
+                      grid around; scaling the media within `overflow-hidden`
+                      is a compositor-only transform on the image and leaves
+                      the layout untouched.
+
+                      1.5s and a long settle curve, because this is a slow
+                      look at an object rather than a UI affordance snapping
+                      to attention. The border warms on the same timing so the
+                      whole plate reads as one response.
+                    */
+                    className="relative aspect-4/5 w-full overflow-hidden border border-gold-antique/18 bg-void transition-colors duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:border-gold-antique/45 will-reveal [&>img]:transition-transform [&>img]:duration-[1500ms] [&>img]:ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:[&>img]:scale-[1.045]"
                     data-parallax="30"
                   >
                     {service.image ? (
@@ -166,7 +187,7 @@ export function Services() {
                     ) : (
                       <ServicePlate index={index} title={service.title} />
                     )}
-                    <span className="absolute left-5 top-5 font-display text-6xl text-gold-antique/75">
+                    <span className="absolute left-5 top-5 font-display text-6xl text-gold-antique/75 transition-colors duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:text-gold-high/85">
                       {service.index}
                     </span>
                   </div>

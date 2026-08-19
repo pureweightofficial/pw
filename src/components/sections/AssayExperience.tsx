@@ -98,6 +98,31 @@ export function AssayExperience() {
                   data-assay-factor={index}
                   className="group relative border border-gold-antique/12 bg-char/55 p-8 transition-colors duration-700 data-[active=true]:border-gold-antique/45 data-[active=true]:bg-char lg:p-10"
                 >
+                  {/*
+                    The active factor is marked by a rule that draws along the
+                    left EDGE — the beam standing on end.
+
+                    IT IS A DIRECT CHILD OF THE <li>, and that is the fix, not
+                    a tidy-up. It used to live inside the `will-reveal` div,
+                    where it looked equally correct: `absolute left-0` against
+                    an `li` that is `relative`.
+
+                    But GSAP animates `will-reveal` with a transform, and a
+                    transformed element becomes the containing block for its
+                    absolutely-positioned descendants. So `left-0` resolved not
+                    to the card's border edge but to its CONTENT edge, 32-40px
+                    in — landing the rule exactly on the ordinal it sits beside.
+                    Two independent design reviews reported the numerals as
+                    "clipped by the card border" and the rule as "drawn on top
+                    of its own text"; both were seeing this.
+
+                    Nothing about the transform is wrong. The rule simply must
+                    not be inside it.
+                  */}
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-y-0 left-0 w-px origin-top scale-y-0 bg-linear-to-b from-gold-high via-gold-antique to-transparent transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-data-[active=true]:scale-y-100"
+                  />
                   <div className="will-reveal">
                     <div className="mb-4 flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
@@ -115,12 +140,6 @@ export function AssayExperience() {
 
                     <p className="text-lead text-ivory/70">{factor.body}</p>
 
-                    {/* The active factor is marked by a rule that draws along
-                        the left edge — the beam standing on end. */}
-                    <span
-                      aria-hidden="true"
-                      className="absolute inset-y-0 left-0 w-px origin-top scale-y-0 bg-linear-to-b from-gold-high via-gold-antique to-transparent transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-data-[active=true]:scale-y-100"
-                    />
                   </div>
                 </li>
               ))}

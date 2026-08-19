@@ -50,10 +50,27 @@ const HERO_PATH: Keyframe[] = [
   { at: 1.0, position: [0.35, 1.35, 4.7], target: [0.25, 0.72, 0], fov: 30 },
 ];
 
-/** The finale: closer still, and squarely on the pointer as it reaches zero. */
+/**
+ * The finale: a small move toward the pointer as it reaches zero.
+ *
+ * THE PUSH USED TO BE MUCH LARGER — z 4.6 to 3.35 with fov 30 to 27 — and it
+ * was quietly wrecking the composition it was meant to intensify. The frame
+ * is 2.52 world units tall at the opening keyframe and only 1.61 at the
+ * closing one, so an instrument sized to fit the section at the top of the
+ * scroll was 56% oversized by the bottom of it: the pillar and foot left the
+ * frame entirely, and the balance met the footer as a severed pan. Three
+ * separate review passes described the closing instrument as "amputated",
+ * "guillotined mid-instrument", "the base is never shown", and this path is
+ * the reason a fix applied to the scene's own scale could not hold.
+ *
+ * The move is now small enough to feel and too small to re-crop: about 3% of
+ * distance and one degree of field. The intimacy at the end of this section
+ * comes from the light and from the instrument coming to rest, not from
+ * shoving the lens into it.
+ */
 const FINALE_PATH: Keyframe[] = [
-  { at: 0.0, position: [0.42, 2.02, 4.6], target: [0, 1.62, 0], fov: 30 },
-  { at: 1.0, position: [0.06, 1.92, 3.35], target: [0, 1.66, 0], fov: 27 },
+  { at: 0.0, position: [0.42, 2.02, 4.6], target: [0, 1.63, 0], fov: 30 },
+  { at: 1.0, position: [0.18, 1.98, 4.46], target: [0, 1.63, 0], fov: 29 },
 ];
 
 /** The assay subject sits alone; the camera barely moves at all. */

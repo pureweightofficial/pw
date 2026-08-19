@@ -131,15 +131,25 @@ export function FinaleCanvas() {
     <SceneShell
       camera={{ position: [0.42, 2.02, 4.6], fov: 30 }}
       /*
-        1.1 -> 1.34. The opposite correction to the specimen's, for the
-        opposite fault: the closing scene renders behind a from-void gradient
-        AND a vignette AND centred copy, and at 1.1 the instrument was so far
-        under that reviewers reading the page cold recorded the finale as
-        "nearly black", "a void", "the scroll story ends without a payoff".
-        The section is the resolution of the whole page; the instrument in it
-        has to be visible enough to BE the resolution.
+        1.1 -> 1.34 -> 1.75, in two rounds, because the first correction was
+        right in direction and short in size.
+
+        The closing scene renders behind a scrim and a vignette, and at 1.1 it
+        was so far under that reviewers reading the page cold recorded the
+        finale as "nearly black" and "a void". 1.34 helped and was still not
+        enough: a second, independent pass measured the beam at "10-15%
+        luminance", dimmer than the hero scale, dimmer than the medallion
+        icons, dimmer even than the footer logo — and noted that a page which
+        peaks in its hero and decays has no climax at all.
+
+        1.75 with the scrim now scoped to the copy (see FinalBalance) puts the
+        brass beam and the pan rims at the top of the frame's luminance range,
+        which is where the last object in the story belongs. The gold does not
+        blow out: ACES rolls the speculars off, and the material's true
+        roughness is 0.23-0.38 rather than the near-mirror it once was, so what
+        comes back is a lit surface rather than glare.
       */
-      exposure={1.34}
+      exposure={1.75}
       poster={<ScalePoster />}
     >
       {(capability) => <FinaleScene capability={capability} />}

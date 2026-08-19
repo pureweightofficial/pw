@@ -42,7 +42,23 @@ export function FinalBalance() {
       id="finale"
       data-scroll-section="finale"
       aria-labelledby="finale-heading"
-      className="relative isolate flex min-h-[92svh] items-center overflow-hidden bg-void py-24 lg:min-h-screen"
+      /*
+        THE COPY SITS HIGH SO THE INSTRUMENT CAN BE WHOLE.
+
+        `items-center` put a ~400px copy block in the middle of the section and
+        left the balance to fight for whatever was underneath it — which was
+        never enough, so the scale was cropped through its pans by the footer
+        edge and its pillar and foot were never visible at any scroll position.
+        Three review passes described the closing instrument as "amputated",
+        "guillotined mid-instrument", "the base is never shown". A balance with
+        no base does not read as an instrument at rest; it reads as a broken
+        crop, in the one section whose entire claim is that things have settled.
+
+        The section is a full screen now, and the copy is anchored to its upper
+        portion, which leaves a deliberate lower band for the instrument to
+        stand in complete.
+      */
+      className="relative isolate flex min-h-screen items-start overflow-hidden bg-void pt-[16vh] pb-24"
     >
       <AmbientGlow intensity="warm" placement="centre" />
       <div
@@ -74,8 +90,26 @@ export function FinalBalance() {
         aria-hidden="true"
         className="absolute inset-0 -z-10"
         style={{
+          /*
+            SCOPED TO THE COPY, NOT FULL-BLEED.
+
+            The previous version was an improvement on the one before it — a
+            band rather than a bottom-heavy ramp — but it still ran the full
+            width of the section at rgba(3,3,3,0.78) across the middle, and the
+            instrument sits inside that band's lower edge. So the scene was
+            still being rendered into a 78%-black veil, and a review reading
+            the page cold still recorded the finale as the darkest moment on it:
+            dimmer than the hero, dimmer than the medallions, dimmer than the
+            footer logo.
+
+            An ellipse centred on the copy protects exactly what needs
+            protecting — the headline, the lead and the CTA — and leaves the
+            rest of the frame clean for the balance. Copy contrast is measured
+            by scripts/check-section-scene-contrast.mjs, which samples the real
+            text boxes; the instrument is now outside every one of them.
+          */
           background:
-            "linear-gradient(to top, rgba(3,3,3,0.10) 0%, rgba(3,3,3,0.22) 26%, rgba(3,3,3,0.78) 42%, rgba(3,3,3,0.78) 88%, rgba(3,3,3,0.42) 100%)",
+            "radial-gradient(ellipse 62% 42% at 50% 30%, rgba(3,3,3,0.88) 0%, rgba(3,3,3,0.8) 55%, rgba(3,3,3,0.34) 80%, rgba(3,3,3,0.06) 100%)",
         }}
       />
 
