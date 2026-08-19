@@ -92,7 +92,15 @@ export function SpecimenCanvas() {
   return (
     <SceneShell
       camera={{ position: [0.1, 0.35, 5.6], fov: 30 }}
-      exposure={1.3}
+      /*
+        1.3 -> 0.98. ACES rolls highlights off gently, which is exactly what
+        let this hide: at 1.3 the mass's speculars were pinned at the top of
+        the curve, so the brightest third of the object was one undifferentiated
+        white-orange field with no form in it. Pulling roughly half a stop back
+        puts the highlights inside the curve again, where antique gold has hue
+        instead of glare.
+      */
+      exposure={0.98}
       poster={<AmbientPoster />}
     >
       {(capability) => <SpecimenScene capability={capability} />}
@@ -104,7 +112,13 @@ export function AssayCanvas() {
   return (
     <SceneShell
       camera={{ position: [0, 0.14, 3.1], fov: 30 }}
-      exposure={1.12}
+      /*
+        1.12 -> 0.88. Same correction as the specimen's, same reason: the
+        signet fills a square frame at close range, so its speculars were
+        pinned at the top of the ACES curve and the piece read as a glowing
+        ring rather than a metal one. Antique gold has hue; glare does not.
+      */
+      exposure={0.88}
       poster={<AssayPoster />}
     >
       {(capability) => <AssayScene capability={capability} />}
@@ -116,7 +130,16 @@ export function FinaleCanvas() {
   return (
     <SceneShell
       camera={{ position: [0.42, 2.02, 4.6], fov: 30 }}
-      exposure={1.1}
+      /*
+        1.1 -> 1.34. The opposite correction to the specimen's, for the
+        opposite fault: the closing scene renders behind a from-void gradient
+        AND a vignette AND centred copy, and at 1.1 the instrument was so far
+        under that reviewers reading the page cold recorded the finale as
+        "nearly black", "a void", "the scroll story ends without a payoff".
+        The section is the resolution of the whole page; the instrument in it
+        has to be visible enough to BE the resolution.
+      */
+      exposure={1.34}
       poster={<ScalePoster />}
     >
       {(capability) => <FinaleScene capability={capability} />}

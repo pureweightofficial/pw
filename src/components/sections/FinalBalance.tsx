@@ -53,9 +53,30 @@ export function FinalBalance() {
         {gate === "canvas" ? <FinaleCanvas /> : <ScalePoster />}
       </div>
 
+      {/*
+        THE SCRIM WAS BLACKING OUT THE ONE THING THE SECTION IS FOR.
+
+        It ran `from-void via-void/62 to-void/35` bottom-to-top — fully opaque
+        at the BOTTOM, which is exactly where the camera puts the instrument
+        (the scene group sits at y -1.28 and the lens is above it). So the
+        closing scene rendered correctly, every frame, into a band of solid
+        black. Four independent design passes recorded the finale as "nearly
+        black", "a void", "the scroll story ends without a payoff", and one
+        opaque gradient was the whole reason.
+
+        The replacement is a BAND, not a ramp: heavy across the middle where
+        the headline, lead and CTA sit, clearing above and below so the beam
+        and pans read. The heavy stops are unchanged in strength from the old
+        middle value, so the copy keeps the contrast it had — the change is
+        entirely in what happens outside the text block.
+      */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-linear-to-t from-void via-void/62 to-void/35"
+        className="absolute inset-0 -z-10"
+        style={{
+          background:
+            "linear-gradient(to top, rgba(3,3,3,0.10) 0%, rgba(3,3,3,0.22) 26%, rgba(3,3,3,0.78) 42%, rgba(3,3,3,0.78) 88%, rgba(3,3,3,0.42) 100%)",
+        }}
       />
 
       <div className="shell relative w-full" data-cursor-normal>

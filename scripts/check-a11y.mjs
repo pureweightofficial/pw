@@ -142,12 +142,32 @@ if (!chromePath) {
   process.exit(1);
 }
 
-const { server, port } = await serve(out, "/pw/");
+/*
+  THE BASE PATH IS READ FROM THE BUILD, NOT ASSUMED.
+
+  Two gates in this repo want the same out/ directory built two different
+  ways: check-section-scene-contrast wants BASE_PATH= (no prefix) and this
+  one hard-coded "/pw/". Running them back to back therefore failed one of
+  them every time, and the failure it produced was "page rendered UNSTYLED"
+  — which reads like a CSS regression, not a build-flag mismatch. That cost a
+  diagnosis cycle on a day already spent on a stale-build trap in the sweep
+  tool, which is two instruments lying about the same directory.
+
+  So: sniff the prefix off the stylesheet link the export actually emitted,
+  and serve whatever the build says it is. Either build now passes.
+*/
+const indexHtml = readFileSync(join(out, "index.html"), "utf8");
+const cssHref = indexHtml.match(/href="([^"]*\/_next\/static\/[^"]*\.css)"/);
+const detectedBase = cssHref
+  ? cssHref[1].slice(0, cssHref[1].indexOf("/_next/")) + "/"
+  : "/";
+const { server, port } = await serve(out, detectedBase);
 const browser = await chromium.launch({ executablePath: chromePath });
 const failures = [];
 let notes = 0;
 
-for (const [label, route] of PAGES) {
+for (const [label, declaredRoute] of PAGES) {
+  const route = detectedBase + declaredRoute.replace(/^\/pw\//, "");
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const res = await page.goto(`http://127.0.0.1:${port}${route}`, { waitUntil: "load" });
   if (!res || !res.ok()) {

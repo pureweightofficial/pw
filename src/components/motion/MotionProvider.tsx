@@ -259,29 +259,65 @@ export function MotionProvider({ children }: { children: ReactNode }) {
 
       document
         .querySelectorAll<HTMLElement>("[data-journey-stage]")
-        .forEach((el) => {
+        .forEach((el, _i, all) => {
           const index = Number(el.dataset.journeyStage);
           ScrollTrigger.create({
             trigger: el,
             start: "top 62%",
             end: "bottom 38%",
             onToggle: (self) => {
-              if (self.isActive) setScroll({ journeyStage: index });
+              if (!self.isActive) return;
+              setScroll({ journeyStage: index });
+
+              /*
+                The store value alone drove nothing visible for a long time —
+                it was read by a needle that has since been retired. The rail
+                beside the stages is CSS-only, so the active stage has to be
+                expressed in the DOM for it to have anything to select on.
+
+                Every stage is written on each toggle rather than just the two
+                that changed: there are four of them, this fires a handful of
+                times per page, and a diffing version would be the kind of
+                cleverness that silently desyncs when someone adds a fifth.
+              */
+              all.forEach((node, i) => {
+                node.dataset.active = i === index ? "true" : "false";
+                node.dataset.passed = i < index ? "true" : "false";
+              });
             },
           });
         });
 
       document
         .querySelectorAll<HTMLElement>("[data-assay-factor]")
-        .forEach((el) => {
+        .forEach((el, _i, all) => {
           const index = Number(el.dataset.assayFactor);
           ScrollTrigger.create({
             trigger: el,
             start: "top 65%",
             end: "bottom 35%",
             onToggle: (self) => {
-              if (self.isActive) setScroll({ assayFactor: index });
-              el.dataset.active = self.isActive ? "true" : "false";
+              if (!self.isActive) return;
+              setScroll({ assayFactor: index });
+
+              /*
+                ACTIVE IS EXCLUSIVE, and it has to be written that way rather
+                than each card minding its own flag.
+
+                These ranges (top 65% -> bottom 35%) deliberately overlap so
+                the scene's factor never blanks between cards. Each card
+                setting only ITSELF meant two adjacent cards were commonly
+                lit at the same time — reviewers reading the page cold filed
+                it as "inconsistent enclosure: rows 02 and 03 are boxed,
+                01 and 04 are not", which is what a four-item list looks like
+                when two of the items think they are the current one.
+
+                The 3D scene never showed the fault because scrollState holds
+                a single index; only the DOM could be in two states at once.
+              */
+              all.forEach((node, i) => {
+                node.dataset.active = i === index ? "true" : "false";
+              });
             },
           });
         });

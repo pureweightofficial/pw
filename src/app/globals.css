@@ -1152,13 +1152,90 @@
      copy-region contrast is still measured by check-section-scene-contrast.mjs,
      which samples the real text boxes rather than the whole section. */
   .section-scene-scrim[data-scrim="reveal"] {
+    /* The right-hand stops were 0.22 / 0.12 and are now 0.06 / 0.0. Two
+       coats of black over a presented object is one too many: the scene
+       already renders against a near-black studio and is composited over an
+       opaque section surface, so the scrim's only real job is the COPY side.
+       Dimming the object side as well was making polished gold read as a
+       shape behind smoked glass — the difference between a render and a
+       photograph of something valuable.
+
+       The left and middle stops are untouched, because those are the ones
+       scripts/check-section-scene-contrast.mjs measures. */
     background: linear-gradient(
       to right,
       rgba(0, 0, 0, 0.9) 0%,
       rgba(0, 0, 0, 0.86) 42%,
       rgba(0, 0, 0, 0.55) 64%,
-      rgba(0, 0, 0, 0.22) 82%,
-      rgba(0, 0, 0, 0.12) 100%
+      rgba(0, 0, 0, 0.06) 82%,
+      rgba(0, 0, 0, 0) 100%
+    );
+  }
+
+  /* THE JOURNEY RAIL.
+
+     MotionProvider already sets data-active on the stage whose ScrollTrigger
+     is live (it has driven scrollState.journeyStage for a long time); this is
+     the first thing to draw it. Everything animates transform/opacity/colour
+     only, so the whole rail stays on the compositor.
+
+     Stages BEFORE the active one keep a filled rule — the reader has passed
+     them, and a progress device that forgets where you have been is a
+     decoration, not a progress device. */
+  .journey-rail-fill {
+    height: 0;
+    transition: height 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .journey-stage[data-active="true"] .journey-rail-fill,
+  .journey-stage[data-passed="true"] .journey-rail-fill {
+    height: 100%;
+  }
+
+  .journey-node {
+    transition:
+      background-color 700ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 700ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .journey-stage[data-active="true"] .journey-node {
+    background-color: var(--color-gold-high);
+    border-color: var(--color-gold-high);
+    transform: rotate(45deg) scale(1.5);
+  }
+
+  .journey-stage[data-passed="true"] .journey-node {
+    background-color: var(--color-gold-antique);
+    border-color: var(--color-gold-antique);
+  }
+
+  .journey-step {
+    transition: color 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .journey-stage[data-active="true"] .journey-step {
+    color: var(--color-gold-high);
+  }
+
+  /* REVEAL-LEFT: the mirror of `reveal`, for sections whose copy sits on the
+     RIGHT and whose left column is the empty one.
+
+     The journey section is exactly that and was misread for a long time: its
+     comment claimed "the right-hand column is genuinely empty on desktop", but
+     the grid is a 4-column indicator on the LEFT and an 8-column list of
+     stages on the RIGHT. The presented object was therefore parked underneath
+     the copy, which is why every attempt to make it big enough to see also
+     made it a smear across the text. It moved to the side that is actually
+     free; the scrim followed it. */
+  .section-scene-scrim[data-scrim="reveal-left"] {
+    background: linear-gradient(
+      to left,
+      rgba(0, 0, 0, 0.9) 0%,
+      rgba(0, 0, 0, 0.86) 42%,
+      rgba(0, 0, 0, 0.55) 64%,
+      rgba(0, 0, 0, 0.06) 82%,
+      rgba(0, 0, 0, 0) 100%
     );
   }
 

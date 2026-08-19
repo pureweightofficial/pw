@@ -8,7 +8,11 @@ import { damp, mapRange, scrollState, smoothstep } from "@/lib/scroll-store";
 import { CameraRig } from "./CameraRig";
 import { metal } from "./materials";
 import { signetFaceGeometry, signetRingGeometry } from "./geometry";
-import { goldRoughnessMap, hallmarkNormalMap } from "./textures";
+import {
+  castGoldNormalMap,
+  castGoldRoughnessMap,
+  hallmarkNormalMap,
+} from "./textures";
 import { Studio } from "./Studio";
 
 /**
@@ -190,14 +194,31 @@ export function AssayScene({ capability }: { capability: Capability }) {
     set so base × map lands in the worked-metal band this comment always
     intended: ~0.10–0.27 for the ring, ~0.12–0.31 for the face.
   */
+  /*
+    THE SECOND HALF OF THAT SAME LESSON, found by looking rather than by
+    arithmetic. The bases below were corrected once, out of the mirror range
+    and into "worked metal" — and the piece still rendered as a banded neon
+    torus, because goldRoughnessMap's own range is 0.13-0.34, so even a base
+    of 0.8 lands at a true 0.10-0.27. That IS the polished end. On a smooth
+    torus filling a square frame, a polished surface has nothing to return
+    except the studio's bright panels, stretched into concentric bands with
+    no surface detail to interrupt them.
+
+    castGoldRoughnessMap outputs 0.60-1.0, so these bases land where the
+    comment always claimed: a true 0.23-0.38, jewellery that has been worn
+    rather than jewellery in a vitrine. The normal map does the other half —
+    reflections need something to break ON.
+  */
   const ringMaterial = useMemo(
     () =>
       metal({
         color: new THREE.Color("#cf9f36"),
         metalness: 1,
-        roughness: 0.8,
-        roughnessMap: goldRoughnessMap(),
-        envMapIntensity: 1.5,
+        roughness: 0.38,
+        roughnessMap: castGoldRoughnessMap(),
+        normalMap: castGoldNormalMap(),
+        normalScale: new THREE.Vector2(0.55, 0.55),
+        envMapIntensity: 1.25,
         anisotropy: 0.3,
       }),
     [],
@@ -208,11 +229,14 @@ export function AssayScene({ capability }: { capability: Capability }) {
       metal({
         color: new THREE.Color("#cf9f36"),
         metalness: 1,
-        roughness: 0.92,
-        roughnessMap: goldRoughnessMap(),
+        roughness: 0.44,
+        roughnessMap: castGoldRoughnessMap(),
+        // The struck mark stays the face's normal map — it is the whole point
+        // of the face — but it is cut deeper now that the surface around it
+        // is no longer a mirror competing with it for the eye.
         normalMap: hallmarkNormalMap(),
-        normalScale: new THREE.Vector2(1.1, 1.1),
-        envMapIntensity: 1.55,
+        normalScale: new THREE.Vector2(1.35, 1.35),
+        envMapIntensity: 1.3,
       }),
     [],
   );

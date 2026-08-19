@@ -17,6 +17,18 @@ import { publishedArticles } from "@/lib/insights";
  * explains the same thing. No dead links, no fabricated authority.
  */
 
+/**
+ * Grid columns by article count. Indexed 1-4; the zero case never renders.
+ * Written out rather than interpolated because Tailwind scans for literal
+ * class strings and a template-built `lg:grid-cols-${n}` produces no CSS.
+ */
+const COLUMNS: Record<number, string> = {
+  1: "",
+  2: "sm:grid-cols-2",
+  3: "sm:grid-cols-2 lg:grid-cols-3",
+  4: "sm:grid-cols-2 lg:grid-cols-4",
+};
+
 export function Insights() {
   /*
     HIDE-UNTIL-VERIFIED, editorial grade. This section used to typeset four
@@ -64,12 +76,33 @@ export function Insights() {
           </Link>
         </div>
 
-        <ul className="mt-16 grid gap-px overflow-hidden border border-gold-antique/14 bg-gold-antique/14 sm:grid-cols-2 lg:grid-cols-4">
+        {/*
+          THE COLUMN COUNT FOLLOWS THE ARTICLE COUNT.
+
+          This grid was hard-wired to four columns while the site has exactly
+          one published article, so it rendered one card and three empty cells
+          — and because the cells' gap colour IS the container background, the
+          empty three composited into a single flat olive slab taking about
+          70% of the viewport's width. Three independent design reviews each
+          filed it as CRITICAL and each read it the same way: a broken image,
+          a failed asset, an unfinished page.
+
+          Nothing was broken. A four-column grid was simply asked to lay out
+          one item, which is a layout bug, not a content gap — the section
+          already refuses to render at all when there are no articles.
+        */}
+        <ul
+          className={`mt-16 grid gap-px overflow-hidden border border-gold-antique/14 bg-gold-antique/14 ${COLUMNS[Math.min(published.length, 4)]}`}
+        >
           {published.slice(0, 4).map((article, index) => (
             <li key={article.slug} className="flex">
             <Link
               href={`/insights/${article.slug}`}
-              className="group flex flex-col justify-between gap-10 bg-char p-8 transition-colors duration-500 hover:bg-gunmetal lg:p-10"
+              className={`group flex w-full flex-col justify-between gap-10 bg-char p-8 transition-colors duration-500 hover:bg-gunmetal lg:p-10 ${
+                published.length === 1
+                  ? "lg:flex-row lg:items-end lg:gap-16 lg:p-16"
+                  : ""
+              }`}
             >
               <div>
                 <div className="flex items-center justify-between gap-4">
@@ -80,7 +113,13 @@ export function Insights() {
                     {String(index + 1).padStart(2, "0")}
                   </span>
                 </div>
-                <h3 className="mt-7 font-display text-2xl leading-tight text-ivory transition-colors duration-500 group-hover:text-gold-high">
+                <h3
+                  className={`mt-7 font-display leading-tight text-ivory transition-colors duration-500 group-hover:text-gold-high ${
+                    published.length === 1
+                      ? "max-w-2xl text-3xl lg:text-4xl"
+                      : "text-2xl"
+                  }`}
+                >
                   {article.title}
                 </h3>
               </div>

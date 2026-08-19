@@ -91,7 +91,35 @@ export function FinaleScene({ capability }: { capability: Capability }) {
   const compact = capability.coarsePointer;
 
   return (
-    <group position={[0, -1.28, 0]}>
+    /*
+      COMPOSED BY ARITHMETIC, because two rounds of eyeballing it got it
+      wrong in both directions.
+
+      THE NUMBERS. BalanceScale puts its beam pivot at local y = PIVOT_Y =
+      1.86. FINALE_PATH aims the camera at world y ~1.62 from ~4.64 units
+      back at fov 30, so the frame covers 2.49 world units of height — about
+      361px per unit at 900px tall, centred on 1.62.
+
+      With the group at -1.28 the pivot sat at world 0.58: a full world unit
+      BELOW the point the lens was aimed at, i.e. ~380px below frame centre,
+      which put the beam at the very bottom edge and the pans off-screen
+      entirely. That is the whole reason this section read as "nearly black"
+      — under the old scrim the one sliver still in frame was also the part
+      painted over. Fixing the scrim revealed the framing fault underneath it.
+
+      Scale 0.46 puts the pivot at 0.856 local; +0.08 lands it at world 0.936,
+      which is screen y ~697 — clear of the CTA at ~575 — with the beam
+      spanning screen 451-989, the pans hanging to ~840, and the column
+      running out of frame beneath. The instrument the page opened with is
+      what it now closes standing on.
+
+      (Scale 0.8 was the first solution to the arithmetic and it was right
+      about the height and wrong about the size: the beam ran past both frame
+      edges and the pans sat on top of the CTA. Sizing has to satisfy the
+      WIDTH too — beam half-span 1.62 means the instrument is 3.24 units
+      across before any scaling, against a frame 3.98 units wide.)
+    */
+    <group position={[0, 0.08, 0]} scale={0.46}>
       <Studio capability={capability} intimate />
       <CameraRig mode="finale" capability={capability} compact={compact} />
 

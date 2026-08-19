@@ -56,7 +56,7 @@ export type SectionSceneProps = {
    *           whose layout genuinely leaves that side empty — the journey
    *           section's right column does.
    */
-  scrim?: "veil" | "reveal";
+  scrim?: "veil" | "reveal" | "reveal-left";
   /** Which scroll channel drives the parallax. Defaults to page progress. */
   channel?: "progress" | "journey" | "assay" | "finale";
   /**
@@ -66,6 +66,25 @@ export type SectionSceneProps = {
    * object.
    */
   scene?: "ambient" | "specimen";
+  /**
+   * STICKY: the canvas is one viewport tall and HOLDS at the top of the screen
+   * while the section scrolls past it, instead of being a section-tall canvas
+   * that the viewport only ever samples a slice of.
+   *
+   * This is the fix for the defect that made the whole windowed-scene
+   * architecture look broken. `absolute inset-0` on a 2,000px section means
+   * the camera frames its subject at the SECTION's centre, and a 900px
+   * viewport sees roughly a third of that canvas at a time — so the object
+   * drifted in from a corner, was clipped by the section edge, and was gone
+   * again within one screen of scrolling. The scene was working perfectly and
+   * was, correctly, reported as "a gold stone that isn't moving".
+   *
+   * Sticky costs nothing extra to render — the canvas is SMALLER than the
+   * absolute one it replaces (one viewport, not one section) — and it is what
+   * makes the object hold frame long enough for scroll-linked motion to be
+   * perceptible at all.
+   */
+  sticky?: boolean;
   className?: string;
 };
 
@@ -74,6 +93,7 @@ export function SectionScene({
   channel,
   scrim = "veil",
   scene = "ambient",
+  sticky = false,
   className = "",
 }: SectionSceneProps) {
   // Decided before the renderer is imported — see lib/scene-gate.
@@ -95,6 +115,28 @@ export function SectionScene({
   const pathname = usePathname();
   const ambientStoodDown = pathname === "/";
 
+  /*
+    The scrim rides INSIDE this frame, not over the whole section. A scrim
+    pinned to a section that is three viewports tall dims two viewports of
+    plain background for no reason; the only pixels that need protecting from
+    the scene are the ones the scene is actually behind.
+  */
+  /*
+    THE HOST DROPS `overflow-hidden` IN STICKY MODE, and this is not optional.
+
+    An ancestor with `overflow: hidden` becomes the sticky element's scroll
+    container. That container does not itself scroll, so the sticky child has
+    nothing to stick against and behaves as `position: relative` — silently.
+    No error, no warning, and the canvas goes straight back to being a
+    section-tall slab the viewport samples a slice of, which is the exact
+    defect sticky mode exists to fix. The clipping moves to the frame below,
+    where it belongs anyway: a viewport-sized box clipping a viewport-sized
+    canvas.
+  */
+  const stickyFrame = sticky
+    ? "sticky top-0 h-[100svh] w-full overflow-hidden"
+    : "absolute inset-0";
+
   return (
     <div
       aria-hidden="true"
@@ -110,15 +152,18 @@ export function SectionScene({
       // moment the services opener wrapped scene and copy in one band: the gate
       // skipped the whole band, left the heading visible, and measured the
       // heading's own glyphs against themselves.
-      className={`section-scene pointer-events-none absolute inset-0 -z-10 overflow-hidden ${className}`}
+      className={`section-scene pointer-events-none absolute inset-0 -z-10 ${
+        sticky ? "" : "overflow-hidden"
+      } ${className}`}
     >
-      {gate === "canvas" && scene === "specimen" ? (
-        <SpecimenCanvas />
-      ) : gate === "canvas" && !ambientStoodDown ? (
-        <AmbientCanvas variant={variant} channel={channel} />
-      ) : (
-        <AmbientPoster />
-      )}
+      <div className={stickyFrame}>
+        {gate === "canvas" && scene === "specimen" ? (
+          <SpecimenCanvas />
+        ) : gate === "canvas" && !ambientStoodDown ? (
+          <AmbientCanvas variant={variant} channel={channel} />
+        ) : (
+          <AmbientPoster />
+        )}
 
       {/*
         THE SCRIM IS NOT OPTIONAL, WHICH IS WHY IT LIVES HERE AND NOT AT THE
@@ -135,10 +180,11 @@ export function SectionScene({
         which samples the rendered backdrop in a real browser rather than
         reasoning about it.
       */}
-      <div
-        className="section-scene-scrim absolute inset-0"
-        data-scrim={scrim}
-      />
+        <div
+          className="section-scene-scrim absolute inset-0"
+          data-scrim={scrim}
+        />
+      </div>
     </div>
   );
 }

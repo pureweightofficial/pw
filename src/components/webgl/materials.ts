@@ -193,11 +193,30 @@ export function massGold(): THREE.MeshStandardMaterial {
         At 0.5 the whole object sat at one mid tone and read as weathered stone;
         metal is recognised by bright specular against dark, not by hue.
       */
-      roughness: 0.42,
+      /*
+        0.60, raised from 0.42, and the normal detail nearly tripled with it.
+
+        At the size this mass is now presented — a held object filling a
+        column, rather than a distant pebble — a true roughness of 0.25-0.42
+        was still smooth enough that the studio's broad Lightformer panels
+        reflected as two or three enormous soft gradients. Reviewed against a
+        $100k bar by four independent design passes, that read unanimously as
+        "a luminous smear", "molten neon", "a long-exposure light toy" — and
+        they were right. Large smooth areas of near-mirror metal have nothing
+        in them for the eye to read as surface, and the 8-bit gradient across
+        them bands visibly.
+
+        Precious metal is recognised by BROKEN specular: many small highlights
+        travelling across a worked surface, not one big one sliding over
+        glass. 0.52 x the map's 0.60-1.0 gives a true 0.31-0.52, and
+        normalScale 1.15 lets the cast texture actually cut the reflections up
+        instead of politely suggesting it.
+      */
+      roughness: 0.6,
       roughnessMap: castGoldRoughnessMap(),
       normalMap: castGoldNormalMap(),
-      normalScale: new THREE.Vector2(0.6, 0.6),
-      envMapIntensity: 1,
+      normalScale: new THREE.Vector2(1.45, 1.45),
+      envMapIntensity: 1.05,
       // Buffed, not brushed: a light stretch on the highlight so it reads as a
       // worked surface rather than an injection moulding.
       anisotropy: 0.22,

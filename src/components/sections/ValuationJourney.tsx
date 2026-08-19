@@ -1,8 +1,4 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
 import { Eyebrow, Section } from "@/components/ui/primitives";
-import { scrollState } from "@/lib/scroll-store";
 import { journey } from "@/lib/site";
 import { SectionScene } from "@/components/ui/SectionScene";
 import { opener } from "@/lib/copy";
@@ -23,9 +19,10 @@ const copy = opener("journey", {
  * "Complete the Exchange". The concept is not decoration bolted onto the
  * process — the process *is* the animation's timeline.
  *
- * The needle on the left is that same value, rendered as a graduated arc. It is
- * marked `aria-hidden` and paired with a real ordered list, so the sequence is
- * conveyed by document structure and not by the indicator.
+ * Progress is narrated by the rail beside the stages — one node per stage,
+ * lighting as that stage becomes active. It is `aria-hidden` and paired with a
+ * real ordered list, so the sequence is conveyed by document structure and not
+ * by the indicator.
  *
  * Not pinned. Pinning four stages would trap the scroll for several screens on
  * mobile and is exactly the kind of "immersive" that makes a site tiring.
@@ -40,9 +37,13 @@ export function ValuationJourney() {
       labelledBy="journey-heading"
       className="py-24 lg:py-36"
     >
-      {/* The right-hand column of this section's grid is genuinely empty on
-          desktop, and `links` read as black there. A single presented gold bar
-          fills it and turns as the reader advances the four stages. */}
+      {/* THE LEFT COLUMN is the empty one — 4 columns holding a small
+          indicator at the top, then nothing for the height of four stages,
+          while the 8-column list of stages fills the right. (A comment here
+          asserted the opposite for months, and every attempt to make the
+          presented object visible therefore put metal behind the copy.) The
+          specimen now occupies that void, sticky beside the stages, turning
+          as the reader advances them. */}
       {/*
           The presented object itself, not an ambient suggestion of one. This
           slot was designed for a presented object from the start — the
@@ -51,7 +52,13 @@ export function ValuationJourney() {
           procedural mass and shared gold material as the world, framed where
           the copy describes what happens to it.
         */}
-        <SectionScene variant="bar" channel="journey" scrim="reveal" scene="specimen" />
+        <SectionScene
+        variant="bar"
+        channel="journey"
+        scrim="reveal-left"
+        scene="specimen"
+        sticky
+      />
       <div className="shell">
         <div className="max-w-3xl">
           <Eyebrow className="mb-8 will-reveal">{copy.eyebrow}</Eyebrow>
@@ -68,12 +75,22 @@ export function ValuationJourney() {
         </div>
 
         <div className="mt-20 grid gap-12 lg:grid-cols-12 lg:gap-16">
-          {/* --- The needle ------------------------------------------- */}
-          <div className="hidden lg:col-span-4 lg:block">
-            <div className="sticky top-32">
-              <BalanceIndicator />
-            </div>
-          </div>
+          {/*
+            THE LEFT COLUMN IS THE SPECIMEN'S, and holds no markup at all.
+
+            It used to hold a sticky SVG gauge, alone, in four columns of
+            otherwise empty space for the height of the whole section. Three
+            things were wrong with that and they were all the same thing: the
+            gauge was small in a void, its "Establishing / In Balance" label
+            only ever flipped in the last 1.5% of the section so it read as
+            static, and it collided with the specimen the moment the sticky
+            canvas bottomed out and rode up with the section's tail.
+
+            Progress moved to the rail on the stages themselves, where it can
+            actually narrate which stage you are on. The column became what it
+            visually already was: the frame the presented object sits in.
+          */}
+          <div className="hidden lg:col-span-4 lg:block" aria-hidden="true" />
 
           {/* --- The stages ------------------------------------------- */}
           <ol className="lg:col-span-8">
@@ -81,11 +98,26 @@ export function ValuationJourney() {
               <li
                 key={stage.step}
                 data-journey-stage={index}
-                className="group border-t border-gold-antique/18 py-12 first:border-t-0 first:pt-0 lg:py-16"
+                className="journey-stage group relative border-t border-gold-antique/18 py-12 first:border-t-0 first:pt-0 lg:py-16"
               >
+                {/* THE RAIL. A hairline down the left of the list with one
+                    node per stage; the node fills and the rule above it
+                    lights as that stage becomes active. This is the progress
+                    device the gauge was failing to be — it says WHICH of the
+                    four you are on, which is the only progress a reader of
+                    this list actually wants. Decorative and aria-hidden: the
+                    <ol> already conveys the sequence to assistive tech. */}
+                <span
+                  aria-hidden="true"
+                  className="journey-rail pointer-events-none absolute top-0 -left-8 hidden h-full w-px bg-gold-antique/18 lg:block"
+                >
+                  <span className="journey-rail-fill absolute inset-x-0 top-0 block bg-gold-antique/70" />
+                  <span className="journey-node absolute top-14 -left-[3px] block h-[7px] w-[7px] rotate-45 border border-gold-antique/45 bg-void" />
+                </span>
+
                 <div className="will-reveal">
                   <div className="flex items-baseline gap-6">
-                    <span className="font-display text-5xl text-gold-antique/75 transition-colors duration-700 group-hover:text-gold-antique lg:text-6xl">
+                    <span className="journey-step font-display text-5xl text-gold-antique/75 transition-colors duration-700 lg:text-6xl">
                       {stage.step}
                     </span>
                     <h3 className="font-display text-3xl tracking-tight text-ivory lg:text-4xl">
@@ -109,139 +141,15 @@ export function ValuationJourney() {
   );
 }
 
-/**
- * The graduated arc and needle.
- *
- * Reads `scrollState.balance` directly — the same value that drives the 3D beam
- * and every hairline rule on the page. One source of truth, three surfaces
- * expressing it.
- *
- * The needle transform is written straight to the DOM node inside the animation
- * frame; only the coarse "Establishing / In Balance" label goes through React
- * state, and only when it actually flips. A `setState` per frame here would
- * re-render this subtree sixty times a second for a value no other component
- * reads.
- */
-function BalanceIndicator() {
-  const needleRef = useRef<SVGGElement>(null);
-  const [level, setLevel] = useState(false);
+/*
+  BalanceIndicator lived here — the graduated arc and needle that used to
+  occupy the left column. It is gone rather than parked, because dead code
+  that looks live is a trap this repo has documented repeatedly: the obvious
+  way to "restore" the left column would have been to mount it again, undoing
+  the composition decision above.
 
-  useEffect(() => {
-    let raf = 0;
-    let lastLevel = false;
-
-    const tick = () => {
-      // -2.6deg of beam tilt maps to the full sweep of the needle.
-      const tilt = -2.6 * (1 - scrollState.balance);
-      const needle = (tilt / 2.6) * 14;
-
-      if (needleRef.current) {
-        needleRef.current.style.transform = `rotate(${needle.toFixed(3)}deg)`;
-      }
-
-      const isLevel = scrollState.balance > 0.985;
-      if (isLevel !== lastLevel) {
-        lastLevel = isLevel;
-        setLevel(isLevel);
-      }
-
-      raf = requestAnimationFrame(tick);
-    };
-
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  const ticks = Array.from({ length: 15 }, (_, i) => {
-    const t = (i - 7) / 7;
-    const angle = -Math.PI / 2 + t * 0.62;
-    const major = i % 7 === 0;
-    const inner = major ? 76 : 84;
-    const outer = 92;
-
-    return {
-      key: i,
-      major,
-      x1: 130 + Math.cos(angle) * inner,
-      y1: 150 + Math.sin(angle) * inner,
-      x2: 130 + Math.cos(angle) * outer,
-      y2: 150 + Math.sin(angle) * outer,
-    };
-  });
-
-  return (
-    <div aria-hidden="true" className="flex flex-col items-center">
-      <svg viewBox="0 0 260 190" className="w-full max-w-[260px]">
-        <defs>
-          <linearGradient id="needle-gold" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#ffe9a8" />
-            <stop offset="60%" stopColor="#d7a83d" />
-            <stop offset="100%" stopColor="#7a5414" />
-          </linearGradient>
-        </defs>
-
-        <path
-          d="M 38 150 A 92 92 0 0 1 222 150"
-          fill="none"
-          stroke="#b98220"
-          strokeOpacity="0.28"
-          strokeWidth="1.2"
-        />
-
-        {ticks.map((tick) => (
-          <line
-            key={tick.key}
-            x1={tick.x1}
-            y1={tick.y1}
-            x2={tick.x2}
-            y2={tick.y2}
-            stroke={tick.major ? "#ffe9a8" : "#d7a83d"}
-            strokeOpacity={tick.major ? 0.85 : 0.4}
-            strokeWidth={tick.major ? 2 : 1.1}
-          />
-        ))}
-
-        {/* Struck zero mark, heavier than the graduations around it. */}
-        <line
-          x1="130"
-          y1="52"
-          x2="130"
-          y2="74"
-          stroke="#fff6df"
-          strokeWidth="2.6"
-        />
-
-        <g
-          ref={needleRef}
-          style={{
-            transformOrigin: "130px 150px",
-            transform: "rotate(-14deg)",
-          }}
-        >
-          <path
-            d="M 127.4 150 L 132.6 150 L 131 66 L 129 66 Z"
-            fill="url(#needle-gold)"
-          />
-        </g>
-
-        <circle
-          cx="130"
-          cy="150"
-          r="7"
-          fill="#1a1714"
-          stroke="#b98220"
-          strokeWidth="1.4"
-        />
-        <circle cx="130" cy="150" r="2.4" fill="#d7a83d" />
-      </svg>
-
-      <p
-        className={`mt-6 text-[0.6rem] tracking-[0.3em] uppercase transition-colors duration-700 ${
-          level ? "text-gold-high" : "text-ash"
-        }`}
-      >
-        {level ? "In Balance" : "Establishing"}
-      </p>
-    </div>
-  );
-}
+  Nothing else read it. `scrollState.balance` still drives every beam-tilt
+  divider on the page and the finale scene, so the concept the needle
+  expressed is intact and is still measured by the same single source of
+  truth; it simply is not drawn twice.
+*/
