@@ -104,8 +104,23 @@ export function Insights() {
                   : ""
               }`}
             >
-              <div>
-                <div className="flex items-center justify-between gap-4">
+              <div className={published.length === 1 ? "lg:max-w-2xl" : ""}>
+                {/*
+                  THE ORDINAL IS PINNED TO THE LABEL, NOT PUSHED TO THE FAR EDGE.
+
+                  `justify-between` is right in a narrow tile and wrong in the
+                  wide single-article card, where this row stretched to ~1,050px
+                  and flung the numeral into the middle of the card — aligned to
+                  nothing: not the headline's left edge, not the card's right
+                  edge, not the link. Three review passes reported it as a
+                  stranded glyph. Capping the text block returns the numeral to
+                  a measured distance from the label it belongs to.
+                */}
+                <div
+                  className={`flex items-center gap-4 ${
+                    published.length === 1 ? "justify-start" : "justify-between"
+                  }`}
+                >
                   <span className="text-[0.58rem] tracking-[0.22em] text-gold-antique uppercase">
                     {article.tags[0] ?? "Insight"}
                   </span>
@@ -124,14 +139,42 @@ export function Insights() {
                 </h3>
               </div>
 
-              <span className="label-ash text-[0.6rem]">
-                Read the article
-                {/* Spaced, not welded — the label's own letter-spacing already
-                    puts a phantom gap after "article" that the eye discounts. */}
-                <span aria-hidden="true" className="ml-1.5">
-                  →
+              <div
+                className={
+                  published.length === 1 ? "lg:max-w-sm lg:shrink-0" : ""
+                }
+              >
+                {/*
+                  THE WIDE CARD EARNS ITS WIDTH WITH THE ARTICLE'S OWN WORDS.
+
+                  In single-article form the right half of this card was empty
+                  — no image, no texture, no type — and three review passes read
+                  the void as a broken asset before they read it as a layout.
+                  The summary is real, written content that already exists on
+                  the article; it belongs here more than any decoration would,
+                  and it tells a visitor what the piece is about before they
+                  decide to open it.
+
+                  Narrow cards keep the compact form: four tiles do not have
+                  room for a standfirst, and cramming one in would be the
+                  opposite mistake.
+                */}
+                {published.length === 1 && article.summary ? (
+                  <p className="mb-7 text-lead text-ivory/70">
+                    {article.summary}
+                  </p>
+                ) : null}
+
+                <span className="label-ash text-[0.6rem]">
+                  Read the article
+                  {/* Spaced, not welded — the label's own letter-spacing
+                      already puts a phantom gap after "article" that the eye
+                      discounts. */}
+                  <span aria-hidden="true" className="ml-1.5">
+                    →
+                  </span>
                 </span>
-              </span>
+              </div>
             </Link>
             </li>
           ))}

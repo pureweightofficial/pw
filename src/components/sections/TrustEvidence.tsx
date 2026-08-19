@@ -104,8 +104,28 @@ export function TrustEvidence() {
     >
       <AmbientGlow intensity="soft" placement="left" />
       <div className="shell">
-        <div className="grid gap-10 lg:grid-cols-12 lg:gap-16">
-          <div className="lg:col-span-5">
+        {/*
+          A SHORT LEDGER DOES NOT GET A TWO-COLUMN SPREAD.
+
+          The split puts a ~320px heading block beside the list. When the list
+          is one row tall, the grid row is still the height of the heading, so
+          the ledger column carried a single entry above ~350px of nothing —
+          which two review passes read, reasonably, as "promises evidence and
+          shows one row" and "one stranded row above an empty column".
+
+          Below three verified entries the section stacks instead: heading,
+          then the ledger directly beneath it at reading width. Same content,
+          no void, and it grows into the two-column form on its own the moment
+          the owner verifies a third fact in the Keeper.
+        */}
+        <div
+          className={
+            verified.length >= 3
+              ? "grid gap-10 lg:grid-cols-12 lg:gap-16"
+              : "max-w-3xl"
+          }
+        >
+          <div className={verified.length >= 3 ? "lg:col-span-5" : ""}>
             {/*
               STICKY, LIKE EVERY OTHER SECTION WITH THIS SHAPE.
 
@@ -126,7 +146,7 @@ export function TrustEvidence() {
               reader that the blank slots below are deliberate rather than
               unfinished, and it used to scroll away before they reached them.
             */}
-            <div className="lg:sticky lg:top-32">
+            <div className={verified.length >= 3 ? "lg:sticky lg:top-32" : ""}>
               <Eyebrow className="mb-8 will-reveal">Evidence</Eyebrow>
               <h2
                 id="evidence-heading"
@@ -156,7 +176,7 @@ export function TrustEvidence() {
             Two or fewer entries get a column sized to them instead, so a short
             ledger reads as a short ledger rather than as a broken table.
           */}
-          <div className={verified.length <= 2 ? "lg:col-span-6" : "lg:col-span-7"}>
+          <div className={verified.length >= 3 ? "lg:col-span-7" : "mt-12"}>
             <dl className="border-t border-gold-antique/16">
               {/* Only rows somebody has actually verified. An empty ledger
                   would be a section with nothing to say — it collapses via the

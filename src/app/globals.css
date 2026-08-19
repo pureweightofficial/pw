@@ -744,20 +744,60 @@
      ::before on the section itself, so no markup changes and no section can
      adopt a material and forget the seam. z-index 0 with the section's own
      content above it; the materials already establish a stacking context. */
+  /* A CROSSFADE NEEDS BOTH HALVES.
+
+     The first version of this put a 140px gradient at each section's TOP,
+     running from 55% black down to transparent. At the seam itself that is a
+     step, not a blend: above the line there is no overlay at all, below it
+     there is 55% black, and the boundary announces itself as a hard band edge
+     — which is precisely what a review caught ("section-top blend gradient
+     begins with a hard visible band edge"), and it was arguably worse than the
+     butt joint it replaced.
+
+     Each section now carries the matching half at its BOTTOM, ramping up to
+     the same 55%. The two meet at equal density, so the seam is continuous and
+     the darkening falls away over 140px on either side of it. The page reads
+     as rooms opening into one another rather than as panels stacked. */
+  .mat-steel::before,
+  .mat-stone::before,
+  .mat-glass::before,
+  .mat-walnut::before,
+  .mat-bronze::before,
+  .mat-steel::after,
+  .mat-stone::after,
+  .mat-glass::after,
+  .mat-walnut::after,
+  .mat-bronze::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    height: 140px;
+    z-index: 0;
+    pointer-events: none;
+  }
+
   .mat-steel::before,
   .mat-stone::before,
   .mat-glass::before,
   .mat-walnut::before,
   .mat-bronze::before {
-    content: "";
-    position: absolute;
-    inset-inline: 0;
     top: 0;
-    height: 140px;
-    z-index: 0;
-    pointer-events: none;
     background: linear-gradient(
       to bottom,
+      rgba(7, 7, 7, 0.55) 0%,
+      rgba(7, 7, 7, 0.22) 45%,
+      transparent 100%
+    );
+  }
+
+  .mat-steel::after,
+  .mat-stone::after,
+  .mat-glass::after,
+  .mat-walnut::after,
+  .mat-bronze::after {
+    bottom: 0;
+    background: linear-gradient(
+      to top,
       rgba(7, 7, 7, 0.55) 0%,
       rgba(7, 7, 7, 0.22) 45%,
       transparent 100%
