@@ -58,6 +58,23 @@ export function ValuationJourney() {
         scrim="reveal-left"
         scene="specimen"
         sticky
+        /*
+          DESKTOP ONLY, and this is a mount guard rather than a style.
+
+          The specimen is composed into the grid's four-column left gutter,
+          and below `lg` that gutter does not exist — the stages take the full
+          width. At 390x844 the frame is 1.39 world units across, so an object
+          seated at x -1.5 is entirely outside it: the canvas mounted,
+          compiled shaders, and rendered a subject no phone could ever see.
+
+          `hidden lg:block` prevents the mount, it does not merely hide it.
+          SceneShell gates on useInViewport, a display:none host has a zero
+          box, IntersectionObserver reports it as not intersecting, and
+          shouldMount stays false — so no context is created and three.js is
+          never asked to do anything. Services uses the same idiom for the
+          same reason.
+        */
+        className="hidden lg:block"
       />
       <div className="shell">
         <div className="max-w-3xl">

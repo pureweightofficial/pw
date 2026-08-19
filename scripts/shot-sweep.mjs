@@ -92,18 +92,28 @@ function findChrome() {
   return null;
 }
 const browser = await chromium.launch({ executablePath: findChrome() });
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+/*
+  WIDTH IS AN ARGUMENT, because a design pass done only at 1440 is a design
+  pass done for one reader. Several of this page's compositions are explicitly
+  desktop-grid decisions (the specimen sits in a four-column gutter that does
+  not exist below lg), so the narrow read has to be looked at, not assumed.
+  Usage: npm run shot:sweep [page] [width]
+*/
+const WIDTH = Number(process.argv[3] || 1440);
+const HEIGHT = WIDTH < 700 ? 844 : 900;
+const page = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT } });
 
 const name = process.argv[2] || "home";
+const tag = WIDTH === 1440 ? "" : `-${WIDTH}`;
 const route = name === "home" ? "/" : `/${name}/`;
 await page.goto(`http://127.0.0.1:${port}/pw${route}`, { waitUntil: "load" });
 await page.waitForTimeout(name === "home" ? 7000 : 4000);
 
 let frame = 0;
 const pad = (n) => String(n).padStart(2, "0");
-await page.screenshot({ path: join(shots, `sweep-${name}-${pad(frame++)}.png`) });
+await page.screenshot({ path: join(shots, `sweep-${name}${tag}-${pad(frame++)}.png`) });
 
-const step = Math.round(900 * 0.85);
+const step = Math.round(HEIGHT * 0.85);
 for (;;) {
   const before = await page.evaluate(() => window.scrollY);
   let moved = 0;
@@ -115,9 +125,9 @@ for (;;) {
   await page.waitForTimeout(1400);
   const after = await page.evaluate(() => window.scrollY);
   if (after - before < 40) break; // bottom reached (Lenis settled short)
-  await page.screenshot({ path: join(shots, `sweep-${name}-${pad(frame++)}.png`) });
+  await page.screenshot({ path: join(shots, `sweep-${name}${tag}-${pad(frame++)}.png`) });
   if (frame > 40) break; // runaway guard
 }
-console.log(`${frame} frames -> .shots/sweep-${name}-*.png`);
+console.log(`${frame} frames -> .shots/sweep-${name}${tag}-*.png`);
 await browser.close();
 server.close();
