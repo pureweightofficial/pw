@@ -46,7 +46,7 @@ export function Insights() {
       id="insights"
       material="stone"
       labelledBy="insights-heading"
-      className="py-24 lg:py-36"
+      className="py-20 lg:py-28"
     >
       <div className="shell">
         <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">

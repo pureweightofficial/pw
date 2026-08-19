@@ -49,7 +49,7 @@ export function AssayExperience() {
       scrollSection="assay"
       material="glass"
       labelledBy="assay-heading"
-      className="py-24 lg:py-36"
+      className="py-20 lg:py-28"
     >
       <div className="shell">
         <div className="max-w-3xl">

@@ -24,7 +24,7 @@ export function TrustStatement() {
       id="trust"
       material="steel"
       labelledBy="trust-heading"
-      className="py-24 lg:py-36"
+      className="py-20 lg:py-28"
     >
       <AmbientGlow intensity="normal" placement="left" />
       <div className="shell">

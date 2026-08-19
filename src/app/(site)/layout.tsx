@@ -1,6 +1,7 @@
 import { Footer } from '@/components/chrome/Footer';
 import { Loader } from '@/components/chrome/Loader';
 import { Nav } from '@/components/chrome/Nav';
+import { PlumbLine } from '@/components/chrome/PlumbLine';
 import { SceneCursor } from '@/components/chrome/SceneCursor';
 import { MotionProvider } from '@/components/motion/MotionProvider';
 
@@ -32,6 +33,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       */}
       <Loader />
       <SceneCursor />
+      <PlumbLine />
       <div className="relative z-10">
         <Nav />
         <main id="main">{children}</main>

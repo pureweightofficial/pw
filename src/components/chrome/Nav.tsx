@@ -187,6 +187,15 @@ export function Nav() {
         <div
           className={`beam beam-fixed transition-opacity duration-500 ${scrolled ? "opacity-100" : "opacity-0"}`}
         />
+        {/* Content dissolves into the bar rather than being sliced by its
+            edge. Sits outside the <nav> and below the bar, so it covers the
+            page and never the navigation's own controls. */}
+        <div
+          aria-hidden="true"
+          className={`nav-fade pointer-events-none absolute inset-x-0 top-full transition-opacity duration-500 ${
+            scrolled ? "opacity-100" : "opacity-0"
+          }`}
+        />
       </header>
 
       {/* ---- Mobile panel ---- */}

@@ -89,7 +89,7 @@ export function TrustEvidence() {
       id="evidence"
       material="steel"
       labelledBy="evidence-heading"
-      className="py-24 lg:py-36"
+      className="py-20 lg:py-28"
     >
       <AmbientGlow intensity="soft" placement="left" />
       <div className="shell">

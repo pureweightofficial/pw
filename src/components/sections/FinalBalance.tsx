@@ -97,7 +97,7 @@ export function FinalBalance() {
           </p>
 
           <div className="mt-12 flex justify-center will-reveal">
-            <VisitCta />
+            <VisitCta crescendo />
           </div>
         </div>
       </div>

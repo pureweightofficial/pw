@@ -461,10 +461,25 @@
        effect was invisible. At 190px a crack lands every 17px and actually
        crosses the stroke. Fixed in px rather than %, so the crazing stays a
        property of the material instead of scaling with the type. */
+    /* 340px, up from 190px, and the reason is the opposite of the note above.
+
+       190px made the crazing land every 17px so it definitely crossed the
+       stroke - and at that density, on the two largest display lines on the
+       site, the tile itself became legible: four independent design reviews
+       described the hero and finale italics as "mottled repeating gold
+       texture", "blotchy light/dark tiling with visible pattern repeat", and
+       one named the effect exactly - "gold-foil WordArt", which is the most
+       common way a luxury page gives itself away.
+
+       At 340px a crack still crosses a 10px italic stem, but the repeat is
+       now longer than any word on the page, so what remains reads as
+       variation in the material rather than as a texture applied to it. The
+       blend is softened for the same reason: multiply at full strength was
+       carving hard dark notches out of the letterforms. */
     background-size:
-      190px 190px,
+      340px 340px,
       100% 100%;
-    background-blend-mode: multiply, normal;
+    background-blend-mode: soft-light, normal;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -668,6 +683,18 @@
     transform: none;
   }
 
+  /* A FULCRUM ONLY BELONGS UNDER A BEAM THAT TILTS.
+
+     The navigation's underline reuses .beam for the motif, and inherited its
+     ::before fulcrum notch - a 4px triangle pinned under the centre of a bar
+     that never moves. On every screenshot of every page it read as a stray
+     caret hanging off the navigation, which is exactly how a design review
+     filed it. The motif is the hairline; the notch is the part that means
+     "this thing pivots". */
+  .beam-fixed::before {
+    content: none;
+  }
+
   .beam::before {
     /* Fulcrum: a small struck triangle sitting under the beam's centre. */
     content: "";
@@ -680,6 +707,61 @@
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
     border-top: 6px solid rgba(185, 130, 32, 0.5);
+  }
+
+  /* THE BAR'S FADE.
+
+     A fixed opaque bar cuts whatever scrolls under it on a hard horizontal
+     line - mid-word, mid-glyph, mid-image. That slice is one of the loudest
+     "this is a template" signals a page can give, and it is what a review
+     meant by "opaque fixed nav decapitates content with no scrim or mask".
+
+     This is a short gradient hung BELOW the bar, in the page's own void, so
+     copy dissolves into the chrome across ~34px instead of being guillotined
+     by it. It is pointer-events:none and aria-hidden: purely optical, and it
+     never intercepts a click meant for the content beneath. */
+  .nav-fade {
+    height: 34px;
+    background: linear-gradient(
+      to bottom,
+      var(--color-void) 0%,
+      rgba(7, 7, 7, 0.72) 34%,
+      rgba(7, 7, 7, 0.28) 68%,
+      transparent 100%
+    );
+  }
+
+  /* SEAMS BETWEEN CHAPTERS.
+
+     Every section is a named material, and adjacent materials differ by a few
+     percent of luminance — which is the intent (rooms of one dark building,
+     not one flat black page). What was not intended is that they meet on a
+     hard horizontal line across the full width: a review caught it as "chapter
+     transitions are hard seams", and named the exact viewport where the
+     background "abruptly shifts from near-black to a browner tone".
+
+     Every material gets a short blend at its top edge instead. It is a
+     ::before on the section itself, so no markup changes and no section can
+     adopt a material and forget the seam. z-index 0 with the section's own
+     content above it; the materials already establish a stacking context. */
+  .mat-steel::before,
+  .mat-stone::before,
+  .mat-glass::before,
+  .mat-walnut::before,
+  .mat-bronze::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 140px;
+    z-index: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgba(7, 7, 7, 0.55) 0%,
+      rgba(7, 7, 7, 0.22) 45%,
+      transparent 100%
+    );
   }
 
   /* ------------------------------------------------------------------ */
@@ -744,6 +826,48 @@
       color var(--dur-quick) var(--ease-settle),
       border-color var(--dur-quick) var(--ease-settle),
       box-shadow var(--dur-quick) var(--ease-settle);
+  }
+
+  /* THE CRESCENDO, used exactly once.
+
+     The same outlined button appeared five times down this page - navigation,
+     hero, mid-page, story, finale - so the closing ask, which is the whole
+     point of the scroll, was styled identically to a link in the header. A
+     review put it plainly: "the ask is styled like a secondary link" and
+     "one flat CTA repeated five times, no escalation".
+
+     This is the outlined button's solid twin: struck gold, dark type, high
+     contrast against the near-black finale. It is deliberately NOT a general
+     variant - it belongs to the last section, and a second one anywhere on
+     the page would cost the first one its meaning. */
+  .btn-crescendo {
+    color: #241703;
+    background: linear-gradient(168deg, #f5d98a 0%, #d9a833 52%, #b98220 100%);
+    border-color: rgba(255, 233, 168, 0.55);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 246, 223, 0.65),
+      inset 0 -2px 0 rgba(84, 55, 8, 0.45),
+      0 10px 34px -14px rgba(217, 168, 61, 0.55);
+  }
+
+  .btn-crescendo:hover {
+    color: #1a1002;
+    border-color: rgba(255, 246, 223, 0.9);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 246, 223, 0.8),
+      inset 0 -2px 0 rgba(84, 55, 8, 0.5),
+      0 16px 46px -14px rgba(242, 206, 114, 0.7);
+  }
+
+  /* The sheen is a light pass over dark metal; over a lit face it has to be
+     brighter still or it reads as a smudge travelling across the button. */
+  .btn-crescendo::before {
+    background: linear-gradient(
+      100deg,
+      transparent 34%,
+      rgba(255, 255, 255, 0.42) 50%,
+      transparent 66%
+    );
   }
 
   .btn-primary::before {

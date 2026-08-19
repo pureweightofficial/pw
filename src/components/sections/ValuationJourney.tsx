@@ -35,7 +35,7 @@ export function ValuationJourney() {
       scrollSection="journey"
       material="stone"
       labelledBy="journey-heading"
-      className="py-24 lg:py-36"
+      className="py-20 lg:py-28"
     >
       {/* THE LEFT COLUMN is the empty one — 4 columns holding a small
           indicator at the top, then nothing for the height of four stages,

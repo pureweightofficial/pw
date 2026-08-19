@@ -41,6 +41,12 @@ export type VisitCtaProps = {
   /** Extra classes for the wrapper — usually alignment. */
   className?: string;
   /**
+   * The page's single loudest ask. Struck-gold face instead of the outlined
+   * one, for the closing section only — see `.btn-crescendo`. Passing this a
+   * second time on the same page costs the first one its meaning.
+   */
+  crescendo?: boolean;
+  /**
    * Suppresses the secondary action. Used where the surrounding block already
    * carries the address, so a "find the shop" link would point at itself.
    */
@@ -50,6 +56,7 @@ export type VisitCtaProps = {
 export function VisitCta({
   className = "",
   primaryOnly = false,
+  crescendo = false,
 }: VisitCtaProps) {
   const phone = business.telephone;
   const callable = isVerified(phone);
@@ -61,12 +68,19 @@ export function VisitCta({
       {callable ? (
         <CTA
           href={`tel:${String(phone.value).replace(/[^+\d]/g, "")}`}
-          className="w-full justify-center sm:w-auto"
+          className={`w-full justify-center sm:w-auto ${
+            crescendo ? "btn-crescendo" : ""
+          }`}
         >
           Call {phone.value}
         </CTA>
       ) : (
-        <CTA href="/contact" className="w-full justify-center sm:w-auto">
+        <CTA
+          href="/contact"
+          className={`w-full justify-center sm:w-auto ${
+            crescendo ? "btn-crescendo" : ""
+          }`}
+        >
           Visit Our Shop
         </CTA>
       )}

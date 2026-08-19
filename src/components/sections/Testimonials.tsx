@@ -54,7 +54,7 @@ export function Testimonials() {
       id="testimonials"
       material="glass"
       labelledBy="testimonials-heading"
-      className="py-24 lg:py-36"
+      className="py-20 lg:py-28"
     >
       <div className="shell-narrow text-center">
         <Eyebrow align="center" className="mb-8 will-reveal">

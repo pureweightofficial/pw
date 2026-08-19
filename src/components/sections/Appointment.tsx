@@ -68,7 +68,7 @@ export function Appointment() {
       id="appointment"
       material="bronze"
       labelledBy="appointment-heading"
-      className="py-24 lg:py-36"
+      className="py-20 lg:py-28"
     >
       <SectionScene variant="ingots" />
       <AmbientGlow intensity="soft" placement="right" />

@@ -19,6 +19,27 @@
  * together moved it by roughly one frame. The firefly field had been charging
  * that price for months without anyone measuring it.
  *
+ * WHAT IT LATER CLEARED. When the journey scene's canvas became one viewport
+ * tall and STICKY, the obvious worry was that this re-introduced exactly the
+ * full-viewport canvas the numbers above condemn. Interleaved A/B/A/B on one
+ * machine within minutes, both variants served simultaneously on separate
+ * ports so neither could be measured against a stale server:
+ *
+ *     A  sticky (viewport-tall canvas)     31.8fps, 30.9fps
+ *     B  absolute (section-tall canvas)    29.1fps, 29.0fps
+ *
+ * Sticky is FASTER, and the reason is geometric rather than clever: the
+ * section is ~2,015px tall and the viewport is 900px, so the sticky canvas
+ * rasterises well under half the pixels of the absolute one it replaced. The
+ * 43fps penalty above belongs to a FIXED canvas the whole document composites
+ * over, not to a canvas that merely fills the screen.
+ *
+ * (The first attempt at this A/B was invalid and is worth remembering: the
+ * per-run server was started and killed around each measurement, the kill did
+ * not take, and every subsequent run silently hit the still-running first
+ * server. Four numbers, all of variant A, all agreeing beautifully. Serve both
+ * variants at once on separate ports and assert they differ before measuring.)
+ *
  * Run it against production or a local `next start`. Note that `next start`
  * reads .next at BOOT — rebuilding underneath a running server measures the
  * old build, which cost an hour here before it was noticed.
