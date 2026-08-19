@@ -88,7 +88,11 @@ export function VisitCta({
       {primaryOnly ? null : (
         <CTA href="/contact" variant="ghost" magnetic={false}>
           {callable ? "Find the shop" : "Opening hours & directions"}
-          <span aria-hidden="true" className="text-gold-antique">
+          {/* ml-1 is not decoration. The label carries tracking-[0.24em], which
+              adds a trailing letter-space the eye does not read as a space, so
+              an arrow set immediately after it appears welded to the final
+              glyph. */}
+          <span aria-hidden="true" className="ml-1 text-gold-antique">
             →
           </span>
         </CTA>

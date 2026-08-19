@@ -124,7 +124,14 @@ export function Insights() {
                 </h3>
               </div>
 
-              <span className="label-ash text-[0.6rem]">Read the article →</span>
+              <span className="label-ash text-[0.6rem]">
+                Read the article
+                {/* Spaced, not welded — the label's own letter-spacing already
+                    puts a phantom gap after "article" that the eye discounts. */}
+                <span aria-hidden="true" className="ml-1.5">
+                  →
+                </span>
+              </span>
             </Link>
             </li>
           ))}

@@ -65,12 +65,28 @@ export function WhyPureweight() {
         </div>
 
         {/* 2 x 2 on tablet, 4 across on desktop. Was md:grid-cols-3, which left a
-            lone orphan on the second row once the pillars went from three to four. */}
-        <div className="mt-20 grid gap-16 sm:grid-cols-2 sm:gap-10 lg:mt-28 lg:grid-cols-4 lg:gap-12">
+            lone orphan on the second row once the pillars went from three to four.
+
+            THE ROWS ARE SHARED, VIA SUBGRID, and that is what fixes the drift
+            a design review caught as "value-prop row baselines misaligned".
+            The four titles do not all wrap the same way — "Weighed in front of
+            you" takes two lines, "The working is shown" takes two, "No
+            obligation, ever" takes two, "Measured against the market" takes
+            three — so with each card laying itself out independently, every
+            body paragraph started at a different height and the row read as
+            four separate components that happened to be adjacent.
+
+            Each card spans three rows of the parent grid (medallion, title,
+            body) and inherits those tracks with `grid-template-rows: subgrid`.
+            The tallest title in the row now sets the title track for all four,
+            so the bodies share one baseline no matter how the titles wrap —
+            without a magic min-height that would need re-measuring every time
+            the copy changes. */}
+        <div className="mt-20 grid gap-16 sm:grid-cols-2 sm:gap-10 lg:mt-28 lg:grid-cols-4 lg:gap-12 lg:grid-rows-[auto_auto_1fr]">
           {pillars.map((pillar, index) => (
             <article
               key={pillar.title}
-              className="group flex flex-col items-center text-center"
+              className="group flex flex-col items-center text-center lg:grid lg:row-span-3 lg:grid-rows-subgrid lg:justify-items-center lg:gap-0"
             >
               <div className="will-reveal">
                 <Medallion index={index} label={pillar.title} />
