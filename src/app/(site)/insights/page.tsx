@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Eyebrow, Section } from '@/components/ui/primitives';
-import { allowIndexing, insightTopics } from '@/lib/site';
+import { allowIndexing } from '@/lib/site';
 import { pageMetadata } from '@/lib/seo';
 import { publishedArticles } from '@/lib/insights';
 
@@ -94,39 +94,13 @@ export default function InsightsPage() {
           </div>
         ) : null}
 
-        <div className="mt-14 inset-panel max-w-3xl p-8">
-          <p className="label mb-4">Editorial status</p>
-          <p className="text-sm leading-relaxed text-ivory/72">
-            Articles are written and published by Pureweight through the site&apos;s own panel.
-            The topics below are planned but not yet written — nothing appears here until it has
-            been authored and approved by the business.
-          </p>
-        </div>
-
-        <ul className="mt-16 grid gap-px overflow-hidden border border-gold-antique/14 bg-gold-antique/14 sm:grid-cols-2">
-          {insightTopics.map((topic, index) => (
-            <li key={topic.title} className="flex flex-col justify-between gap-8 bg-char p-8 lg:p-10">
-              <div>
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-[0.58rem] tracking-[0.22em] text-gold-antique uppercase">
-                    {topic.category}
-                  </span>
-                  <span className="font-display text-2xl text-gold-antique/75">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                </div>
-                <h2 className="mt-6 font-display text-2xl leading-tight text-ivory lg:text-3xl">
-                  {topic.title}
-                </h2>
-              </div>
-
-              <span className="inline-flex items-center gap-2 self-start border border-dashed border-gold-antique/30 px-2.5 py-1 text-[0.56rem] tracking-[0.16em] text-gold-antique uppercase">
-                <span aria-hidden="true">◇</span>
-                Article pending
-              </span>
-            </li>
-          ))}
-        </ul>
+        {/*
+          The "Editorial status" panel and the planned-topics grid ("Article
+          pending" x8) lived here. Retired with the placeholder chips: a page
+          that lists what it has not written is advertising its gaps. Published
+          articles render above; the trade-standard definitions below give the
+          page real content on day one.
+        */}
 
         {/*
           One thing worth reading, available today. These are trade-standard

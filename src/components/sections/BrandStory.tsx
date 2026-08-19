@@ -4,8 +4,8 @@ import {
   BeamDivider,
   Eyebrow,
   Fact,
-  Placeholder,
   Section,
+  WhenVerified,
 } from "@/components/ui/primitives";
 import { brand, business } from "@/lib/site";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
@@ -81,7 +81,6 @@ export function BrandStory() {
                   the fineness is shown, and the reasoning behind the figure is
                   explained before any decision is asked for.
                 </p>
-                <Placeholder label="[INSERT VERIFIED FOUNDING STORY]" />
               </section>
 
               <section className="will-reveal">
@@ -92,12 +91,14 @@ export function BrandStory() {
                   — which is exactly why it is the right place to start a
                   conversation about value.
                 </p>
-                <div className="mt-6">
-                  <p className="label-ash mb-2 text-[0.58rem]">
-                    Weighing and assay equipment
-                  </p>
-                  <Fact field={business.weighingEquipment} />
-                </div>
+                <WhenVerified field={business.weighingEquipment}>
+                  <div className="mt-6">
+                    <p className="label-ash mb-2 text-[0.58rem]">
+                      Weighing and assay equipment
+                    </p>
+                    <Fact field={business.weighingEquipment} />
+                  </div>
+                </WhenVerified>
               </section>
 
               <section className="will-reveal">
@@ -113,22 +114,28 @@ export function BrandStory() {
 
               <section className="will-reveal">
                 <h3 className="label mb-5">From the founder</h3>
-                <blockquote className="border-l border-gold-antique/35 pl-7">
-                  <Placeholder label="[INSERT FOUNDER MESSAGE]" />
-                </blockquote>
+                <WhenVerified field={business.founderMessage}>
+                  <blockquote className="border-l border-gold-antique/35 pl-7">
+                    <Fact field={business.founderMessage} />
+                  </blockquote>
+                </WhenVerified>
                 <div className="mt-6 flex flex-wrap gap-x-10 gap-y-4">
-                  <div>
-                    <p className="label-ash mb-2 text-[0.58rem]">
-                      Year established
-                    </p>
-                    <Fact field={business.yearEstablished} />
-                  </div>
-                  <div>
-                    <p className="label-ash mb-2 text-[0.58rem]">
-                      Service area
-                    </p>
-                    <Fact field={business.serviceArea} />
-                  </div>
+                  <WhenVerified field={business.yearEstablished}>
+                    <div>
+                      <p className="label-ash mb-2 text-[0.58rem]">
+                        Year established
+                      </p>
+                      <Fact field={business.yearEstablished} />
+                    </div>
+                  </WhenVerified>
+                  <WhenVerified field={business.serviceArea}>
+                    <div>
+                      <p className="label-ash mb-2 text-[0.58rem]">
+                        Service area
+                      </p>
+                      <Fact field={business.serviceArea} />
+                    </div>
+                  </WhenVerified>
                 </div>
               </section>
             </div>

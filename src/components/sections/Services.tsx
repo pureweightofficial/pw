@@ -175,12 +175,14 @@ export function Services() {
                 {/* --- Copy ---------------------------------------- */}
                 <div className="lg:col-span-7">
                   <div className="will-reveal">
-                    {!service.confirmed ? (
-                      <p className="mb-5 inline-flex items-center gap-2 border border-dashed border-gold-antique/35 bg-gold-antique/5 px-3 py-1.5 text-[0.62rem] tracking-[0.16em] text-gold-antique uppercase">
-                        <span aria-hidden="true">◇</span>
-                        Placeholder — pending client confirmation
-                      </p>
-                    ) : null}
+{/*
+                      The "pending client confirmation" chip rendered here for
+                      unconfirmed services. Hide-until-verified retired the
+                      chip language site-wide: unconfirmed detail simply is not
+                      spoken. The `confirmed` flag stays in the content schema
+                      — the Keeper still shows the owner which services carry
+                      unconfirmed copy.
+                    */}
 
                     <h3 className="font-display text-4xl text-ivory lg:text-5xl">
                       {service.title}

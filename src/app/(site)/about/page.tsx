@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Eyebrow, Fact, Placeholder, Section } from '@/components/ui/primitives';
-import { brand, business, isVerified } from '@/lib/site';
+import { Eyebrow, Fact, Section, WhenVerified } from '@/components/ui/primitives';
+import { brand, business } from '@/lib/site';
 import { pageMetadata } from '@/lib/seo';
 
 /**
@@ -115,40 +115,23 @@ export default function AboutPage() {
 
           {/* ----- Verified-facts block: real when confirmed, honest when not ----- */}
           <div className="mt-16 space-y-10 border-t border-gold-antique/16 pt-12">
-            <div>
-              <h2 className="label mb-4">In the founder&apos;s words</h2>
-              {isVerified(business.founderMessage) ? (
+            <WhenVerified field={business.founderMessage}>
+              <div>
+                <h2 className="label mb-4">In the founder&apos;s words</h2>
                 <p className="text-lead text-ivory/72">
                   <Fact field={business.founderMessage} />
                 </p>
-              ) : (
-                <>
-                  <Placeholder label="[INSERT FOUNDER MESSAGE]" />
-                  <p className="mt-2 text-xs leading-relaxed text-ash">
-                    A message in the founder&apos;s own words, published once
-                    the founder has written and approved it — not before.
-                  </p>
-                </>
-              )}
-            </div>
+              </div>
+            </WhenVerified>
 
-            <div>
-              <h2 className="label mb-4">The founding story</h2>
-              {isVerified(business.foundingStory) ? (
+            <WhenVerified field={business.foundingStory}>
+              <div>
+                <h2 className="label mb-4">The founding story</h2>
                 <p className="text-lead text-ivory/72">
                   <Fact field={business.foundingStory} />
                 </p>
-              ) : (
-                <>
-                  <Placeholder label="[INSERT VERIFIED FOUNDING STORY]" />
-                  <p className="mt-2 text-xs leading-relaxed text-ash">
-                    When and why the business was founded, as confirmed by the
-                    business. An invented origin story would undermine every
-                    other claim on this site.
-                  </p>
-                </>
-              )}
-            </div>
+              </div>
+            </WhenVerified>
 
             <div>
               <h2 className="label mb-4">Where to find us</h2>

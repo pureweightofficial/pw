@@ -22,35 +22,28 @@ import { isVerified, type Verifiable } from "@/lib/site";
  * omission is how a missing licence number turns into a page that quietly
  * implies there is one.
  */
-export function Placeholder({
-  label,
-  inline = false,
+/**
+ * Renders children only when the field is verified. The row-level partner of
+ * Fact's silence: a dt label above a Fact that renders nothing is an orphaned
+ * label, so the whole row hides together.
+ *
+ * (The Placeholder chip component lived here until the hide-until-verified
+ * policy retired it from the public site. Dead code that looks live is a trap
+ * this repo has documented three times, so it is gone, not parked; the chip's
+ * job — showing the owner what is missing — belongs to the Keeper.)
+ */
+export function WhenVerified<T>({
+  field,
+  children,
 }: {
-  label: string;
-  inline?: boolean;
+  field: Verifiable<T>;
+  children: ReactNode;
 }) {
-  const Tag = inline ? "span" : "p";
-
-  return (
-    <Tag
-      className={[
-        "inline-flex items-center gap-2 border border-dashed border-gold-antique/35",
-        "bg-gold-antique/5 px-3 py-1.5 font-sans text-[0.66rem] tracking-[0.14em]",
-        "text-gold-antique uppercase",
-        inline ? "" : "my-2",
-      ].join(" ")}
-      data-content-placeholder="true"
-    >
-      <span aria-hidden="true" className="text-gold-antique">
-        ◇
-      </span>
-      {label}
-    </Tag>
-  );
+  return isVerified(field) ? <>{children}</> : null;
 }
 
 /**
- * Renders a verified value, or its placeholder. The only sanctioned way to put
+ * Renders a verified value, or nothing. The only sanctioned way to put
  * a `Verifiable` on the page.
  */
 export function Fact<T extends ReactNode>({
@@ -71,7 +64,17 @@ export function Fact<T extends ReactNode>({
    */
   link?: "tel" | "mailto" | "map";
 }) {
-  if (!isVerified(field)) return <Placeholder label={field.label} inline />;
+  /*
+    UNVERIFIED RENDERS NOTHING — the overhaul's agreed policy, decided with the
+    owner. The visible [INSERT ...] chips were the right honesty for an
+    unindexed preview; on a public production site, absence is the honest AND
+    finished presentation: the site simply does not speak about what nobody has
+    confirmed. Nothing is invented either way — the Verifiable<T> rule is
+    untouched, and the Keeper's dashboard remains the ledger of every gap.
+    Layouts that would orphan a label around a silent Fact wrap the whole row
+    in <WhenVerified>.
+  */
+  if (!isVerified(field)) return null;
 
   if (link) {
     const raw = String(field.value);

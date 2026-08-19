@@ -1,6 +1,6 @@
 "use client";
 
-import { Eyebrow, Fact, Section } from "@/components/ui/primitives";
+import { Eyebrow, Fact, Section, WhenVerified } from "@/components/ui/primitives";
 import { VisitCta } from "@/components/ui/VisitCta";
 import { business } from "@/lib/site";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
@@ -123,39 +123,48 @@ export function Appointment() {
               <p className="label label-rule text-gold-antique">Our Shop</p>
 
               <dl className="mt-8 space-y-7">
-                {/* Each row is a real business fact or a visible gap. Nothing in
-                    here is a plausible-sounding stand-in. */}
-                <div>
-                  <dt className="label-ash mb-2 text-[0.58rem]">Address</dt>
-                  <dd className="text-lead leading-relaxed text-ivory/85">
-                    <Fact field={business.address} link="map" />
-                  </dd>
-                </div>
+                {/* Each row is a VERIFIED business fact; unverified rows are
+                    absent, label and all — hide-until-verified. Nothing here
+                    is ever a plausible-sounding stand-in. */}
+                <WhenVerified field={business.address}>
+                  <div>
+                    <dt className="label-ash mb-2 text-[0.58rem]">Address</dt>
+                    <dd className="text-lead leading-relaxed text-ivory/85">
+                      <Fact field={business.address} link="map" />
+                    </dd>
+                  </div>
+                </WhenVerified>
 
-                <div>
-                  <dt className="label-ash mb-2 text-[0.58rem]">
-                    Opening hours
-                  </dt>
-                  <dd className="text-sm leading-relaxed text-ivory/72">
-                    <Fact field={business.openingHours} />
-                  </dd>
-                </div>
+                <WhenVerified field={business.openingHours}>
+                  <div>
+                    <dt className="label-ash mb-2 text-[0.58rem]">
+                      Opening hours
+                    </dt>
+                    <dd className="text-sm leading-relaxed text-ivory/72">
+                      <Fact field={business.openingHours} />
+                    </dd>
+                  </div>
+                </WhenVerified>
 
-                <div>
-                  <dt className="label-ash mb-2 text-[0.58rem]">Telephone</dt>
-                  <dd className="text-sm leading-relaxed text-ivory/72">
-                    <Fact field={business.telephone} link="tel" />
-                  </dd>
-                </div>
+                <WhenVerified field={business.telephone}>
+                  <div>
+                    <dt className="label-ash mb-2 text-[0.58rem]">Telephone</dt>
+                    <dd className="text-sm leading-relaxed text-ivory/72">
+                      <Fact field={business.telephone} link="tel" />
+                    </dd>
+                  </div>
+                </WhenVerified>
 
-                <div>
-                  <dt className="label-ash mb-2 text-[0.58rem]">
-                    How you are paid
-                  </dt>
-                  <dd className="text-sm leading-relaxed text-ivory/72">
-                    <Fact field={business.settlementMethods} />
-                  </dd>
-                </div>
+                <WhenVerified field={business.settlementMethods}>
+                  <div>
+                    <dt className="label-ash mb-2 text-[0.58rem]">
+                      How you are paid
+                    </dt>
+                    <dd className="text-sm leading-relaxed text-ivory/72">
+                      <Fact field={business.settlementMethods} />
+                    </dd>
+                  </div>
+                </WhenVerified>
               </dl>
 
               <div className="mt-10 border-t border-gold-antique/16 pt-8">

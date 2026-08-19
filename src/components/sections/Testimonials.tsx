@@ -31,6 +31,19 @@ import { testimonials } from "@/lib/site";
 
 export function Testimonials() {
   const [index, setIndex] = useState(0);
+
+  /*
+    No testimonials, no section. The empty state used to show a blank quote
+    and a "Genuine client testimonial required" chip — honest for a preview,
+    but on the public site it is a section-sized admission with nothing for a
+    visitor. It returns with the first real testimonial from the Keeper, which
+    still refuses anonymous quotes and unverified promises.
+
+    The guard sits BELOW the hook: hooks must run in the same order every
+    render, and an early return above useState is a rules-of-hooks violation
+    the linter rightly rejected.
+  */
+  if (testimonials.length === 0) return null;
   const total = testimonials.length;
   const current = testimonials[index];
 

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { BeamDivider, Eyebrow, Placeholder, Section } from '@/components/ui/primitives';
+import { Eyebrow, Section } from '@/components/ui/primitives';
 import { pageMetadata } from '@/lib/seo';
 import faqContent from '@/content/faq.json';
 
@@ -31,7 +31,6 @@ export const metadata: Metadata = pageMetadata('faq', '/faq', {
  */
 
 type Answered = { question: string; answer: string };
-type Pending = { question: string; placeholder: string; note: string };
 
 /**
  * OWNER-EDITABLE, via the Keeper's FAQ tab. The general questions moved to
@@ -46,38 +45,6 @@ type Pending = { question: string; placeholder: string; note: string };
  */
 const general: Answered[] = faqContent.general;
 
-const businessSpecific: Pending[] = [
-  {
-    question: 'What identification do I need to bring?',
-    placeholder: '[INSERT CONFIRMED IDENTIFICATION REQUIREMENTS]',
-    note: 'Dealers in precious metals are commonly required to record customer identity. The exact documents accepted must be confirmed by the business.',
-  },
-  {
-    question: 'How is payment made, and when?',
-    placeholder: '[INSERT CONFIRMED SETTLEMENT / PAYMENT METHODS]',
-    note: 'Must state the actual methods offered and their timing. No same-day or instant-payment claim is made anywhere on this site until confirmed.',
-  },
-  {
-    question: 'Is there a charge for a valuation?',
-    placeholder: '[INSERT CONFIRMED VALUATION FEE POLICY]',
-    note: 'Must state plainly whether an assessment is free or chargeable, and under what conditions.',
-  },
-  {
-    question: 'How long does an assessment take?',
-    placeholder: '[INSERT CONFIRMED ASSESSMENT TIMEFRAME]',
-    note: 'No turnaround time is stated anywhere on this site until the business confirms one.',
-  },
-  {
-    question: 'Are my items insured while they are with you?',
-    placeholder: '[INSERT VERIFIED INSURANCE DETAILS]',
-    note: 'A cover claim must never be made without the policy behind it.',
-  },
-  {
-    question: 'Do I have to sell if I do not like the figure?',
-    placeholder: '[INSERT CONFIRMED NO-OBLIGATION POLICY]',
-    note: 'Almost certainly no obligation, but this is the business’s statement to make, not ours.',
-  },
-];
 
 export default function FaqPage() {
   // Structured data from the answered questions only.
@@ -132,30 +99,14 @@ export default function FaqPage() {
           </dl>
         </div>
 
-        <BeamDivider className="my-20 max-w-3xl" />
-
-        {/* --- Pending -------------------------------------------------- */}
-        <div className="max-w-3xl">
-          <h2 className="label mb-5">Working with Pureweight</h2>
-          <p className="mb-10 max-w-xl text-sm leading-relaxed text-ash">
-            These answers describe how this specific business operates, so they are left open
-            rather than assumed. Each is a commitment only Pureweight can make.
-          </p>
-
-          <dl className="border-t border-gold-antique/16">
-            {businessSpecific.map((item) => (
-              <div key={item.question} className="border-b border-gold-antique/12 py-8">
-                <dt className="font-display text-xl text-ivory lg:text-2xl">
-                  {item.question}
-                </dt>
-                <dd className="mt-4">
-                  <Placeholder label={item.placeholder} />
-                  <p className="mt-2 text-xs leading-relaxed text-ash">{item.note}</p>
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
+        {/*
+          The "Working with Pureweight" block lived here: business-specific
+          questions, each "answered" by a visible placeholder chip. Under
+          hide-until-verified, a public list of admittedly-unanswered questions
+          is exactly the advertising-of-gaps the policy removes — so the block
+          waits in the Keeper's business fields until real answers exist,
+          rather than on the page as a list of blanks.
+        */}
 
         <div className="mt-16 flex flex-wrap gap-4">
           <Link href="/contact" className="btn-primary">

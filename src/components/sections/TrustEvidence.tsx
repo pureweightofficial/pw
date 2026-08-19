@@ -1,5 +1,5 @@
 import { Eyebrow, Fact, Section } from "@/components/ui/primitives";
-import { business } from "@/lib/site";
+import { business, isVerified } from "@/lib/site";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
 
 /**
@@ -80,6 +80,10 @@ const evidence = [
 ] as const;
 
 export function TrustEvidence() {
+  // Hide-until-verified, section grade: with nothing verified there is no
+  // evidence to show, and an empty ledger reads worse than no ledger.
+  if (!evidence.some((item) => isVerified(item.field))) return null;
+
   return (
     <Section
       id="evidence"
@@ -132,7 +136,12 @@ export function TrustEvidence() {
 
           <div className="lg:col-span-7">
             <dl className="border-t border-gold-antique/16">
-              {evidence.map((item) => (
+              {/* Only rows somebody has actually verified. An empty ledger
+                  would be a section with nothing to say — it collapses via the
+                  shown-guard below rather than rendering a frame of absences. */}
+              {evidence
+                .filter((item) => isVerified(item.field))
+                .map((item) => (
                 <div
                   key={item.label}
                   className="grid gap-2 border-b border-gold-antique/12 py-6 will-reveal sm:grid-cols-5 sm:items-baseline sm:gap-6"

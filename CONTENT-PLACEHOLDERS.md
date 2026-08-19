@@ -1,16 +1,23 @@
-# Content Placeholders — What Must Be Supplied Before Launch
+# Content Gaps — What Must Be Supplied Before Launch
 
-Every item below renders on the live site as a **visible marked slot**, not as
-invented copy. Nothing in this build states a business fact that has not been
-verified.
+**POLICY CHANGE (2026-08-19, agreed with the owner): unverified facts are now
+HIDDEN from visitors, not shown as chips.** The visible `[INSERT …]` slots were
+the right honesty for an unindexed preview; on the public production site,
+absence is the honest *and* finished presentation. Rows, blocks and whole
+sections collapse when their facts are unverified (`<Fact>` renders nothing;
+`<WhenVerified>` hides the row; Testimonials, the evidence ledger and the
+Insights grids collapse entirely when empty).
 
-That is enforced in code, not by discipline: unverified fields are typed as
-`Verifiable<T>` in [`src/lib/site.ts`](src/lib/site.ts) and can only reach the
-page through the `<Fact>` component, which renders a placeholder chip when the
-field's status is `placeholder`. There is no code path that prints an
-unconfirmed value as fact.
+**Nothing about the truth rules changed.** Unverified fields are still typed
+`Verifiable<T>` in `src/lib/site.ts`, still cannot render as fact, and nothing
+on the site states a business fact nobody has verified. What changed is only
+what a VISITOR sees in place of a gap: nothing, instead of a labelled slot.
 
----
+**Where to see the gaps now:** the Keeper's dashboard (`/keeper`) lists every
+unverified field with its status, and this file remains the launch checklist.
+Fill a field in the Keeper and it appears on the site immediately; until then
+the site simply does not speak about it.
+
 
 ## 1. Brand assets — **highest priority**
 

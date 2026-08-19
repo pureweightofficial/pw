@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BeamDivider, Eyebrow, Fact, Section } from '@/components/ui/primitives';
-import { brand, business, structuredHours, type DayHours, type Verifiable } from '@/lib/site';
+import { brand, business, isVerified, structuredHours, type DayHours, type Verifiable } from '@/lib/site';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = pageMetadata('contact', '/contact', {
@@ -79,7 +79,11 @@ export default function ContactPage() {
 
           <div className="lg:col-span-7">
             <dl className="border-t border-gold-antique/16">
-              {details.map((item) => (
+              {/* Unverified rows are absent, label and all. A week block only
+                  exists once hours are verified, so it needs no extra guard. */}
+              {details
+                .filter((item) => item.week || isVerified(item.field))
+                .map((item) => (
                 <div
                   key={item.label}
                   className="grid gap-2 border-b border-gold-antique/12 py-7 sm:grid-cols-3 sm:items-baseline sm:gap-6"

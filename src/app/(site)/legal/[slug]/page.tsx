@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Eyebrow, Placeholder, Section } from '@/components/ui/primitives';
+import { Eyebrow, Section } from '@/components/ui/primitives';
 import { brand, canonicalPath, ogFor } from '@/lib/site';
 import { composeTitle } from '@/lib/content-schema';
 
@@ -143,7 +143,6 @@ export default async function LegalPage({ params }: { params: Promise<{ slug: st
                 {section.heading}
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-ash">{section.requirement}</p>
-              <Placeholder label={`[INSERT ${doc.title.toUpperCase()} — ${section.heading.toUpperCase()}]`} />
             </section>
           ))}
         </div>

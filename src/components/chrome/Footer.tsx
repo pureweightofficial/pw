@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
-import { Fact } from "@/components/ui/primitives";
+import { Fact, WhenVerified } from "@/components/ui/primitives";
 import { brand, business, primaryNav, services } from "@/lib/site";
 
 /**
@@ -44,10 +44,12 @@ export function Footer() {
               counter with the figure explained before anything is agreed.
             </p>
 
-            <div className="mt-7 space-y-2 text-sm text-ash">
-              <p className="label-ash mb-2 text-[0.6rem]">Social</p>
-              <Fact field={business.social} />
-            </div>
+            <WhenVerified field={business.social}>
+              <div className="mt-7 space-y-2 text-sm text-ash">
+                <p className="label-ash mb-2 text-[0.6rem]">Social</p>
+                <Fact field={business.social} />
+              </div>
+            </WhenVerified>
           </div>
 
           {/* --- Navigate ---------------------------------------------- */}
@@ -105,32 +107,40 @@ export function Footer() {
             <h2 className="label mb-5 text-[0.6rem]">Visit &amp; Contact</h2>
 
             <dl className="space-y-5 text-sm">
-              <div>
-                <dt className="label-ash mb-1.5 text-[0.58rem]">Address</dt>
-                <dd className="text-ivory/72">
-                  <Fact field={business.address} link="map" />
-                </dd>
-              </div>
-              <div>
-                <dt className="label-ash mb-1.5 text-[0.58rem]">
-                  Opening Hours
-                </dt>
-                <dd className="text-ivory/72">
-                  <Fact field={business.openingHours} />
-                </dd>
-              </div>
-              <div>
-                <dt className="label-ash mb-1.5 text-[0.58rem]">Telephone</dt>
-                <dd className="text-ivory/72">
-                  <Fact field={business.telephone} link="tel" />
-                </dd>
-              </div>
-              <div>
-                <dt className="label-ash mb-1.5 text-[0.58rem]">Email</dt>
-                <dd className="text-ivory/72">
-                  <Fact field={business.email} link="mailto" />
-                </dd>
-              </div>
+              <WhenVerified field={business.address}>
+                <div>
+                  <dt className="label-ash mb-1.5 text-[0.58rem]">Address</dt>
+                  <dd className="text-ivory/72">
+                    <Fact field={business.address} link="map" />
+                  </dd>
+                </div>
+              </WhenVerified>
+              <WhenVerified field={business.openingHours}>
+                <div>
+                  <dt className="label-ash mb-1.5 text-[0.58rem]">
+                    Opening Hours
+                  </dt>
+                  <dd className="text-ivory/72">
+                    <Fact field={business.openingHours} />
+                  </dd>
+                </div>
+              </WhenVerified>
+              <WhenVerified field={business.telephone}>
+                <div>
+                  <dt className="label-ash mb-1.5 text-[0.58rem]">Telephone</dt>
+                  <dd className="text-ivory/72">
+                    <Fact field={business.telephone} link="tel" />
+                  </dd>
+                </div>
+              </WhenVerified>
+              <WhenVerified field={business.email}>
+                <div>
+                  <dt className="label-ash mb-1.5 text-[0.58rem]">Email</dt>
+                  <dd className="text-ivory/72">
+                    <Fact field={business.email} link="mailto" />
+                  </dd>
+                </div>
+              </WhenVerified>
             </dl>
           </div>
         </div>
@@ -140,8 +150,11 @@ export function Footer() {
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-3 text-xs leading-relaxed text-ash">
               <p>
-                © {year} {brand.name}. Registered business details:{" "}
-                <Fact field={business.registrationNumber} />
+                © {year} {brand.name}.
+                <WhenVerified field={business.registrationNumber}>
+                  {" "}Registered business details:{" "}
+                  <Fact field={business.registrationNumber} />
+                </WhenVerified>
               </p>
               {/* This sentence has now been wrong in BOTH directions: it once
                   claimed the site showed no rates while a market panel was live,

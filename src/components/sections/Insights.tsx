@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Eyebrow, Section } from "@/components/ui/primitives";
-import { insightTopics } from "@/lib/site";
+import { publishedArticles } from "@/lib/insights";
 
 /**
  * INSIGHTS
@@ -18,6 +18,17 @@ import { insightTopics } from "@/lib/site";
  */
 
 export function Insights() {
+  /*
+    HIDE-UNTIL-VERIFIED, editorial grade. This section used to typeset four
+    PLANNED topics, each stamped "Article pending" — a grid of things the site
+    admits it has not done, on the homepage. The policy that removed the
+    [INSERT ...] chips removes these for the same reason: absence is finished;
+    a promise is a gap wearing a frame. The section returns when the first
+    real article is published through the Keeper.
+  */
+  const published = publishedArticles();
+  if (published.length === 0) return null;
+
   return (
     <Section
       id="insights"
@@ -54,32 +65,28 @@ export function Insights() {
         </div>
 
         <ul className="mt-16 grid gap-px overflow-hidden border border-gold-antique/14 bg-gold-antique/14 sm:grid-cols-2 lg:grid-cols-4">
-          {insightTopics.slice(0, 4).map((topic, index) => (
-            <li key={topic.title} className="bg-char">
-              <Link
-                href="/insights"
-                className="group flex h-full flex-col justify-between gap-10 p-8 transition-colors duration-500 hover:bg-iron/60 will-reveal"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-[0.58rem] tracking-[0.22em] text-gold-antique uppercase">
-                      {topic.category}
-                    </span>
-                    <span className="font-display text-2xl text-gold-antique/75">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                  </div>
-
-                  <h3 className="mt-7 font-display text-2xl leading-tight text-ivory transition-colors duration-500 group-hover:text-gold-high">
-                    {topic.title}
-                  </h3>
+          {published.slice(0, 4).map((article, index) => (
+            <li key={article.slug} className="flex">
+            <Link
+              href={`/insights/${article.slug}`}
+              className="group flex flex-col justify-between gap-10 bg-char p-8 transition-colors duration-500 hover:bg-gunmetal lg:p-10"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-[0.58rem] tracking-[0.22em] text-gold-antique uppercase">
+                    {article.tags[0] ?? "Insight"}
+                  </span>
+                  <span className="font-display text-2xl text-gold-antique/75">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
                 </div>
+                <h3 className="mt-7 font-display text-2xl leading-tight text-ivory transition-colors duration-500 group-hover:text-gold-high">
+                  {article.title}
+                </h3>
+              </div>
 
-                <span className="inline-flex items-center gap-2 self-start border border-dashed border-gold-antique/30 px-2.5 py-1 text-[0.56rem] tracking-[0.16em] text-gold-antique uppercase">
-                  <span aria-hidden="true">◇</span>
-                  Article pending
-                </span>
-              </Link>
+              <span className="label-ash text-[0.6rem]">Read the article →</span>
+            </Link>
             </li>
           ))}
         </ul>

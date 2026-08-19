@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useSceneGate } from "@/lib/scene-gate";
 import { ScalePoster } from "@/components/webgl/posters";
-import { Eyebrow, Fact, Section } from "@/components/ui/primitives";
+import { Eyebrow, Fact, Section, WhenVerified } from "@/components/ui/primitives";
 import { assayFactors, business } from "@/lib/site";
 import { opener } from "@/lib/copy";
 
@@ -134,12 +134,14 @@ export function AssayExperience() {
                 item can only be established by Pureweight, in person, after the
                 item has been weighed and examined.
               </p>
-              <div className="mt-5">
-                <p className="label-ash mb-2 text-[0.58rem]">
-                  Market reference source
-                </p>
-                <Fact field={business.priceReferenceSource} />
-              </div>
+              <WhenVerified field={business.priceReferenceSource}>
+                <div className="mt-5">
+                  <p className="label-ash mb-2 text-[0.58rem]">
+                    Market reference source
+                  </p>
+                  <Fact field={business.priceReferenceSource} />
+                </div>
+              </WhenVerified>
             </div>
           </div>
         </div>
