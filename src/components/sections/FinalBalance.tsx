@@ -1,9 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useSceneGate } from "@/lib/scene-gate";
 import { VisitCta } from "@/components/ui/VisitCta";
-import { ScalePoster } from "@/components/webgl/ScalePoster";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
 import { opener } from "@/lib/copy";
 
@@ -28,15 +25,8 @@ const copy = opener("finale", {
  * on screen.
  */
 
-const FinaleCanvas = dynamic(
-  () => import("@/components/webgl/canvases").then((m) => m.FinaleCanvas),
-  { ssr: false, loading: () => <ScalePoster /> },
-);
 
 export function FinalBalance() {
-  // Decided before the renderer is imported — see lib/scene-gate.
-  const gate = useSceneGate();
-
   return (
     <section
       id="finale"
@@ -58,16 +48,32 @@ export function FinalBalance() {
         portion, which leaves a deliberate lower band for the instrument to
         stand in complete.
       */
-      className="relative isolate flex min-h-screen items-start overflow-hidden bg-void pt-[16vh] pb-24"
+      /*
+        Centred again. The upper-anchored layout with 16vh of top padding
+        existed to leave a lower band for the instrument to stand in; with the
+        instrument retired that band is just a hole, and the copy belongs in
+        the middle of the section it owns.
+      */
+      className="relative isolate flex min-h-[92svh] items-center overflow-hidden bg-void py-24 lg:min-h-screen"
     >
       <AmbientGlow intensity="warm" placement="centre" />
-      <div
-        className="vignette absolute inset-0 -z-10"
-        aria-hidden="true"
-        data-webgl-surface
-      >
-        {gate === "canvas" ? <FinaleCanvas /> : <ScalePoster />}
-      </div>
+      {/*
+        THE CLOSING BALANCE IS GONE.
+
+        A procedural scale stood here, and it was the section's whole payoff —
+        composed by arithmetic into the clear band below the copy after two
+        earlier framings failed. The owner's verdict on it, seeing it on a real
+        window rather than the 1440x900 this was tuned against: an unreal item.
+        And they were looking at a genuine bug as well as a judgement — at
+        shorter viewport heights the beam ran straight through the CTA row,
+        crossing "Opening hours & directions" with a bar of brass. The
+        composition was only ever correct at one window size.
+
+        What replaces it is not nothing. The persistent world renders behind
+        this section like every other (see (site)/layout.tsx), so the finale
+        closes on moving gold — one object, the page's own, rather than a
+        second instrument staged on top of it.
+      */}
 
       {/*
         THE SCRIM WAS BLACKING OUT THE ONE THING THE SECTION IS FOR.
@@ -86,30 +92,18 @@ export function FinalBalance() {
         middle value, so the copy keeps the contrast it had — the change is
         entirely in what happens outside the text block.
       */}
+      {/*
+        A gentle centre weight, not the tight ellipse that used to protect the
+        copy from the instrument's key light. With only the world behind this
+        section, the copy needs the same modest help every other section's
+        copy gets — and check:scene-contrast measures it either way.
+      */}
       <div
         aria-hidden="true"
         className="absolute inset-0 -z-10"
         style={{
-          /*
-            SCOPED TO THE COPY, NOT FULL-BLEED.
-
-            The previous version was an improvement on the one before it — a
-            band rather than a bottom-heavy ramp — but it still ran the full
-            width of the section at rgba(3,3,3,0.78) across the middle, and the
-            instrument sits inside that band's lower edge. So the scene was
-            still being rendered into a 78%-black veil, and a review reading
-            the page cold still recorded the finale as the darkest moment on it:
-            dimmer than the hero, dimmer than the medallions, dimmer than the
-            footer logo.
-
-            An ellipse centred on the copy protects exactly what needs
-            protecting — the headline, the lead and the CTA — and leaves the
-            rest of the frame clean for the balance. Copy contrast is measured
-            by scripts/check-section-scene-contrast.mjs, which samples the real
-            text boxes; the instrument is now outside every one of them.
-          */
           background:
-            "radial-gradient(ellipse 62% 42% at 50% 30%, rgba(3,3,3,0.88) 0%, rgba(3,3,3,0.8) 55%, rgba(3,3,3,0.34) 80%, rgba(3,3,3,0.06) 100%)",
+            "radial-gradient(ellipse 78% 60% at 50% 50%, rgba(3,3,3,0.72) 0%, rgba(3,3,3,0.5) 60%, rgba(3,3,3,0.12) 100%)",
         }}
       />
 

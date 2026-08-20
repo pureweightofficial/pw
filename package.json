@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "check:geometry": "node --experimental-strip-types scripts/check-geometry.mjs",
     "check:content": "node scripts/check-content.mjs",
-    "verify": "npm run check:content && npm run typecheck && npm run lint && npm run check:geometry && npm run check:contrast && npm run check:budget",
+    "verify": "npm run check:secrets && npm run check:content && npm run typecheck && npm run lint && npm run check:contrast && npm run check:budget",
     "check:contrast": "node scripts/check-contrast.mjs",
     "check:budget": "node --experimental-strip-types scripts/check-budget.mjs",
     "make:craquelure": "node scripts/make-craquelure.mjs",
@@ -31,7 +31,8 @@
     "shot:scene": "node scripts/shot-scene.mjs",
     "check:prose": "node scripts/check-prose.mjs",
     "check:voids": "node scripts/check-voids.mjs",
-    "check:keeper-door": "node scripts/check-keeper-door.mjs"
+    "check:keeper-door": "node scripts/check-keeper-door.mjs",
+    "check:secrets": "node scripts/check-secrets.mjs"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.3.6",

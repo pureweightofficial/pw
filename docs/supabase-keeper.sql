@@ -142,6 +142,18 @@ on conflict (user_id) do nothing;
 -- Store the GitHub token the panel commits with. This is the same
 -- fine-grained token the old sign-in screen asked you to paste: it needs
 -- Contents: Read and write on pureweightofficial/pw, and nothing else.
+--
+-- ###########################################################################
+-- #  DO NOT SAVE THE FILE WITH YOUR REAL TOKEN IN IT.                       #
+-- #                                                                         #
+-- #  This happened once. The token was pasted here, the file was saved, and #
+-- #  the next commit swept it up; GitHub's push protection rejected the      #
+-- #  push, which is the only reason it never reached a public repository.    #
+-- #                                                                         #
+-- #  Paste the token into the SUPABASE SQL EDITOR, not into this file. If    #
+-- #  you did edit the file, put REPLACE_WITH_GITHUB_PAT back before you      #
+-- #  save it — `npm run check:secrets` will tell you if you forgot.          #
+-- ###########################################################################
 insert into public.keeper_secrets (id, value)
 values ('github_token', 'REPLACE_WITH_GITHUB_PAT')
 on conflict (id) do update

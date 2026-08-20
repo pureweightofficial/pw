@@ -10,25 +10,15 @@
  * (a mid-range phone at the 'low' quality tier).
  */
 
+/*
+  Two builders, where there were nineteen. The rest belonged to the balance
+  scale and the signet — scenes that have been retired — and importing them
+  here would have kept this gate printing a confident triangle budget for
+  models that never reach a screen.
+*/
 import {
-  beamGeometry,
-  chainLinkGeometry,
-  columnGeometry,
-  finialGeometry,
-  fulcrumGeometry,
-  graduationFaceGeometry,
-  graduationPlateGeometry,
-  ingotGeometry,
-  panGeometry,
-  plinthBandGeometry,
-  plinthGeometry,
-  pointerGeometry,
-  sealBandGeometry,
-  sealBlockGeometry,
-  signetFaceGeometry,
-  signetRingGeometry,
-  stampPlaneGeometry,
-  suspensionEyeGeometry,
+  goldMassGeometry,
+  weighPlatformGeometry,
 } from '../src/components/webgl/geometry.ts';
 import * as THREE from 'three';
 
@@ -37,35 +27,34 @@ const tris = (geo) => {
   return g.index ? g.index.count / 3 : g.attributes.position.count / 3;
 };
 
-/** [label, triangles, instanceCount, drawCalls] */
-const HERO = [
-  ['plinth', tris(plinthGeometry), 1, 1],
-  ['plinth band', tris(plinthBandGeometry), 1, 1],
-  ['plinth reveal torus', tris(new THREE.TorusGeometry(0.6, 0.0085, 8, 72)), 1, 1],
-  ['column', tris(columnGeometry), 1, 1],
-  ['column collars (3)', tris(new THREE.TorusGeometry(0.236, 0.0125, 8, 48)) * 3, 1, 3],
-  ['graduation plate', tris(graduationPlateGeometry), 1, 1],
-  ['graduation face', tris(graduationFaceGeometry), 1, 1],
-  ['plate bracket', tris(new THREE.BoxGeometry(0.052, 0.02, 0.16)), 1, 1],
-  ['fulcrum', tris(fulcrumGeometry), 1, 1],
-  ['beam', tris(beamGeometry), 1, 1],
-  ['beam boss', tris(new THREE.TorusGeometry(0.072, 0.019, 10, 32)), 1, 1],
-  ['finial', tris(finialGeometry), 1, 1],
-  ['pointer + boss', tris(pointerGeometry) + tris(new THREE.CylinderGeometry(0.021, 0.021, 0.31, 16)), 1, 2],
-  // --- per hanger, ×2 ---
-  ['suspension eyes (2)', tris(suspensionEyeGeometry) * 2, 1, 2],
-  ['chains (2 × 30 links, instanced)', tris(chainLinkGeometry) * 30 * 2, 60, 2],
-  ['pans (2)', tris(panGeometry) * 2, 1, 2],
-  ['pan rims (2)', tris(new THREE.CylinderGeometry(0.537, 0.537, 0.026, 64, 1, true)) * 2, 1, 2],
-  ['bullion (3 bars + stamp)', tris(ingotGeometry) * 3 + tris(stampPlaneGeometry), 1, 4],
-  ['seal block + bands + seal', tris(sealBlockGeometry) + tris(sealBandGeometry) * 2 + tris(new THREE.CylinderGeometry(0.052, 0.056, 0.016, 28)) + tris(new THREE.TorusGeometry(0.038, 0.005, 8, 28)), 1, 5],
-];
+/*
+  WHAT THIS MEASURED BEFORE, AND WHY IT HAD TO CHANGE.
 
-const ASSAY = [
-  ['signet ring', tris(signetRingGeometry), 1, 1],
-  ['signet bezel', tris(signetFaceGeometry), 1, 1],
-  ['caliper ring', tris(new THREE.TorusGeometry(0.78, 0.0035, 6, 128)), 1, 1],
-  ['measurement ticks (instanced)', tris(new THREE.PlaneGeometry(0.012, 0.05)) * 48, 48, 1],
+  Two tables lived here: HERO / FINALE (every part of the procedural balance
+  scale) and ASSAY (the signet ring). Both scenes were retired when the owner
+  reviewed them on a real window and called them unreal items, and the
+  persistent world took over the job they were doing.
+
+  The gate kept passing afterwards, and that was the problem: it printed a
+  confident triangle budget for geometry that no longer reaches a screen. A
+  gate measuring deleted work is not neutral, it is a false reassurance — the
+  same class of fault as the stale-build screenshots and the a11y check that
+  hard-coded a base path, both recorded elsewhere in this directory.
+
+  So it measures what ships now, which is one thing: the world.
+*/
+
+/** [label, triangles, instanceCount, drawCalls] */
+const WORLD = [
+  ['gold mass', tris(goldMassGeometry), 1, 1],
+  ['weigh platform', tris(weighPlatformGeometry), 1, 1],
+  /* The room the mass reflects. More segments than a shell needs
+     geometrically, but it is what the environment samples and a coarse one
+     bands visibly in the gradient behind the object. */
+  ['room shell', tris(new THREE.SphereGeometry(1, 48, 32)), 1, 1],
+  /* Dust is a single points draw whatever the count. The figure is the high
+     tier's; lib/capability gives lower tiers fewer. */
+  ['dust motes (points, high tier)', 0, 260, 1],
 ];
 
 const report = (name, rows, budget) => {
@@ -91,21 +80,27 @@ const report = (name, rows, budget) => {
 
 console.log('\nSCENE BUDGET — procedural geometry, measured not estimated');
 
-// A mid-range phone comfortably handles ~150k tris and ~100 draw calls at 60fps.
-// We aim well under, because this runs behind text that must stay readable.
-const heroOk = report('HERO / FINALE', HERO, { tris: 150_000, calls: 60 });
-const assayOk = report('ASSAY', ASSAY, { tris: 60_000, calls: 20 });
+/*
+  TIGHTER THAN THE OLD BUDGET (60k against 150k), deliberately. The retired
+  scenes were windowed: they drew inside a section, only while that section
+  was near the viewport. The world is fixed behind the whole document and
+  draws for the life of the page, so its geometry is paid for continuously.
+  Measured cost of having it at all: about ten frames of scroll smoothness
+  (scripts/check-perf.mjs). There is no headroom here to spend casually.
+*/
+const worldOk = report('THE PERSISTENT WORLD', WORLD, { tris: 60_000, calls: 12 });
 
 /* --- Texture memory ----------------------------------------------------- */
 // Procedural canvas maps, uploaded as RGBA8. Mipmaps add ~33%.
+/*
+  Only maps something on screen actually samples. The hallmark normal, the
+  ingot stamp and the graduations belonged to the signet and the balance and
+  went with them; listing them would have overstated VRAM by ~3MB and, worse,
+  implied those scenes were still around.
+*/
 const MAPS = [
-  ['gold roughness', 512],
-  ['iron roughness', 512],
-  ['iron normal', 512],
-  ['engraving normal', 512],
-  ['hallmark normal', 512],
-  ['ingot stamp normal', 512],
-  ['graduations', 512],
+  ['cast gold roughness', 512],
+  ['cast gold normal', 512],
   ['dust sprite', 64],
 ];
 
@@ -118,4 +113,4 @@ console.log(`   ${(bytes / 1024 / 1024).toFixed(1)} MB VRAM (RGBA8 + mipmaps), 0
 console.log(`   + ${((256 * 256 * 8 * 6) / 1024 / 1024).toFixed(1)} MB environment cubemap (256², RGBA16F)`);
 
 console.log('');
-process.exit(heroOk && assayOk ? 0 : 1);
+process.exit(worldOk ? 0 : 1);

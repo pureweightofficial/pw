@@ -1,4 +1,24 @@
 /**
+ * NOT IN `npm run verify` ANY MORE — and the reason matters more than the fact.
+ *
+ * This audits the procedural balance scale, which is no longer mounted
+ * anywhere: the closing scene that drew it was retired at the owner's request
+ * and BalanceScale.tsx went with it. The geometry BUILDERS survive in
+ * geometry.ts, so every assertion below still runs and still passes — which is
+ * exactly why it had to leave the gate suite. Thirteen green checks on a model
+ * that never reaches a screen is a gate manufacturing confidence, and this
+ * directory has been bitten more than once by instruments reporting on things
+ * that are not there.
+ *
+ * It is kept rather than deleted because it is the audit that made that model
+ * trustworthy in the first place — every clipping bug it lists was real. If
+ * the balance is ever mounted again, run this first and put it back in
+ * `verify` at the same time.
+ *
+ *     node scripts/check-geometry.mjs
+ *
+ * ---------------------------------------------------------------------------
+ *
  * Spatial audit of the balance scale.
  *
  * I cannot see the render, so instead of guessing I load the real geometry and

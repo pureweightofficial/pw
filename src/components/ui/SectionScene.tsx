@@ -39,10 +39,6 @@ const AmbientCanvas = dynamic(
   { ssr: false },
 );
 
-const SpecimenCanvas = dynamic(
-  () => import("@/components/webgl/canvases").then((m) => m.SpecimenCanvas),
-  { ssr: false },
-);
 
 export type SectionSceneProps = {
   variant: AmbientVariant;
@@ -59,13 +55,13 @@ export type SectionSceneProps = {
   scrim?: "veil" | "reveal" | "reveal-left";
   /** Which scroll channel drives the parallax. Defaults to page progress. */
   channel?: "progress" | "journey" | "assay" | "finale";
-  /**
-   * Which scene fills the window. "ambient" is atmosphere behind copy;
-   * "specimen" is the presented gold mass — the windowed-WebGL architecture's
-   * first content scene, for the one slot whose layout genuinely presents an
-   * object.
-   */
-  scene?: "ambient" | "specimen";
+  /*
+    The `scene` prop is gone. It chose between "ambient" atmosphere and the
+    "specimen" — a presented gold mass — and the specimen was retired with the
+    windowed architecture: the persistent world now carries that object behind
+    every page, so a second copy of it inside one section was the same object
+    twice. What remains here is atmosphere, and there is only one kind.
+  */
   /**
    * STICKY: the canvas is one viewport tall and HOLDS at the top of the screen
    * while the section scrolls past it, instead of being a section-tall canvas
@@ -92,7 +88,6 @@ export function SectionScene({
   variant,
   channel,
   scrim = "veil",
-  scene = "ambient",
   sticky = false,
   className = "",
 }: SectionSceneProps) {
@@ -170,9 +165,7 @@ export function SectionScene({
       } ${className}`}
     >
       <div className={stickyFrame}>
-        {gate === "canvas" && scene === "specimen" ? (
-          <SpecimenCanvas />
-        ) : gate === "canvas" && !ambientStoodDown ? (
+        {gate === "canvas" && !ambientStoodDown ? (
           <AmbientCanvas variant={variant} channel={channel} />
         ) : (
           <AmbientPoster />

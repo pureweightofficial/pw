@@ -1,8 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useSceneGate } from "@/lib/scene-gate";
-import { ScalePoster } from "@/components/webgl/posters";
 import { Eyebrow, Fact, Section, WhenVerified } from "@/components/ui/primitives";
 import { assayFactors, business } from "@/lib/site";
 import { opener } from "@/lib/copy";
@@ -34,15 +31,8 @@ const copy = opener("assay", {
  * the text, and the canvas is `aria-hidden`.
  */
 
-const AssayCanvas = dynamic(
-  () => import("@/components/webgl/canvases").then((m) => m.AssayCanvas),
-  { ssr: false },
-);
 
 export function AssayExperience() {
-  // Decided before the renderer is imported — see lib/scene-gate.
-  const gate = useSceneGate();
-
   return (
     <Section
       id="assay"
@@ -52,40 +42,42 @@ export function AssayExperience() {
       className="py-20 lg:py-28"
     >
       <div className="shell">
-        <div className="max-w-3xl">
-          <Eyebrow className="mb-8 will-reveal">{copy.eyebrow}</Eyebrow>
-          <h2
-            id="assay-heading"
-            className="font-display text-chapter text-ivory will-reveal"
-          >
-            {copy.heading}
-            <br />
-            <span className="accent-italic text-gold-high/90">
-              {copy.accent}
-            </span>
-          </h2>
-          <p className="mt-7 max-w-xl text-lead text-ash will-reveal">
-            {copy.lead}
-          </p>
-        </div>
+        {/*
+          THE SIGNET RENDER IS GONE, and the caption with it.
 
+          A procedural ring sat here under a caption promising "a millesimal
+          fineness mark of 916". It never earned that sentence. Two rounds of
+          material work — moving it off the near-mirror roughness maps, tripling
+          the normal detail, clamping its yaw so it could not turn edge-on —
+          made it better metal and still left it reading, in the owner's words,
+          as an unreal item: a glowing torus rather than a piece of jewellery
+          you could imagine holding. On the one section whose whole argument is
+          "value is measured, not guessed", a picture nobody believes is worse
+          than no picture.
+
+          The persistent world behind the page now carries the gold presence
+          (see (site)/layout.tsx), so removing this leaves the section lit
+          rather than bare — and one fewer full canvas rendering on top of it.
+
+          The heading moved into this column so it is not empty space. That is
+          the same short-column/long-column pattern the story and evidence
+          sections use.
+        */}
         <div className="mt-16 grid gap-14 lg:mt-20 lg:grid-cols-12 lg:gap-16">
-          {/* --- The subject ----------------------------------------- */}
           <div className="lg:col-span-5">
-            <div className="sticky top-28">
-              <div
-                className="vignette relative aspect-square w-full overflow-hidden border border-gold-antique/16 bg-void"
-                aria-hidden="true"
-                data-webgl-surface
-                data-webgl-label="Inspect"
+            <div className="lg:sticky lg:top-28">
+              <Eyebrow className="mb-8 will-reveal">{copy.eyebrow}</Eyebrow>
+              <h2
+                id="assay-heading"
+                className="font-display text-chapter text-ivory will-reveal"
               >
-                {gate === "canvas" ? <AssayCanvas /> : <ScalePoster />}
-              </div>
-              <p className="mt-5 text-xs leading-relaxed text-ash">
-                Illustrative only. The piece shown carries a millesimal fineness
-                mark of 916, the trade standard figure for 22 carat. It does not
-                represent a specific item or a specific valuation.
-              </p>
+                {copy.heading}
+                <br />
+                <span className="accent-italic text-gold-high/90">
+                  {copy.accent}
+                </span>
+              </h2>
+              <p className="mt-7 text-lead text-ash will-reveal">{copy.lead}</p>
             </div>
           </div>
 
