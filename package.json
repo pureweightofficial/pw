@@ -30,7 +30,8 @@
     "shot:sweep": "node scripts/shot-sweep.mjs",
     "shot:scene": "node scripts/shot-scene.mjs",
     "check:prose": "node scripts/check-prose.mjs",
-    "check:voids": "node scripts/check-voids.mjs"
+    "check:voids": "node scripts/check-voids.mjs",
+    "check:keeper-door": "node scripts/check-keeper-door.mjs"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.3.6",
