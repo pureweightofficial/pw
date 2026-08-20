@@ -126,23 +126,81 @@ const signup = await fetch(`${supaUrl}/auth/v1/signup`, {
   method: "POST",
   headers: { apikey: anonKey, "content-type": "application/json" },
   body: JSON.stringify({
-    // .invalid is reserved (RFC 2606): can never receive mail, clearly a probe.
-    email: `door-check-${Date.now()}@keeper-probe.invalid`,
+    /*
+      A PLAUSIBLE DOMAIN, because the point is to reach the sign-up POLICY.
+
+      Two earlier attempts never got that far. "@keeper-probe.invalid" and
+      "@example.com" are both RFC 2606 reserved — correct instinct, wrong
+      result: Supabase rejects each as malformed before it ever consults
+      whether sign-ups are enabled, and the script read that 400 as "closed".
+      It would have certified a locked door on a project standing wide open.
+
+      So the address is now shaped like a real one. It is unmistakably a probe
+      and the domain is not registered, so nothing can be delivered to it.
+    */
+    email: `keeper-door-probe-${Date.now()}@pw-security-probe.com`,
     password: `probe-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   }),
 });
 
 const signupBody = await signup.json().catch(() => ({}));
 
+/*
+  Distinguish "refused the sign-up" from "refused the address". A 400 whose
+  message is about the email being invalid is the probe's own fault and proves
+  nothing either way — say so rather than banking it as a pass.
+*/
+const msg = `${signupBody.msg || signupBody.error_description || signupBody.message || ""}`;
+
+/*
+  READ THE ACTUAL SIGNAL, do not infer from the status code.
+
+  Supabase says something specific when the policy is what refused you —
+  "Signups not allowed for this instance". That sentence is the only thing
+  that proves the door is shut. A bare 400 could equally mean the address was
+  malformed, the password was too short, or a rate limit was hit, and treating
+  any of those as a pass is how a security check becomes decoration.
+
+  Three outcomes, named honestly: OPEN (a user was created), CLOSED (the
+  policy said so), or INCONCLUSIVE (anything else) — and inconclusive is
+  reported as a failure, because "we did not find out" must never look like
+  "we checked and it was fine".
+*/
+const signupsClosed = /signups?\s+(are\s+)?not\s+allowed|signups?\s+disabled/i.test(msg);
+
 if (signup.ok && (signupBody.id || signupBody.user?.id)) {
   failures.push(
     "SIGN-UPS ARE OPEN: the probe just created a user. Delete it " +
-    "(Authentication -> Users, the @keeper-probe.invalid address) and disable " +
+    "(Authentication -> Users, the @pw-security-probe.com address) and disable " +
     '"Allow new users to sign up" under Sign In / Providers -> Email.',
   );
+} else if (/rate limit/i.test(msg)) {
+  /*
+    A rate limit on the EMAIL step is not a neutral outcome — it is evidence
+    the other way. Supabase checks its disable_signup policy before it ever
+    tries to send a confirmation, so a reply about email quota means the
+    sign-up was ACCEPTED and only the mail failed. A project with sign-ups
+    switched off answers "Signups not allowed for this instance" immediately
+    and never reaches the mailer.
+  */
+  failures.push(
+    `SIGN-UPS APPEAR TO BE OPEN: the API answered "${msg}" — a limit on ` +
+    "SENDING THE CONFIRMATION EMAIL, which Supabase only reaches after it has " +
+    "accepted the sign-up. A project with sign-ups disabled refuses before " +
+    "that, with \"Signups not allowed for this instance\". Turn them off: " +
+    "Authentication -> Sign In / Providers -> Email -> \"Allow new users to " +
+    "sign up\" OFF. Then check Authentication -> Users for any " +
+    "@pw-security-probe.com account and delete it.",
+  );
+} else if (signupsClosed) {
+  console.log(`  signup: refused by policy — "${msg}"`);
 } else {
-  console.log(
-    `  signup: HTTP ${signup.status}${signupBody.msg ? ` — ${signupBody.msg}` : signupBody.error_description ? ` — ${signupBody.error_description}` : ""} — closed`,
+  failures.push(
+    `SIGN-UP CHECK INCONCLUSIVE: HTTP ${signup.status}${msg ? ` — "${msg}"` : ""}. ` +
+    "That is not Supabase's \"signups not allowed\" message, so this run does " +
+    "NOT prove sign-ups are closed — it may have been refused for some other " +
+    "reason. Confirm by hand: Authentication -> Sign In / Providers -> Email " +
+    "-> \"Allow new users to sign up\" must be OFF.",
   );
 }
 
