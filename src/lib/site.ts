@@ -319,6 +319,14 @@ export const journey = [
 /* -------------------------------------------------------------------------- */
 
 export type Service = {
+  /*
+    The stable slug — "jewellery", "silver", "coins", "bullion". It already
+    existed on SERVICE_SKELETON and was being dropped on the way out, so
+    consumers had no way to link to a specific service. The footer needs it to
+    deep-link into /what-we-buy#<id> instead of pointing all four of its
+    service links at one homepage anchor.
+  */
+  id: (typeof SERVICE_IDS)[number];
   index: string;
   title: string;
   summary: string;
@@ -425,6 +433,7 @@ export const services: readonly Service[] = SERVICE_SKELETON.map((skeleton) => {
     skeleton.id
   ];
   return {
+    id: skeleton.id,
     index: skeleton.index,
     title: skeleton.title,
     summary: editable.summary,

@@ -38,7 +38,20 @@ export default function robots(): MetadataRoute.Robots {
          * absence from results matters more than their contents; this one has
          * no contents.
          */
-        disallow: ['/api/', '/keeper/'],
+        /*
+          BOTH SPELLINGS OF THE KEEPER, and that is not belt-and-braces.
+
+          robots.txt matches on a literal path prefix, so '/keeper/' matches
+          '/keeper/anything' and does NOT match '/keeper' — which is exactly
+          the URL the production host serves, because the Vercel build has no
+          trailing slash. The rule was a no-op on the only deployment that
+          matters, while reading as though the admin panel were covered.
+
+          '/api/' is kept although no API routes exist today: it costs one
+          line and it means a future route is disallowed by default rather
+          than by remembering.
+        */
+        disallow: ['/api/', '/keeper', '/keeper/'],
       },
     ],
     sitemap: `${base}/sitemap.xml`,

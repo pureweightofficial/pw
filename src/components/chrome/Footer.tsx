@@ -84,7 +84,18 @@ export function Footer() {
               {services.map((service) => (
                 <li key={service.title} className="flex items-baseline gap-2">
                   <Link
-                    href={`/#services`}
+                    /*
+                      DEEP LINKS, NOT FOUR LINKS TO ONE ANCHOR.
+
+                      All four of these pointed at `/#services` — the same
+                      homepage anchor — while /what-we-buy exists, runs to
+                      800+ words, and sits in the sitemap at priority 0.9.
+                      The anchor text here ("Gold Jewellery", "Silver",
+                      "Coins", "Bars & Bullion") is precisely the text that
+                      page wants pointing at it, and it was being spent on a
+                      URL that already ranks for everything else.
+                    */
+                    href={`/what-we-buy#${service.id}`}
                     className="text-sm text-ivory/72 transition-colors duration-300 hover:text-gold-high"
                   >
                     {service.title}

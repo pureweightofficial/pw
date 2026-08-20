@@ -42,7 +42,7 @@ export default function WhatWeBuyPage() {
           </p>
 
           <div className="article-body mt-14">
-            <h2>Gold jewellery — in any condition</h2>
+            <h2 id="jewellery" style={{ scrollMarginTop: "calc(var(--nav-h) + 2rem)" }}>Gold jewellery — in any condition</h2>
             <p>
               Jewellery is what most people actually own: chains, rings,
               bracelets, earrings, pendants, and the drawer of odds and ends
@@ -72,7 +72,7 @@ export default function WhatWeBuyPage() {
               patina that matters. Bring items exactly as they are.
             </p>
 
-            <h2>Silver — hallmarked, continental, and plate</h2>
+            <h2 id="silver" style={{ scrollMarginTop: "calc(var(--nav-h) + 2rem)" }}>Silver — hallmarked, continental, and plate</h2>
             <p>
               Silver is weighed and assessed on the same basis as gold, against
               its own market price. The pieces that carry real value are solid
@@ -93,7 +93,7 @@ export default function WhatWeBuyPage() {
               difference is part of the assessment, not your homework.
             </p>
 
-            <h2>Coins — weighed once, considered twice</h2>
+            <h2 id="coins" style={{ scrollMarginTop: "calc(var(--nav-h) + 2rem)" }}>Coins — weighed once, considered twice</h2>
             <p>
               Precious-metal coins are looked at in two distinct ways, and the
               difference can be worth real money to you. The first reading is
@@ -114,7 +114,7 @@ export default function WhatWeBuyPage() {
               inherited coins should never be priced as scrap by default.
             </p>
 
-            <h2>Bars and bullion — the stamp is checked, not trusted</h2>
+            <h2 id="bullion" style={{ scrollMarginTop: "calc(var(--nav-h) + 2rem)" }}>Bars and bullion — the stamp is checked, not trusted</h2>
             <p>
               Investment bars, from one-gram minted wafers to cast kilobars,
               state their own weight and fineness on their face, usually with

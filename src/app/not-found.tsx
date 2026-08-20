@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Logo } from '@/components/brand/Logo';
 import { Eyebrow } from '@/components/ui/primitives';
@@ -8,6 +9,32 @@ import { Eyebrow } from '@/components/ui/primitives';
  * Written as an out-of-balance state rather than an error page, so even the
  * failure mode stays inside the brand's language.
  */
+/**
+ * THE 404 WAS IMPERSONATING THE HOMEPAGE.
+ *
+ * With no metadata of its own it inherited the root layout's, so every
+ * not-found response carried the homepage's <title>, its meta description, its
+ * og:title and og:url, and a `rel="canonical"` pointing at
+ * https://pureweight.gold/ — telling a crawler that a broken URL IS the
+ * homepage. Once indexing is enabled it would have inherited `index: true`
+ * as well, and any mistyped or stale link shared anywhere becomes a
+ * duplicate-content candidate that claims to be the front page.
+ *
+ * `canonical: null` is the documented way to suppress an inherited canonical
+ * in Next's Metadata API rather than to point it somewhere else — a 404 is
+ * not a canonical version of anything, including itself.
+ */
+export const metadata: Metadata = {
+  // Bare — the root layout's title template appends the brand name.
+  title: "Page not found",
+  description:
+    "This page does not exist. The shop, what we buy and how a valuation works are all one link away.",
+  alternates: { canonical: null },
+  // Never indexable, whatever the site-wide indexing switch says.
+  robots: { index: false, follow: true },
+  openGraph: { title: "Page not found", url: undefined },
+};
+
 export default function NotFound() {
   return (
     <section className="mat-stone grain relative flex min-h-[80svh] items-center py-32">
