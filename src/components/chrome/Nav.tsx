@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, m, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -21,6 +22,18 @@ import { brand, navCta, primaryNav } from "@/lib/site";
  * on the active route, the mobile panel as a focus-trapped dialog that returns
  * focus on close, and a valuation CTA that is reachable at every breakpoint
  * without opening a menu.
+ *
+ * THE PANEL IS THE SITE'S ONE FRAMER MOTION SURFACE, and it is here because it
+ * is the one thing GSAP could not reasonably own. The panel used to toggle on
+ * the `hidden` attribute: it appeared and vanished on a single frame, with no
+ * transition at all, on a site whose every other surface eases over 500-1500ms.
+ * It was the least considered moment on the phone experience.
+ *
+ * An exit animation needs the element to stay mounted after React has decided
+ * it should go, which is exactly the problem AnimatePresence exists to solve
+ * and exactly the problem a scroll-driven timeline library does not address.
+ * GSAP keeps everything scroll-linked — the reveals, the parallax, and the
+ * channels the WebGL scenes read; see MotionProvider. The two do not overlap.
  */
 
 export function Nav() {
@@ -29,6 +42,13 @@ export function Nav() {
 
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  /*
+    The site's motion discipline, not Framer's default. `useReducedMotion`
+    reads the same media query MotionProvider does, and every variant below
+    collapses to a plain opacity change when it is set — the panel still
+    arrives and still leaves, it simply does not travel.
+  */
+  const reduced = useReducedMotion();
 
   useScrollLock(menuOpen);
   const panelRef = useFocusTrap<HTMLDivElement>(menuOpen);
@@ -199,13 +219,30 @@ export function Nav() {
       </header>
 
       {/* ---- Mobile panel ---- */}
-      <div
+      {/*
+        AnimatePresence keeps the panel mounted through its exit, which is the
+        whole reason it is here. `hidden={!menuOpen}` is gone: the attribute
+        both hid the panel and removed it from the accessibility tree, so
+        there was nothing to animate out of and nothing to animate into.
+        Conditional mounting does the same job and lets the exit run.
+      */}
+      <AnimatePresence>
+        {menuOpen ? (
+      <m.div
         id="pw-mobile-menu"
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label="Site menu"
-        hidden={!menuOpen}
+        initial={reduced ? { opacity: 0 } : { opacity: 0, y: -18 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={reduced ? { opacity: 0 } : { opacity: 0, y: -12 }}
+        transition={{
+          // The site's own settle curve, the one every CSS transition here
+          // uses: cubic-bezier(0.16, 1, 0.3, 1).
+          duration: reduced ? 0.2 : 0.55,
+          ease: [0.16, 1, 0.3, 1],
+        }}
         className="fixed inset-0 z-40 flex flex-col bg-void/97 backdrop-blur-lg lg:hidden"
       >
         {/* The dialog's own close control — INSIDE the aria-modal region and the
@@ -236,9 +273,37 @@ export function Nav() {
         </div>
 
         <div className="shell flex flex-1 flex-col justify-between overflow-y-auto pb-10 pt-8">
-          <ul className="flex flex-col">
+          {/*
+            The links arrive after the panel, one behind the next. A stagger is
+            the cheapest way to make an overlay read as composed rather than
+            dumped — and it is a genuine chore by hand, which is most of why
+            this menu had no motion at all before.
+          */}
+          <m.ul
+            className="flex flex-col"
+            initial="hidden"
+            animate="shown"
+            variants={{
+              shown: {
+                transition: { staggerChildren: reduced ? 0 : 0.055, delayChildren: 0.12 },
+              },
+            }}
+          >
             {primaryNav.map((item, index) => (
-              <li key={item.href} className="border-b border-gold-antique/12">
+              <m.li
+                key={item.href}
+                className="border-b border-gold-antique/12"
+                variants={{
+                  hidden: reduced
+                    ? { opacity: 0 }
+                    : { opacity: 0, y: 14 },
+                  shown: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: reduced ? 0.2 : 0.5, ease: [0.16, 1, 0.3, 1] },
+                  },
+                }}
+              >
                 <Link
                   href={item.href}
                   onClick={(e) => handleNavClick(e, item.href)}
@@ -249,9 +314,9 @@ export function Nav() {
                   </span>
                   {item.label}
                 </Link>
-              </li>
+              </m.li>
             ))}
-          </ul>
+          </m.ul>
 
           <div className="mt-10 flex flex-col gap-5">
             <Link
@@ -268,7 +333,9 @@ export function Nav() {
             </div>
           </div>
         </div>
-      </div>
+      </m.div>
+        ) : null}
+      </AnimatePresence>
     </>
   );
 }

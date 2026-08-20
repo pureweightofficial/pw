@@ -85,74 +85,21 @@ export function useDocumentVisible(): boolean {
   return visible;
 }
 
-/**
- * Very light magnetic attraction for primary CTAs.
- *
- * Capped at 6px of travel — enough that the button feels weighted and physical,
- * far short of the elastic bouncing that reads as a template. Disabled entirely
- * for coarse pointers and reduced motion.
- */
-export function useMagnetic<T extends HTMLElement>(strength = 6) {
-  const ref = useRef<T | null>(null);
+/*
+  useMagnetic lived here: a requestAnimationFrame loop easing toward the cursor
+  with `current += (target - current) * 0.14`, applied through a ref.
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+  It is GONE rather than parked, because dead code that looks live is a trap
+  this repo has documented several times — the obvious way to "restore" a
+  magnetic button would have been to reach for this again, re-introducing a
+  second, differently-tuned implementation alongside the real one.
 
-    const fine = window.matchMedia('(pointer: fine)').matches;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!fine || reduced) return;
-
-    let raf = 0;
-    let targetX = 0;
-    let targetY = 0;
-    let currentX = 0;
-    let currentY = 0;
-
-    const tick = () => {
-      currentX += (targetX - currentX) * 0.14;
-      currentY += (targetY - currentY) * 0.14;
-      el.style.transform = `translate3d(${currentX.toFixed(2)}px, ${currentY.toFixed(2)}px, 0)`;
-
-      if (Math.abs(targetX - currentX) > 0.05 || Math.abs(targetY - currentY) > 0.05) {
-        raf = requestAnimationFrame(tick);
-      } else {
-        raf = 0;
-      }
-    };
-
-    const start = () => {
-      if (!raf) raf = requestAnimationFrame(tick);
-    };
-
-    const onMove = (e: PointerEvent) => {
-      const rect = el.getBoundingClientRect();
-      const dx = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
-      const dy = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
-      targetX = Math.max(-1, Math.min(1, dx)) * strength;
-      targetY = Math.max(-1, Math.min(1, dy)) * strength;
-      start();
-    };
-
-    const onLeave = () => {
-      targetX = 0;
-      targetY = 0;
-      start();
-    };
-
-    el.addEventListener('pointermove', onMove);
-    el.addEventListener('pointerleave', onLeave);
-
-    return () => {
-      el.removeEventListener('pointermove', onMove);
-      el.removeEventListener('pointerleave', onLeave);
-      if (raf) cancelAnimationFrame(raf);
-      el.style.transform = '';
-    };
-  }, [strength]);
-
-  return ref;
-}
+  Its replacement is useMagneticSpring in components/ui/primitives.tsx, which
+  does the same job on a real spring: it carries velocity, so a fast sweep
+  lags and catches up where the fixed-rate lerp always moved at one speed. The
+  restraint is unchanged — 6px, mouse pointers only, nothing under reduced
+  motion.
+*/
 
 /** Locks body scroll (mobile menu). Restores the exact previous scroll position. */
 export function useScrollLock(locked: boolean): void {

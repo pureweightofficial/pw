@@ -1,13 +1,29 @@
 "use client";
 
+import {
+  m,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+} from "motion/react";
 import Link from "next/link";
 import type {
   AnchorHTMLAttributes,
   ButtonHTMLAttributes,
+  PointerEvent as ReactPointerEvent,
   ReactNode,
 } from "react";
-import { useMagnetic } from "@/lib/hooks";
+import { useCallback } from "react";
 import { isVerified, type Verifiable } from "@/lib/site";
+
+/*
+  Next's Link, driveable by motion values. `m.create` is the v13 API —
+  `motion(Component)` is the deprecated spelling, and `m` rather than `motion`
+  because LazyMotion runs in strict mode (see MotionProvider). Created at module scope
+  because creating it during render would hand React a new component type on
+  every pass and remount the button, losing focus and any running animation.
+*/
+const MotionLink = m.create(Link);
 
 /* -------------------------------------------------------------------------- */
 /* PLACEHOLDER                                                                */
@@ -184,16 +200,107 @@ type CTAProps = {
   className?: string;
   variant?: "primary" | "ghost";
   magnetic?: boolean;
-} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className" | "children"> &
+} & Omit<
+    ButtonHTMLAttributes<HTMLButtonElement>,
+    "className" | "children" | ConflictsWithMotion
+  > &
   Omit<
     AnchorHTMLAttributes<HTMLAnchorElement>,
-    "className" | "children" | "href"
+    "className" | "children" | "href" | ConflictsWithMotion
   >;
 
+/*
+  React's DOM handlers whose names Framer Motion reuses for its own animation
+  and gesture callbacks. Spreading raw HTML attributes onto a motion component
+  is a type error on every one of them — React's `onAnimationStart` takes an
+  AnimationEvent, Framer's takes an AnimationDefinition, and the two cannot be
+  reconciled.
+
+  They are excluded rather than cast away. No call site in this project passes
+  any of them, and if one ever needs to, the compiler saying so is exactly the
+  conversation that should happen — a cast here would silence it and hand the
+  wrong event shape to whoever wrote the handler.
+*/
+type ConflictsWithMotion =
+  | "onAnimationStart"
+  | "onAnimationEnd"
+  | "onAnimationIteration"
+  | "onDrag"
+  | "onDragStart"
+  | "onDragEnd"
+  | "onDragEnter"
+  | "onDragExit"
+  | "onDragLeave"
+  | "onDragOver"
+  | "onDrop"
+  | "style";
+
 /**
- * The site's action. Magnetic attraction is capped at 6px inside `useMagnetic`
- * and disabled for coarse pointers and reduced motion — enough that the control
- * feels weighted, far short of the elastic wobble that reads as a template.
+ * Magnetic attraction, on a spring.
+ *
+ * This replaces a hand-rolled hook that ran its own requestAnimationFrame loop
+ * and eased toward the cursor with `current += (target - current) * 0.14` — a
+ * fixed-rate linear approach. It worked, and it always moved at the same rate
+ * regardless of how fast the pointer arrived, which is the one thing a
+ * "weighted" control should not do. A spring carries velocity: sweep across
+ * the button quickly and it lags and catches up; approach it slowly and it
+ * barely stirs. That difference is most of what makes the gesture read as
+ * physical rather than as an animation being played at you.
+ *
+ * It is also ~50 fewer lines of imperative rAF, and the values it returns are
+ * driven off the main thread by Framer where the browser allows it.
+ *
+ * The site's restraint is unchanged: 6px of travel, nothing on coarse
+ * pointers, nothing under reduced motion.
+ */
+function useMagneticSpring(strength: number) {
+  const reduced = useReducedMotion();
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  /*
+    Stiff and well-damped: this settles rather than wobbles. A lower damping
+    ratio is where "magnetic button" turns into the elastic bouncing that reads
+    as a template, which the previous implementation was deliberately tuned to
+    avoid and which is not worth losing to a library default.
+  */
+  const spring = { stiffness: 260, damping: 26, mass: 0.55 };
+  const sx = useSpring(x, spring);
+  const sy = useSpring(y, spring);
+
+  const active = strength > 0 && !reduced;
+
+  const onPointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      // Coarse pointers report as "touch"/"pen"; a magnet under a finger is
+      // just a button that moves away from where it was tapped.
+      if (!active || event.pointerType !== "mouse") return;
+      const rect = event.currentTarget.getBoundingClientRect();
+      const dx = (event.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
+      const dy = (event.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
+      x.set(Math.max(-1, Math.min(1, dx)) * strength);
+      y.set(Math.max(-1, Math.min(1, dy)) * strength);
+    },
+    [active, strength, x, y],
+  );
+
+  const onPointerLeave = useCallback(() => {
+    x.set(0);
+    y.set(0);
+  }, [x, y]);
+
+  return { style: { x: sx, y: sy }, onPointerMove, onPointerLeave, reduced };
+}
+
+/**
+ * The site's action. Magnetic attraction is capped at 6px and disabled for
+ * coarse pointers and reduced motion. Enough that the control feels weighted,
+ * far short of the elastic wobble that reads as a template.
+ *
+ * The press is new: `whileTap` takes the control down 2%, which every native
+ * control on every platform does and which this site's buttons did not do at
+ * all. It is the cheapest possible confirmation that a tap landed, and its
+ * absence is felt long before it is noticed.
  */
 export function CTA({
   children,
@@ -203,8 +310,24 @@ export function CTA({
   magnetic = true,
   ...rest
 }: CTAProps) {
-  const magnetRef = useMagnetic<HTMLElement>(magnetic ? 6 : 0);
+  const { style, onPointerMove, onPointerLeave, reduced } = useMagneticSpring(
+    magnetic ? 6 : 0,
+  );
   const classes = `${variant === "primary" ? "btn-primary" : "btn-ghost"} ${className}`;
+
+  /*
+    Shared across all three renderings. The motion props go on the ELEMENT
+    rather than on a wrapper, because call sites pass width classes through
+    `className` — VisitCta sends `w-full sm:w-auto` — and a wrapping span
+    would become the button's containing block and quietly break that.
+  */
+  const motionProps = {
+    style,
+    onPointerMove,
+    onPointerLeave,
+    whileTap: reduced ? undefined : { scale: 0.98 },
+    transition: { type: "spring" as const, stiffness: 400, damping: 28 },
+  };
 
   if (href) {
     const external =
@@ -214,38 +337,38 @@ export function CTA({
 
     if (external) {
       return (
-        <a
-          ref={magnetRef as React.RefObject<HTMLAnchorElement>}
+        <m.a
           href={href}
           className={classes}
-          {...(rest as AnchorHTMLAttributes<HTMLAnchorElement>)}
+          {...motionProps}
+          {...rest}
         >
           <span className="relative z-10">{children}</span>
-        </a>
+        </m.a>
       );
     }
 
     return (
-      <Link
-        ref={magnetRef as React.RefObject<HTMLAnchorElement>}
+      <MotionLink
         href={href}
         className={classes}
-        {...(rest as AnchorHTMLAttributes<HTMLAnchorElement>)}
+        {...motionProps}
+        {...rest}
       >
         <span className="relative z-10">{children}</span>
-      </Link>
+      </MotionLink>
     );
   }
 
   return (
-    <button
-      ref={magnetRef as React.RefObject<HTMLButtonElement>}
+    <m.button
       type="button"
       className={classes}
-      {...(rest as ButtonHTMLAttributes<HTMLButtonElement>)}
+      {...motionProps}
+      {...rest}
     >
       <span className="relative z-10">{children}</span>
-    </button>
+    </m.button>
   );
 }
 

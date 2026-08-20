@@ -1,5 +1,16 @@
 "use client";
 
+import { LazyMotion } from "motion/react";
+
+/*
+  Loaded on demand, so the feature bundle is a separate chunk fetched after
+  the page is interactive rather than part of what blocks it. Declared at
+  module scope: an inline arrow would be a new function identity on every
+  render and LazyMotion would re-run the import each time.
+*/
+const loadDomAnimation = () =>
+  import("motion/react").then((mod) => mod.domAnimation);
+
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
@@ -423,8 +434,31 @@ export function MotionProvider({ children }: { children: ReactNode }) {
   const start = useCallback(() => lenisRef.current?.start(), []);
 
   return (
-    <MotionContext.Provider value={{ scrollTo, stop, start }}>
-      {children}
-    </MotionContext.Provider>
+    /*
+      LAZYMOTION, AND THE REASON IS 62 KILOBYTES.
+
+      Importing the full `motion` component pulls every feature Framer has —
+      layout projection, drag, pan, scroll — into the shared chunk whether or
+      not anything uses them. Measured on this site: First Load JS shared by
+      all went 139 kB -> 201 kB, a 45% increase, on a page whose owner had
+      already reported it as "not smooth and fast". That is a bad trade for a
+      menu transition and a button press.
+
+      LazyMotion ships a small core and loads a feature bundle asynchronously.
+      `domAnimation` covers animations, variants, exit animations and the
+      hover/tap/focus gestures — everything used here. `domMax` would add drag
+      and layout projection; nothing on this site needs either, and taking the
+      smaller bundle is the entire point.
+
+      `strict` makes the saving enforceable rather than aspirational: it throws
+      if anything in the tree renders `motion.*` instead of `m.*`, which is
+      exactly the mistake that would silently reintroduce the full bundle and
+      which no gate would otherwise catch.
+    */
+    <LazyMotion features={loadDomAnimation} strict>
+      <MotionContext.Provider value={{ scrollTo, stop, start }}>
+        {children}
+      </MotionContext.Provider>
+    </LazyMotion>
   );
 }
