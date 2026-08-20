@@ -4,7 +4,6 @@ import { Eyebrow, Section } from "@/components/ui/primitives";
 import type { ReactElement } from "react";
 import { pillars } from "@/lib/site";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
-import { SectionScene } from "@/components/ui/SectionScene";
 import { opener } from "@/lib/copy";
 
 const copy = opener("pillars", {
@@ -43,7 +42,6 @@ export function WhyPureweight() {
       labelledBy="pillars-heading"
       className="py-20 lg:py-28"
     >
-      <SectionScene variant="seal" />
       <AmbientGlow intensity="normal" placement="split" />
       <div className="shell">
         <div className="mx-auto max-w-2xl text-center">

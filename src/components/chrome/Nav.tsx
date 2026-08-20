@@ -136,11 +136,18 @@ export function Nav() {
           >
             {/* The supplied artwork, windowed per breakpoint — see Logo.tsx.
                 Colours are untouched. */}
-            <Logo
-              variant="wordmark"
-              priority
-              className="hidden h-10 lg:block"
-            />
+            {/*
+              NO `priority`. It emitted a high-priority image preload, with a
+              sixteen-candidate srcset up to 3840w, in the head of every page —
+              and the browser was fetching the 640px render (61KB) for a mark
+              that displays at 240px. On Slow 4G that competed for bandwidth
+              with the hero during the exact window that decides LCP.
+
+              This is a 240px logo in the navigation bar. It has never been the
+              LCP element on any measured run, and it does not need to outrank
+              the thing that is.
+            */}
+            <Logo variant="wordmark" className="hidden h-10 lg:block" />
             <Logo variant="monogram" className="h-10 lg:hidden" />
           </Link>
 

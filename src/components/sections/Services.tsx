@@ -5,7 +5,6 @@ import { assetPath } from "@/lib/asset";
 import { BeamDivider, Eyebrow, Section } from "@/components/ui/primitives";
 import { services } from "@/lib/site";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
-import { SectionScene } from "@/components/ui/SectionScene";
 import { opener } from "@/lib/copy";
 
 const copy = opener("services", {
@@ -85,11 +84,6 @@ export function Services() {
         column uses — heavy where the words are, open where the bar is.
       */}
       <div className="relative pt-24 pb-20 lg:pt-36 lg:pb-28">
-        <SectionScene
-          variant="bar"
-          scrim="reveal"
-          className="hidden lg:block"
-        />
         <div className="shell">
           <div className="max-w-3xl">
             {/* Was "Chapter 03 — The Services" against a chapter list and a nav

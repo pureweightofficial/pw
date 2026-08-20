@@ -60,7 +60,32 @@ export function PlumbLine() {
       return;
     }
 
+    /*
+      DO NOT RUN AT ALL WHERE THE RAIL IS NOT DRAWN.
+
+      The markup is `hidden lg:block`, so below the large breakpoint this
+      element is display:none — and this effect was starting a 60Hz
+      requestAnimationFrame loop anyway, writing transforms to an invisible
+      node for the entire life of every page. On a phone. Which is both the
+      device where the rail is never shown and the device least able to spare
+      the wake-ups.
+
+      The query matches the Tailwind `lg` breakpoint. It is also watched rather
+      than read once: a tablet rotating past 1024px should start and stop the
+      loop, not keep whichever answer it had at mount.
+    */
+    const wide = window.matchMedia("(min-width: 64rem)");
+
     let raf = 0;
+    /*
+      Skip the DOM write when nothing moved. The rail's whole job is to follow
+      scroll, so while the reader is reading — which is most of a session —
+      every frame was recomputing an identical transform string and handing it
+      back to the compositor. Two cheap comparisons remove that entirely.
+    */
+    let lastFill = -1;
+    let lastMark = -1;
+
     const tick = () => {
       /*
         scrollState.progress is the whole-document channel MotionProvider
@@ -71,18 +96,43 @@ export function PlumbLine() {
       */
       const p = Math.max(0, Math.min(1, scrollState.progress));
 
-      if (fillRef.current) {
-        fillRef.current.style.transform = `scaleY(${p.toFixed(4)})`;
+      const fill = Number(p.toFixed(4));
+      if (fill !== lastFill && fillRef.current) {
+        lastFill = fill;
+        fillRef.current.style.transform = `scaleY(${fill})`;
       }
-      if (markerRef.current) {
-        markerRef.current.style.transform = `translateY(${(p * 100).toFixed(3)}%)`;
+      const mark = Number((p * 100).toFixed(3));
+      if (mark !== lastMark && markerRef.current) {
+        lastMark = mark;
+        markerRef.current.style.transform = `translateY(${mark}%)`;
       }
 
       raf = requestAnimationFrame(tick);
     };
 
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    const start = () => {
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+    const stop = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+    };
+
+    // Narrow viewports never start it; a backgrounded tab stops it.
+    const sync = () => {
+      if (wide.matches && document.visibilityState === "visible") start();
+      else stop();
+    };
+
+    sync();
+    wide.addEventListener("change", sync);
+    document.addEventListener("visibilitychange", sync);
+
+    return () => {
+      stop();
+      wide.removeEventListener("change", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
   }, []);
 
   return (

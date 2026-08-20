@@ -4,7 +4,6 @@ import { Eyebrow, Fact, Section, WhenVerified } from "@/components/ui/primitives
 import { VisitCta } from "@/components/ui/VisitCta";
 import { business } from "@/lib/site";
 import { AmbientGlow } from "@/components/ui/AmbientGlow";
-import { SectionScene } from "@/components/ui/SectionScene";
 
 /**
  * VISIT THE SHOP
@@ -72,7 +71,6 @@ export function Appointment() {
       labelledBy="appointment-heading"
       className="py-20 lg:py-28"
     >
-      <SectionScene variant="ingots" />
       <AmbientGlow intensity="soft" placement="right" />
       <div className="shell">
         <div className="grid gap-14 lg:grid-cols-12 lg:gap-16">

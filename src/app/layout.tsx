@@ -34,8 +34,27 @@ import './globals.css';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  style: ['normal', 'italic'],
+  /*
+    ITALIC ONLY, TWO WEIGHTS — down from four weights in two styles.
+
+    Playfair reaches the page through exactly one selector. `--font-accent` is
+    referenced by `.accent-italic` in globals.css and by nothing else, and that
+    rule sets `font-style: italic` unconditionally. The UPRIGHT faces were
+    therefore downloaded, and several of them PRELOADED at high priority in the
+    head of every page, to render text that does not exist anywhere on this
+    site.
+
+    400 and 700 are both kept because the accent is used at two scales: inside
+    headings, where it inherits display weight, and in lead paragraphs, where
+    it inherits body weight. Dropping to one would make the browser synthesise
+    the other, and a faux-bold calligraphic italic is exactly the "looks like a
+    mistake" this face was chosen to avoid.
+
+    Eight variants to two. If a design ever needs upright Playfair, add
+    `style` back deliberately — do not restore it because it looks incomplete.
+  */
+  weight: ['400', '700'],
+  style: ['italic'],
   variable: '--font-playfair',
   // Same reasoning as Rye: a calligraphic italic has no fallback that resembles
   // it, so a swap reads as a redesign rather than as a font arriving.
