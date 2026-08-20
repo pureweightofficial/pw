@@ -121,10 +121,23 @@ create policy "keeper admins read own row"
 --
 -- ===========================================================================
 
--- Make that user an admin. Replace the email with the one from step (a).
+-- Make that user an admin.
+--
+-- No email to type in: when the project has exactly ONE account, this finds
+-- it. The count guard is the safety — if a second account ever exists, this
+-- does nothing rather than quietly handing admin to whoever else signed up.
+-- (Which is also why step (b), disabling sign-ups, comes before this.)
 insert into public.keeper_admins (user_id, email)
-select id, email from auth.users where email = 'REPLACE_WITH_OWNER_EMAIL'
+select id, email from auth.users
+where (select count(*) from auth.users) = 1
 on conflict (user_id) do nothing;
+
+-- If the guard above matched nothing because you have more than one account,
+-- name the right one explicitly instead:
+--
+--   insert into public.keeper_admins (user_id, email)
+--   select id, email from auth.users where email = 'you@example.com'
+--   on conflict (user_id) do nothing;
 
 -- Store the GitHub token the panel commits with. This is the same
 -- fine-grained token the old sign-in screen asked you to paste: it needs
@@ -137,7 +150,23 @@ on conflict (id) do update
 
 
 -- ---------------------------------------------------------------------------
--- CHECKING IT WORKED
+-- DID IT TAKE? Run this last; it should print one row reading 1 / 1 / t.
+--
+--   admins  = 1  you are in keeper_admins
+--   secrets = 1  the GitHub token is stored
+--   rls_on  = t  row security is enabled on the secrets table
+--
+-- If admins is 0 the guard above found more than one account — use the
+-- explicit form. If rls_on is f, STOP: the token is readable by anyone.
+select
+  (select count(*) from public.keeper_admins)  as admins,
+  (select count(*) from public.keeper_secrets) as secrets,
+  (select relrowsecurity from pg_class
+    where oid = 'public.keeper_secrets'::regclass) as rls_on;
+
+
+-- ---------------------------------------------------------------------------
+-- CHECKING IT PROPERLY
 --
 -- Run this as an ordinary signed-in user (the SQL editor runs as the owner and
 -- bypasses RLS, so it will always succeed here — it proves nothing). The real
