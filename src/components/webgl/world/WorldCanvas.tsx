@@ -148,7 +148,33 @@ export function WorldCanvas() {
     return () => el.removeEventListener("webglcontextlost", onLost);
   }, [capability]);
 
-  if (!capability || capability.tier === "none" || failed) return null;
+  /*
+    THE WORLD IS FOR DEVICES THAT CAN CARRY IT, and "low" is not one of them.
+
+    A full-viewport canvas is the most expensive thing this site can do, and
+    unlike the windowed scenes it has no PerformanceMonitor to shed quality
+    under load — it renders the whole screen for the whole session or not at
+    all. Measured on a desktop it costs about ten frames; on hardware that
+    already reports as low tier that is not a background, it is a stutter.
+
+    lib/capability puts a phone with four cores or less, four gigabytes or
+    less, or a coarse pointer on a small viewport into "low". Those devices
+    get the painted gradient GoldWorld renders underneath this canvas, which
+    is a finished look rather than a degraded one — the same rule every other
+    scene on this site follows. The site's first principle here is not to
+    overreach, and this is the one place where overreaching would be felt on
+    every single scroll.
+
+    If this should ship to phones after all, the honest way is to measure a
+    real mid-range device rather than to widen the gate and hope.
+  */
+  if (
+    !capability ||
+    capability.tier === "none" ||
+    capability.tier === "low" ||
+    failed
+  )
+    return null;
 
   const high = capability.tier === "high";
 
