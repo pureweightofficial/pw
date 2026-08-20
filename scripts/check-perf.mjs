@@ -19,6 +19,39 @@
  * together moved it by roughly one frame. The firefly field had been charging
  * that price for months without anyone measuring it.
  *
+ * AND WHAT IT LATER CORRECTED, which matters more than the numbers above.
+ *
+ * The paragraph beneath those figures asserted that the cost of a fixed
+ * full-viewport canvas is COMPOSITING — the browser repainting the page every
+ * frame because translucent section surfaces sit over a live canvas — and
+ * "NOT the scene". That conclusion was drawn from one experiment (stripping
+ * the environment map, shadows, material and half the pixel ratio moved it by
+ * about a frame) and it was wrong as a general rule.
+ *
+ * Tested directly when the persistent world was brought back, same build,
+ * same machine, interleaved, differing only in --surface-alpha:
+ *
+ *     world behind TRANSLUCENT surfaces (81%)   20.3fps, 20.6fps
+ *     world behind OPAQUE surfaces    (100%)    20.6fps, 20.7fps
+ *
+ * Identical. Translucency costs nothing measurable. The bill is the renderer
+ * drawing a full-viewport scene sixty times a second, which is a completely
+ * different problem with completely different fixes — and the earlier reading
+ * had ruled those fixes out. Halving the world's frame rate and dropping its
+ * DPR to 0.85 recovered ~4fps immediately (23.5 -> 27.3, interleaved):
+ *
+ *     world at 60fps, dpr 1.25    23.3fps, 23.6fps
+ *     world at 30fps, dpr 0.85    26.7fps, 27.8fps
+ *
+ * Dust in the world measured free (28.5/27.8 with, 28.3/26.9 without — the
+ * with-dust runs were nominally faster, which is how you know you are inside
+ * the noise floor and should stop optimising it).
+ *
+ * The standing figure for the persistent world, against the windowed
+ * architecture it replaced: ~27.5fps against ~37.7fps. That is a real cost,
+ * accepted deliberately for a design reason, and it is written here so nobody
+ * re-derives it by accident.
+ *
  * WHAT IT LATER CLEARED. When the journey scene's canvas became one viewport
  * tall and STICKY, the obvious worry was that this re-introduced exactly the
  * full-viewport canvas the numbers above condemn. Interleaved A/B/A/B on one

@@ -1,4 +1,5 @@
 import { Footer } from '@/components/chrome/Footer';
+import { GoldWorld } from '@/components/ui/GoldWorld';
 import { Loader } from '@/components/chrome/Loader';
 import { Nav } from '@/components/chrome/Nav';
 import { PlumbLine } from '@/components/chrome/PlumbLine';
@@ -23,14 +24,32 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
   return (
     <MotionProvider>
       {/*
-        NO SITE-WIDE BACKDROP CANVAS, and the reasons are measured, not
-        aesthetic. The firefly field that lived here cost ~43fps of whole-page
-        recompositing wherever it mounted (scripts/check-perf.mjs header) — and
-        since the surfaces went opaque (--surface-alpha: 100%) it was an
-        INVISIBLE canvas still charging that bill on every subpage. WebGL on
-        this site is windowed: scenes mount inside their own sections through
-        SceneShell, where they are content rather than atmosphere.
+        THE PERSISTENT WORLD, ON EVERY PAGE.
+
+        One WebGL context fixed behind the whole document, carrying a single
+        gold mass that the camera moves around as the reader scrolls. Every
+        section surface above it is translucent (--surface-alpha), which is
+        what lets one world show through twelve sections instead of being
+        hidden by the first opaque one.
+
+        WHY IT IS BACK. The windowed architecture that replaced it put one
+        object in one section and left the other eleven flat — and the owner's
+        verdict on that was exact: a single gold stone in one place reads as
+        basic, because it is. The brief this project was built to always asked
+        for one persistent, evolving object; windowing it was a performance
+        retreat, not a design decision, and it cost the site its through-line.
+
+        WHAT IT COSTS is measured rather than assumed, in the commit that
+        turned it on and in scripts/check-perf.mjs. Translucent surfaces over
+        a live canvas make the browser recomposite the page every frame; that
+        is the real bill, and it is paid deliberately here rather than
+        accidentally. The firefly field this replaces was charging the same
+        bill while being invisible, which is the version worth avoiding.
+
+        The gate decides BEFORE three.js is fetched (see GoldWorld), so a
+        phone that should not have this never downloads the renderer.
       */}
+      <GoldWorld />
       <Loader />
       <SceneCursor />
       <PlumbLine />

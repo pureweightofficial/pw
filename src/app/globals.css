@@ -296,17 +296,25 @@
     behind text anywhere on the page. Every other section clears 4.7:1 here.
   */
   :root {
-    --surface-alpha: 100%;
+    --surface-alpha: 81%;
     /*
-      100% — surfaces are OPAQUE now, and this is a PERFORMANCE decision as
-      much as a design one. Translucent section surfaces over a live canvas
-      forced the browser to recomposite the page every frame: measured at
-      ~43fps of cost regardless of scene content (scripts/check-perf.mjs
-      header). The overhaul's windowed-WebGL architecture depends on cheap
-      opaque surfaces, with 3D appearing in deliberate framed windows instead
-      of bleeding through the whole page. The variable stays (rather than
-      deleting the color-mix machinery) so the decision is one number to
-      revisit — with the contrast and perf gates as the acceptance test.
+      81%, and the number is a measured threshold rather than a taste.
+
+      This went to 100% when the world was switched off — opaque surfaces are
+      cheaper, and with nothing behind them there was nothing to reveal. The
+      world is back (see (site)/layout.tsx for why), so the surfaces have to
+      let it through again, and how far is decided by contrast rather than by
+      eye: `npm run check:scene-contrast` samples the real rendered backdrop
+      behind every text box in a browser.
+
+      Binary-searched against that gate, 80% fails at 4.5039:1 against a WCAG
+      AA floor of 4.5, and 81% clears with margin. The binding case is #story,
+      the brightest place the world reaches behind text anywhere on the page.
+
+      RAISING THIS BREAKS READABILITY IN A WAY NO SCREENSHOT SHOWS, because
+      the world moves: the failure only appears when the mass happens to drift
+      behind a paragraph. Re-run the gate after touching this, the world, or
+      the page's section order.
     */
   }
 

@@ -1,6 +1,5 @@
 import { Eyebrow, Section } from "@/components/ui/primitives";
 import { journey } from "@/lib/site";
-import { SectionScene } from "@/components/ui/SectionScene";
 import { opener } from "@/lib/copy";
 
 const copy = opener("journey", {
@@ -37,45 +36,25 @@ export function ValuationJourney() {
       labelledBy="journey-heading"
       className="py-20 lg:py-28"
     >
-      {/* THE LEFT COLUMN is the empty one — 4 columns holding a small
-          indicator at the top, then nothing for the height of four stages,
-          while the 8-column list of stages fills the right. (A comment here
-          asserted the opposite for months, and every attempt to make the
-          presented object visible therefore put metal behind the copy.) The
-          specimen now occupies that void, sticky beside the stages, turning
-          as the reader advances them. */}
       {/*
-          The presented object itself, not an ambient suggestion of one. This
-          slot was designed for a presented object from the start — the
-          `reveal` scrim clears the right column for it — and the specimen is
-          the first scene of the windowed-WebGL architecture: the same
-          procedural mass and shared gold material as the world, framed where
-          the copy describes what happens to it.
-        */}
-        <SectionScene
-        variant="bar"
-        channel="journey"
-        scrim="reveal-left"
-        scene="specimen"
-        sticky
-        /*
-          DESKTOP ONLY, and this is a mount guard rather than a style.
+        NO WINDOWED SCENE HERE ANY MORE.
 
-          The specimen is composed into the grid's four-column left gutter,
-          and below `lg` that gutter does not exist — the stages take the full
-          width. At 390x844 the frame is 1.39 world units across, so an object
-          seated at x -1.5 is entirely outside it: the canvas mounted,
-          compiled shaders, and rendered a subject no phone could ever see.
+        This section held the specimen — the same goldMassGeometry, the same
+        massGold material — in a sticky canvas in the left column. It was the
+        windowed architecture's answer to "where does the gold live", and it
+        was a good answer while the persistent world was switched off.
 
-          `hidden lg:block` prevents the mount, it does not merely hide it.
-          SceneShell gates on useInViewport, a display:none host has a zero
-          box, IntersectionObserver reports it as not intersecting, and
-          shouldMount stays false — so no context is created and three.js is
-          never asked to do anything. Services uses the same idiom for the
-          same reason.
-        */
-        className="hidden lg:block"
-      />
+        The world is back and fills the whole document (see (site)/layout.tsx),
+        so keeping this would put two instances of the identical mass on screen
+        at once: one bright in the left column and one drifting behind the
+        stage copy. That is the same mistake the hero made when a procedural
+        balance sat beside a film of a balance — two of the same object in one
+        frame reads as an error, not as abundance. It also paid for a second
+        WebGL context to make it.
+
+        The assay signet and the closing balance are NOT this: they are
+        different objects doing work the world cannot, and they stay.
+      */}
       <div className="shell">
         <div className="max-w-3xl">
           <Eyebrow className="mb-8 will-reveal">{copy.eyebrow}</Eyebrow>
