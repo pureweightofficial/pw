@@ -38,6 +38,26 @@ import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const URL_ = process.argv[2] || "https://pureweight.gold/";
+/*
+  DEVICE TIER MATTERS ON THIS SITE, so it is a parameter rather than an
+  accident of whatever machine runs the script.
+
+  Headless Chrome reports the HOST's core count, so an unmodified run on a
+  workstation emulates a phone's screen and network while advertising sixteen
+  cores — and lib/capability reads exactly that to decide whether the device
+  gets the persistent WebGL world. The first run of this script therefore
+  measured the path almost no phone takes.
+
+  "mid" is the default because it is the honest one: 4 cores and 4GB is a
+  real mid-range Android, and it is precisely the tier the site now declines
+  to send three.js to. "high" measures the flagship path, where the world does
+  render. Both numbers are true; reporting only one is not.
+
+    node scripts/check-mobile.mjs [url] [mid|high]
+*/
+const TIER = (process.argv[3] || "mid").toLowerCase();
+const CORES = TIER === "high" ? 16 : 4;
+const MEMORY = TIER === "high" ? 16 : 4;
 
 function findChrome() {
   for (const x of [process.env.CHROME_PATH, "C:/Program Files/Google/Chrome/Application/chrome.exe"].filter(Boolean))
@@ -59,6 +79,10 @@ const context = await browser.newContext({
   userAgent:
     "Mozilla/5.0 (Linux; Android 13; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36",
 });
+await context.addInitScript(`
+  Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => ${CORES} });
+  Object.defineProperty(navigator, 'deviceMemory', { get: () => ${MEMORY} });
+`);
 const page = await context.newPage();
 const client = await context.newCDPSession(page);
 
