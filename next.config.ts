@@ -86,6 +86,21 @@ if (!process.env.NEXT_PUBLIC_SITE_URL) {
   }
 }
 
+/*
+  The Supabase origin the Keeper's sign-in talks to, taken from the same
+  environment variable the client uses so the two can never disagree.
+
+  The wildcard fallback matters: NEXT_PUBLIC_SUPABASE_URL is read at BUILD
+  time, and a deploy that lacks it would otherwise emit a CSP with no Supabase
+  origin at all — producing a login that renders perfectly and is blocked by
+  the browser. Falling back to the vendor's domain keeps the failure mode
+  "unconfigured" rather than "configured and mysteriously broken", while still
+  refusing every origin that is not Supabase.
+*/
+const supabaseOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin
+  : 'https://*.supabase.co';
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
@@ -145,8 +160,16 @@ const nextConfig: NextConfig = {
                      * moves to a node host, a bare connect-src 'self' would
                      * silently break the owner's only editing tool.
                      * raw.githubusercontent.com is the CMS's media preview.
+                     *
+                     * SUPABASE had to be added the moment the Keeper gained an
+                     * email-and-password sign-in, and its absence would have
+                     * been a genuinely nasty bug to chase: the owner would fix
+                     * the environment variables, redeploy, get a correct login
+                     * form, type the right password, and watch it fail — with
+                     * the only explanation in the browser console as a CSP
+                     * violation, nowhere near where they were looking.
                      */
-                    "connect-src 'self' https://api.github.com https://raw.githubusercontent.com",
+                    `connect-src 'self' https://api.github.com https://raw.githubusercontent.com ${supabaseOrigin}`,
                     "worker-src 'self' blob:",
                     "object-src 'none'",
                     "base-uri 'self'",
@@ -193,6 +216,61 @@ const nextConfig: NextConfig = {
               source: '/_next/static/:path*',
               headers: [
                 { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+              ],
+            },
+
+            /**
+             * MEDIA IN /public WAS BEING RE-DOWNLOADED ON EVERY VISIT.
+             *
+             * The `/:path*` rule above is correct for documents and wrong for
+             * everything else, and it matches everything else too. Measured on
+             * production before this rule existed, a repeat visitor re-fetched:
+             *
+             *     355 KB  /video/hero-portrait.mp4
+             *      65 KB  /brand/craquelure.png
+             *     172 KB  of /img photography
+             *
+             * — roughly 600KB per visit, for files that had not changed, on a
+             * page whose whole problem is mobile weight.
+             *
+             * These are NOT content-hashed: the owner replaces a photograph
+             * through the Keeper under its existing name. So `immutable` would
+             * be wrong — it would pin a stale photo in browsers for a year with
+             * no way to bust it. A week of freshness plus a month of
+             * stale-while-revalidate gives the repeat visitor an instant load
+             * and still picks up a replaced image on the next visit after it
+             * changes, in the background, without ever blocking a paint.
+             */
+            {
+              source: '/:dir(brand|img|video)/:path*',
+              headers: [
+                {
+                  key: 'Cache-Control',
+                  value: 'public, max-age=604800, stale-while-revalidate=2592000',
+                },
+              ],
+            },
+
+            /**
+             * The image optimiser's output is keyed by URL — the source, the
+             * width and the quality are all in the query string — so a given
+             * URL always yields the same bytes and can be cached hard. Vercel
+             * caches these at the edge already; this is the BROWSER's copy,
+             * which was being revalidated on every navigation.
+             */
+            {
+              // No ':path*' here — /_next/image is a single route whose
+              // parameters live in the QUERY STRING, and header `source`
+              // matching is pathname-only. Writing '/_next/image:path*' is a
+              // build error ("Can not repeat 'path' without a prefix and
+              // suffix"), which at least fails loudly rather than silently
+              // matching nothing.
+              source: '/_next/image',
+              headers: [
+                {
+                  key: 'Cache-Control',
+                  value: 'public, max-age=604800, stale-while-revalidate=2592000',
+                },
               ],
             },
           ];
