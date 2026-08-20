@@ -36,6 +36,7 @@
     "@eslint/eslintrc": "^3.3.6",
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.0",
+    "@supabase/supabase-js": "^2.112.3",
     "gsap": "^3.12.5",
     "lenis": "^1.1.20",
     "marked": "^18.0.7",

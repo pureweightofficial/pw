@@ -122,6 +122,23 @@ const failures = [];
 
 await page.goto(`http://127.0.0.1:${port}/pw/keeper/`, { waitUntil: "load" });
 await page.waitForTimeout(400);
+/*
+  TWO DOORS SINCE SUPABASE AUTH ARRIVED. A build with NEXT_PUBLIC_SUPABASE_*
+  set shows the email form first, with "Use an access key instead" switching
+  to the token form this gate drives (the GitHub API is stubbed above;
+  Supabase is not, and stubbing an auth service would test the stub). A build
+  without those variables shows the token form directly. Handle both, so the
+  gate passes regardless of which flavour of out/ it is pointed at.
+
+  This block exists because the first run after the email door landed spent
+  its whole timeout waiting for #keeper-token on a page that was correctly
+  showing #keeper-email — the gate was wrong, not the page.
+*/
+const emailDoor = await page.$("#keeper-email");
+if (emailDoor) {
+  await page.click("text=Use an access key instead");
+  await page.waitForSelector("#keeper-token", { timeout: 5000 });
+}
 await page.fill("#keeper-token", "github_pat_gate");
 await page.click("button[type=submit]");
 await page.waitForTimeout(2500);

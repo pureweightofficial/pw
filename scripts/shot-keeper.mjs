@@ -106,6 +106,13 @@ async function capture(label, viewport, isMobile) {
   await page.waitForTimeout(700);
   await page.screenshot({ path: join(shots, `${label}-signin.png`) });
 
+  // Two doors since Supabase auth: a build with NEXT_PUBLIC_SUPABASE_* shows
+  // the email form first. Switch to the token door this probe drives — same
+  // fix as check-keeper-a11y.mjs, same reason, recorded there.
+  if (await page.$("#keeper-email")) {
+    await page.click("text=Use an access key instead");
+    await page.waitForSelector("#keeper-token", { timeout: 5000 });
+  }
   await page.fill("#keeper-token", "github_pat_shot");
   await page.click("button[type=submit]");
   await page.waitForTimeout(3000);

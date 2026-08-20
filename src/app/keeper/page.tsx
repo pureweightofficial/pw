@@ -71,6 +71,13 @@ import {
   type RunSummary,
   type Signee,
 } from "@/lib/keeper/github";
+import {
+  currentSession,
+  fetchGithubToken,
+  signInWithPassword,
+  signOut as supabaseSignOut,
+  supabaseConfigured,
+} from "@/lib/keeper/supabase";
 import { prepareImage, type PreparedImage } from "@/lib/keeper/image";
 import {
   validateBusiness,
@@ -95,6 +102,23 @@ import {
  * using the panel — and the token is scoped to this one repository's contents.
  */
 const TOKEN_KEY = "pw:keeper:token";
+
+/*
+  SUPABASE IS THE DOOR; GITHUB IS STILL THE LEDGER.
+
+  When this build has Supabase credentials the owner signs in with an email
+  and a password, and the GitHub token is fetched from a row only a Keeper
+  admin can read (see lib/keeper/supabase.ts and docs/supabase-keeper.sql).
+  The token then lives in React state for the session and is never written to
+  localStorage — which is the actual security gain, since the old flow parked
+  a repository-write credential in browser storage indefinitely.
+
+  When this build does NOT have those credentials, everything below falls back
+  to the original paste-a-token screen, unchanged. That is deliberate: a
+  missing environment variable must not be able to lock a live business out of
+  its own admin panel, and possessing a valid fine-grained PAT for the repo is
+  itself proof of authorisation, so the fallback is not a weaker door.
+*/
 
 const MONO_LABEL =
   "font-mono text-[0.62rem] font-medium tracking-[0.24em] uppercase";
@@ -318,6 +342,8 @@ function timeAgo(iso: string): string {
 
 export default function KeeperPage() {
   const [token, setToken] = useState<string | null>(null);
+  /** The Supabase account signed in, when that is how they got here. */
+  const [account, setAccount] = useState<string | null>(null);
   const [signee, setSignee] = useState<Signee | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
@@ -378,6 +404,47 @@ export default function KeeperPage() {
 
   /* ------------------------------ auth ------------------------------ */
 
+  /*
+    Sign-in with email and password. On success it reads the GitHub token out
+    of Supabase and hands it to the SAME validateToken path the pasted-token
+    flow uses — so a stored token that has expired or lost its permissions
+    fails with the identical, already-written explanation instead of a new one.
+  */
+  const signInWithEmail = useCallback(
+    async (email: string, password: string) => {
+      setChecking(true);
+      setAuthError(null);
+      try {
+        const session = await signInWithPassword(email, password);
+        const ghToken = await fetchGithubToken();
+        const who = await validateToken(ghToken.trim());
+        if (!who.canWrite) {
+          setAuthError(
+            `Signed in as ${session.email}, but the stored GitHub key cannot save changes — it needs "Contents: read and write" on the pw repository. Update it in Supabase (keeper_secrets).`,
+          );
+          await supabaseSignOut();
+          return;
+        }
+        // NOT localStorage. The session cookie is Supabase's business; the
+        // repository credential stays in memory and dies with the tab.
+        setToken(ghToken.trim());
+        setSignee(who);
+        setAccount(session.email);
+      } catch (error) {
+        setAuthError(
+          error instanceof KeeperApiError
+            ? error.friendly
+            : error instanceof Error
+              ? error.message
+              : "Could not sign in. Check the connection and try again.",
+        );
+      } finally {
+        setChecking(false);
+      }
+    },
+    [],
+  );
+
   const signIn = useCallback(async (candidate: string) => {
     setChecking(true);
     setAuthError(null);
@@ -410,14 +477,56 @@ export default function KeeperPage() {
     if (pollRef.current) window.clearInterval(pollRef.current);
     setPublish(null);
     localStorage.removeItem(TOKEN_KEY);
+    // Ends the Supabase session too when there is one. It resolves either way
+    // and never throws, so the local teardown below always runs.
+    void supabaseSignOut();
     setToken(null);
     setSignee(null);
+    setAccount(null);
     setDocs(null);
   }, []);
 
+  /*
+    RESUME. A live Supabase session is preferred over a stored token: if both
+    exist, the account is the newer and more revocable credential, and letting
+    a stale localStorage token win would quietly defeat the point of moving the
+    credential into the database.
+  */
   useEffect(() => {
-    const stored = localStorage.getItem(TOKEN_KEY);
-    if (stored) void signIn(stored);
+    let cancelled = false;
+
+    (async () => {
+      if (supabaseConfigured) {
+        const session = await currentSession();
+        if (cancelled) return;
+        if (session) {
+          setChecking(true);
+          try {
+            const ghToken = await fetchGithubToken();
+            const who = await validateToken(ghToken.trim());
+            if (!cancelled && who.canWrite) {
+              setToken(ghToken.trim());
+              setSignee(who);
+              setAccount(session.email);
+            }
+          } catch {
+            // A resumed session whose token has been rotated or revoked just
+            // lands on the sign-in screen. Announcing it on a page the owner
+            // has not interacted with yet would be noise.
+          } finally {
+            if (!cancelled) setChecking(false);
+          }
+          return;
+        }
+      }
+
+      const stored = localStorage.getItem(TOKEN_KEY);
+      if (stored && !cancelled) void signIn(stored);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [signIn]);
 
   /* ----------------------------- content ---------------------------- */
@@ -671,6 +780,8 @@ export default function KeeperPage() {
   if (!signee) {
     return (
       <SignIn
+        onEmailSubmit={signInWithEmail}
+        account={account}
         onSubmit={signIn}
         error={authError}
         checking={checking}
@@ -1387,14 +1498,32 @@ function DashboardView({
 
 function SignIn({
   onSubmit,
+  onEmailSubmit,
   error,
   checking,
 }: {
   onSubmit: (token: string) => void;
+  onEmailSubmit: (email: string, password: string) => void;
+  account: string | null;
   error: string | null;
   checking: boolean;
 }) {
   const [value, setValue] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  /*
+    Which door is showing. Defaults to the account form wherever this build has
+    Supabase credentials, and to the token form where it does not — so a
+    deployment without the environment variables behaves exactly as it always
+    did rather than presenting a login that cannot possibly work.
+
+    The token door stays reachable either way. It is not a weaker credential:
+    holding a fine-grained PAT with write access to the repository IS
+    authorisation. It exists so that a Supabase outage, a rotated password or a
+    mistyped environment variable can never lock a live business out of its own
+    website.
+  */
+  const [useToken, setUseToken] = useState(!supabaseConfigured);
 
   return (
     <main className="flex min-h-svh items-center justify-center px-6">
@@ -1414,10 +1543,70 @@ function SignIn({
             </span>
           </h1>
           <p className="mt-6 text-sm leading-relaxed text-ash">
-            Your website&apos;s ledger. Sign in with your access key to edit
-            business details, the buying panels and testimonials.
+            Your website&apos;s ledger. Sign in to edit business details, the
+            buying panels and testimonials.
           </p>
 
+          {!useToken ? (
+            <form
+              className="mt-8"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (email.trim() && password) onEmailSubmit(email, password);
+              }}
+            >
+              <label htmlFor="keeper-email" className={`${MONO_LABEL} text-ash`}>
+                Email
+              </label>
+              <input
+                id="keeper-email"
+                type="email"
+                autoComplete="username"
+                spellCheck={false}
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={`${INPUT_CLASS} mt-2`}
+                placeholder="you@example.com"
+              />
+
+              <label
+                htmlFor="keeper-password"
+                className={`${MONO_LABEL} mt-6 block text-ash`}
+              >
+                Password
+              </label>
+              <input
+                id="keeper-password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={`${INPUT_CLASS} mt-2`}
+              />
+
+              {error ? <IssueLine text={error} /> : null}
+
+              <button
+                type="submit"
+                disabled={checking || !email.trim() || !password}
+                className="mt-6 w-full border border-gold-rich/60 bg-gold-antique/10 py-3.5 font-mono text-[0.68rem] font-medium tracking-[0.28em] text-gold-high uppercase transition-all duration-300 enabled:hover:border-gold-high enabled:hover:bg-gold-antique/20 disabled:opacity-35"
+              >
+                {checking ? "Signing in…" : "Open the Keeper"}
+              </button>
+
+              {supabaseConfigured ? (
+                <button
+                  type="button"
+                  onClick={() => setUseToken(true)}
+                  className={`${MONO_LABEL} mt-6 w-full text-ash transition-colors hover:text-gold-antique`}
+                >
+                  Use an access key instead
+                </button>
+              ) : null}
+            </form>
+          ) : (
           <form
             className="mt-8"
             onSubmit={(e) => {
@@ -1446,9 +1635,25 @@ function SignIn({
             >
               {checking ? "Checking…" : "Open the Keeper"}
             </button>
-          </form>
 
-          <details className="mt-8 border-t border-gold-antique/15 pt-5">
+            {supabaseConfigured ? (
+              <button
+                type="button"
+                onClick={() => setUseToken(false)}
+                className={`${MONO_LABEL} mt-6 w-full text-ash transition-colors hover:text-gold-antique`}
+              >
+                Back to email sign-in
+              </button>
+            ) : null}
+          </form>
+          )}
+
+          {/* Only relevant to the token door — an owner signing in with an
+              email has no token to mint. */}
+          <details
+            className="mt-8 border-t border-gold-antique/15 pt-5"
+            hidden={!useToken}
+          >
             <summary
               className={`${MONO_LABEL} cursor-pointer list-none text-gold-antique transition-colors hover:text-gold-high`}
             >
@@ -1482,9 +1687,16 @@ function SignIn({
             </ol>
           </details>
         </div>
+        {/*
+          The privacy line is per-door: the token door's promise ("sent only to
+          GitHub") is untrue of the email door, whose credentials go to
+          Supabase — and a privacy note that is even slightly wrong is worse
+          than none, on the one screen whose subject is being careful.
+        */}
         <p className="mt-4 text-center text-[0.65rem] leading-relaxed text-ash/50">
-          The key stays in this browser and is sent only to GitHub. Nothing on
-          this page is stored anywhere else.
+          {useToken
+            ? "The key stays in this browser and is sent only to GitHub. Nothing on this page is stored anywhere else."
+            : "Your sign-in goes to this site's own Supabase project, and the publishing key it unlocks stays in memory until you close the tab."}
         </p>
       </div>
     </main>
