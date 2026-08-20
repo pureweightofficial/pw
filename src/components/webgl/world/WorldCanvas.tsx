@@ -165,6 +165,17 @@ export function WorldCanvas() {
     overreach, and this is the one place where overreaching would be felt on
     every single scroll.
 
+    THIS CHECK IS NOW THE SECOND LINE, NOT THE FIRST. It used to be the only
+    one, and that was a 919KB mistake: this component lives on the far side of
+    a next/dynamic boundary, so declining here means the browser has already
+    downloaded three.js to be told no. lib/scene-gate makes the same decision
+    BEFORE the import, which is where it belongs.
+
+    It stays as a guard rather than being deleted, because it is cheap and it
+    covers the case where something mounts this component without consulting
+    the gate. But it should never be what saves a phone — if you find yourself
+    editing this line to change which devices get the world, edit the gate.
+
     If this should ship to phones after all, the honest way is to measure a
     real mid-range device rather than to widen the gate and hope.
   */

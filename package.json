@@ -32,7 +32,8 @@
     "check:prose": "node scripts/check-prose.mjs",
     "check:voids": "node scripts/check-voids.mjs",
     "check:keeper-door": "node scripts/check-keeper-door.mjs",
-    "check:secrets": "node scripts/check-secrets.mjs"
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "check:mobile": "node scripts/check-mobile.mjs"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.3.6",
