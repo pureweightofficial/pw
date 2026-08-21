@@ -58,6 +58,31 @@ jobs:
       # trade happens at the counter — so the export is now an ordinary build with
       # no source surgery in CI.
 
+      # THE PRODUCTION TARGET, BUILT FIRST — and it is not the one this
+      # workflow deploys.
+      #
+      # Everything below builds the GitHub Pages EXPORT. Production is Vercel,
+      # which runs the node target, and the two configurations genuinely
+      # differ: next.config.ts skips its entire `headers()` block when
+      # GITHUB_PAGES is set (a static host cannot send headers), uses a
+      # basePath, and turns the image optimiser off. So the CSP, every
+      # Cache-Control rule, and the image pipeline were never once exercised
+      # by CI.
+      #
+      # That is not hypothetical. A caching fix landed with an invalid route
+      # pattern — `/_next/image:path*`, which throws "Can not repeat 'path'
+      # without a prefix and suffix". It broke the production build outright
+      # and this workflow would have gone green, because the block containing
+      # it is not compiled on Pages.
+      #
+      # One extra step, no extra checkout or install, and the build Vercel
+      # actually runs now has to compile before anything is published.
+      - name: Build production target (the one Vercel runs)
+        env:
+          NEXT_PUBLIC_SITE_URL: 'https://pureweight.gold'
+          NEXT_PUBLIC_ALLOW_INDEXING: 'false'
+        run: npm run build
+
       - name: Build static export
         env:
           GITHUB_PAGES: 'true'
