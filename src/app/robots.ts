@@ -53,6 +53,24 @@ export default function robots(): MetadataRoute.Robots {
         */
         disallow: ['/api/', '/keeper', '/keeper/'],
         /*
+          WHAT IS DELIBERATELY *NOT* HERE — recorded because a draft proposed
+          adding it, and the reasoning should outlive the conversation.
+
+          Disallow: /admin/, /private/, /preview/  — none of these paths exist
+          on this site. The admin panel is /keeper, and it is covered above.
+          Blocking phantom paths does not protect anything; the file should
+          describe THIS site, not a generic one.
+
+          Disallow: /src/, /node_modules/, /.git/, /.github/ — a Next.js
+          deployment never serves these; they are not in the build output on
+          Vercel or in the static export, so there is nothing to block. Worse
+          than useless, listing them is a mild self-harm: robots.txt is the
+          first file an attacker reads precisely BECAUSE it is a public list
+          of paths the owner considers sensitive. Naming /.git/ in it invites
+          the probe it is imagined to prevent. The correct number of mentions
+          of a directory that is never served is zero.
+        */
+        /*
           NO SEPARATE GROUPS FOR AI CRAWLERS, AND THAT IS A DECISION.
 
           GPTBot, ClaudeBot, PerplexityBot, CCBot, Google-Extended and the rest
