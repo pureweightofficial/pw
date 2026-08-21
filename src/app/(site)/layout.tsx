@@ -3,7 +3,6 @@ import { GoldWorld } from '@/components/ui/GoldWorld';
 import { Loader } from '@/components/chrome/Loader';
 import { Nav } from '@/components/chrome/Nav';
 import { PlumbLine } from '@/components/chrome/PlumbLine';
-import { SceneCursor } from '@/components/chrome/SceneCursor';
 import { MotionProvider } from '@/components/motion/MotionProvider';
 
 /**
@@ -51,7 +50,20 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       */}
       <GoldWorld />
       <Loader />
-      <SceneCursor />
+      {/*
+        SceneCursor was mounted here and is gone.
+
+        It drew a gold ring that replaced the native pointer, and it only ever
+        appeared over an element carrying `data-webgl-surface`. Those were the
+        assay and finale canvases. Both scenes were retired, so the attribute
+        now appears nowhere in the markup — the ring had nothing left to point
+        at and could never become visible.
+
+        What it still did, on every page, was attach a pointermove listener
+        that ran `document.querySelectorAll("[data-webgl-surface]")` and a
+        bounding-box hit test on every mouse move, plus its own animation
+        frame loop. All of it to decide, correctly, to stay hidden.
+      */}
       <PlumbLine />
       <div className="relative z-10">
         <Nav />

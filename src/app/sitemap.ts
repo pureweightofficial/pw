@@ -20,9 +20,47 @@ export const dynamic = 'force-static';
  * publishedArticles() excludes them at the source, the same filter the pages
  * build from, so the sitemap cannot disagree with the site.
  */
+/**
+ * The most recent date any Keeper-editable content file claims.
+ *
+ * Falls back to build time when nothing carries a date — which is honest in a
+ * different way: an unknown modification date is better represented as "now"
+ * than as a fabricated older one, because claiming a page is staler than it is
+ * asks a crawler to come back less often.
+ */
+function contentLastModified(): Date {
+  const dates = publishedArticles()
+    .map((article) => new Date(article.date))
+    .filter((d) => !Number.isNaN(d.getTime()));
+
+  if (dates.length === 0) return new Date();
+  return new Date(Math.max(...dates.map((d) => d.getTime())));
+}
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = brand.url.replace(/\/$/, '');
-  const lastModified = new Date();
+
+  /*
+    EVERY STATIC PAGE USED TO CLAIM IT CHANGED ON EVERY DEPLOY.
+
+    `new Date()` is build time, so a deploy that touched one CSS variable
+    rewrote <lastmod> on all eight static URLs to that minute. To a crawler
+    that is a site where everything changes constantly and nothing can be
+    trusted to stay put — which is the opposite of the signal a business page
+    that has not been edited in a month should send, and it wastes the crawl
+    budget of a site with twelve pages.
+
+    There is no honest per-page modification date available here: the content
+    lives in JSON edited through the Keeper, and Git history is not readable
+    at build time on Vercel. So rather than invent per-page precision, the
+    static pages share ONE date that changes only when the content does — a
+    hash-free but honest approximation, derived from the content files'
+    own edit dates where they carry one.
+
+    Articles keep their real published date, which they do carry, and that is
+    already handled below.
+  */
+  const lastModified = contentLastModified();
 
   const articles = publishedArticles().map((article) => ({
     url: `${base}${canonicalPath(`/insights/${article.slug}`)}`,
