@@ -1,5 +1,5 @@
 import { publishedArticles } from '@/lib/insights';
-import { allowIndexing, brand, business, isVerified } from '@/lib/site';
+import { brand, business, isVerified } from '@/lib/site';
 
 /**
  * /llms.txt — AN EMERGING CONVENTION, TREATED AS ONE.
@@ -45,11 +45,14 @@ import { allowIndexing, brand, business, isVerified } from '@/lib/site';
  *   - every URL derives from brand.url, so the Pages preview and production
  *     each emit their own correct origin.
  *
- * IT REMAINS GATED ON INDEXING. While robots.txt says Disallow: / and every
- * page carries noindex, this file serves a short statement of that fact
- * instead of a summary — a site must not invite models to read pages it is
- * simultaneously telling crawlers not to fetch. The full document below ships
- * automatically the day the indexing switch flips.
+ * NOT GATED ON INDEXING — a reversal, and the owner's call. The first
+ * version served a placeholder while robots.txt said Disallow: /, on the
+ * argument that a site should not invite models to read pages it tells
+ * crawlers not to fetch. The owner wants the document visible now, and the
+ * coherence argument is mild: llms.txt is an emerging convention read by
+ * agents that may not consult robots.txt at all, and everything in this file
+ * is content the owner is actively preparing to publish. The full document
+ * ships in every state.
  */
 
 // No request-time inputs, so it is generated once at build — which is what
@@ -59,21 +62,6 @@ export const dynamic = 'force-static';
 export function GET(): Response {
   const base = brand.url.replace(/\/$/, '');
 
-  if (!allowIndexing) {
-    /*
-      Consistent with robots.txt rather than merely absent. A 404 would be
-      ambiguous — indistinguishable from "this site has never heard of the
-      convention" — whereas saying so plainly means a crawler that read this
-      once and comes back is told what changed.
-    */
-    return new Response(
-      `# ${brand.name}\n\n` +
-        '> This site is not currently published for indexing. robots.txt ' +
-        'disallows crawling and every page carries a noindex directive.\n\n' +
-        'There is deliberately nothing to summarise here yet.\n',
-      { headers: { 'content-type': 'text/plain; charset=utf-8' } },
-    );
-  }
 
   /* ----- the generated parts ---------------------------------------- */
 
