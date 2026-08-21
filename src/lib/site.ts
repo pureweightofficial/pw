@@ -93,11 +93,40 @@ export const brand = {
  * problem for them, and one that outlives the deployment: the URL can sit in
  * results long after it is taken down.
  *
- * So indexing is opt-in, not opt-out. Every deployment is noindex until someone
- * sets `NEXT_PUBLIC_ALLOW_INDEXING=true`, which should only happen once
- * CONTENT-PLACEHOLDERS.md is cleared and the real domain is live.
+ * So indexing is opt-in, not opt-out — with one carefully-shaped exception.
+ *
+ * THE SWITCH FLIPPED ON 21 AUG 2026, at the owner's explicit direction. The
+ * original blocker (visible placeholder content) was cleared by the
+ * hide-until-verified work; the owner then chose to launch before the phone
+ * number and opening hours exist, accepting that trade knowingly ("launch
+ * now, facts later"). Search Console ownership was verified beforehand, in
+ * the right order.
+ *
+ * HOW THE DEFAULT WORKS, precisely, because three deployment targets share
+ * this code:
+ *
+ *   explicit 'true'   indexing on, wherever it is set. Highest priority.
+ *   explicit 'false'  indexing off, wherever it is set. The GitHub Pages
+ *                     preview sets this in its workflow and MUST keep it —
+ *                     an unfinished-looking preview of a real business on a
+ *                     github.io URL is exactly what this system exists to
+ *                     keep out of results.
+ *   unset             on ONLY when Vercel says this is the production
+ *                     deployment (VERCEL_ENV === 'production'). Vercel's
+ *                     preview deployments get VERCEL_ENV === 'preview' and
+ *                     stay noindex — and Vercel additionally stamps its own
+ *                     X-Robots-Tag: noindex on *.vercel.app previews, so
+ *                     that path is belt-and-braces. Local builds have no
+ *                     VERCEL_ENV and stay noindex.
+ *
+ * VERCEL_ENV rather than a domain check, because it is the one signal that
+ * cannot be spoofed by a misconfigured NEXT_PUBLIC_SITE_URL: it is set by
+ * the platform itself, per deployment, and read here at build time.
  */
-export const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true";
+export const allowIndexing =
+  process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true" ||
+  (process.env.NEXT_PUBLIC_ALLOW_INDEXING !== "false" &&
+    process.env.VERCEL_ENV === "production");
 
 /* -------------------------------------------------------------------------- */
 /* BUSINESS FACTS — all pending client verification                           */
