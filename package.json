@@ -26,14 +26,15 @@
     "check:3d-payload": "node scripts/check-3d-payload.mjs",
     "check:a11y": "node scripts/check-a11y.mjs",
     "check:keeper-a11y": "node scripts/check-keeper-a11y.mjs",
-    "verify:built": "npm run check:a11y && npm run check:keeper-a11y && npm run check:prose",
+    "verify:built": "npm run check:a11y && npm run check:keeper-a11y && npm run check:prose && npm run check:weight",
     "shot:sweep": "node scripts/shot-sweep.mjs",
     "shot:scene": "node scripts/shot-scene.mjs",
     "check:prose": "node scripts/check-prose.mjs",
     "check:voids": "node scripts/check-voids.mjs",
     "check:keeper-door": "node scripts/check-keeper-door.mjs",
     "check:secrets": "node scripts/check-secrets.mjs",
-    "check:mobile": "node scripts/check-mobile.mjs"
+    "check:mobile": "node scripts/check-mobile.mjs",
+    "check:weight": "node scripts/check-weight.mjs"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.3.6",
