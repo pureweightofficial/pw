@@ -97,6 +97,21 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(brand.url),
+  /*
+    GOOGLE SEARCH CONSOLE OWNERSHIP.
+
+    Supplied by the owner on 21 Aug 2026. It proves ownership of the domain to
+    Search Console and nothing else — it does not affect indexing, ranking or
+    crawling, and it is not a secret (it is meaningless to anyone who cannot
+    also sign in to the owner's Google account).
+
+    It ships UNCONDITIONALLY, on purpose — outside the allowIndexing gate that
+    controls everything else. Google's verification fetch is not an indexing
+    crawl and ignores robots.txt, so ownership can be proven while the site is
+    still noindex. That order is exactly right: verify first, then flip
+    indexing, then submit the sitemap from a console that already works.
+  */
+  verification: { google: 'upW5Snxnz5_3kHXYT9uR6R3PRFixLIAEyYPr9ukFDDU' },
   title: {
     default: 'Pureweight Gold Exchange — We Buy Gold, Silver, Coins & Bullion',
     template: '%s — Pureweight Gold Exchange',
