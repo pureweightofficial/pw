@@ -67,8 +67,14 @@
     always actually was); its webfont, its ~20KB and its display:block paint
     hold left with it.
   */
-  --font-display:
-    var(--font-manrope), "Manrope", ui-sans-serif, system-ui, sans-serif;
+  /*
+    Rye — the engraved display face, restored at the owner's direction. The
+    fallback chain is honest about having no lookalike: nothing on any system
+    resembles a Victorian ornamented slab, so the fallbacks are chosen for
+    METRICS (a bold serif holds the layout while Rye loads under font-display:
+    swap) rather than for resemblance.
+  */
+  --font-display: var(--font-rye), "Rye", Georgia, "Times New Roman", serif;
   /* Italic counterpoint: no vintage display face ships an italic, so the accent
      lines keep a calligraphic serif. The contrast is intentional. */
   --font-accent: var(--font-playfair), "Playfair Display", Georgia, serif;
@@ -189,8 +195,15 @@
       guard is gone with the single-weight face that needed it; 750 is a real
       loaded weight, not synthesis.
     */
-    font-weight: 750;
-    letter-spacing: -0.022em;
+    /*
+      400 and a whisker of POSITIVE tracking, because the face changed under
+      this rule. 750/-0.022em were Manrope decisions: a geometric sans needs
+      weight to read as a headline and tightens well. Rye has no 750 — the
+      browser would fake it by smearing strokes that are already ornamented —
+      and negative tracking closes up slab serifs that need air between them.
+    */
+    font-weight: 400;
+    letter-spacing: 0.01em;
     text-wrap: balance;
     margin: 0;
   }

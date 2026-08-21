@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist_Mono, Manrope, Playfair_Display } from 'next/font/google';
+import { Geist_Mono, Manrope, Playfair_Display, Rye } from 'next/font/google';
 import { assetPath } from '@/lib/asset';
 import { allowIndexing, brand, buildSiteJsonLd, SITE_LOCALE } from '@/lib/site';
 import './globals.css';
@@ -20,17 +20,41 @@ import './globals.css';
  *   GEIST MONO       micro-labels and MEASUREMENTS: tabular numerals for every
  *                    weight and price, tracked labels at 10px.
  *
- * RYE IS GONE FROM THE PAGE, DELIBERATELY. The Victorian display face carried
- * the previous identity; the overhaul's agreed direction is institutional
- * premium ("Swiss private banking, not jewellery shop"), and a decorative
- * saloon slab is the single loudest element arguing against that. The engraved
- * lettering SURVIVES where it belongs — inside the logo image in the nav and
- * footer, which never rendered in Rye anyway. Dropping the webfont also drops
- * its ~20KB and its display:block paint hold from every page.
+ * RYE IS BACK — the owner's decision, 21 Aug 2026, reversing the overhaul.
  *
- * All self-hosted at build time by next/font: no third-party request, and a
- * metric-matched fallback so nothing shifts when they arrive.
+ * The history deserves to be recorded straight, because this face has now
+ * crossed the page twice. It carried the original identity; the overhaul
+ * removed it on the agreed "institutional premium" direction, arguing that a
+ * Victorian saloon slab was the loudest element against a private-banking
+ * voice. The owner, looking at the finished institutional version, wants the
+ * engraved character back — and it is their brand, and the strongest argument
+ * on their side is hanging in the corner of every page: the logo IS engraved
+ * Victorian lettering. Rye is the one webfont that rhymes with it.
+ *
+ * Constraints that shape how it returns:
+ *   - Rye ships in exactly ONE weight, 400. Headings drop their 750 weight
+ *     and negative tracking, which were Manrope decisions — synthetic bold on
+ *     an ornamented slab reads as smearing, and tight tracking closes up its
+ *     slab serifs.
+ *   - display: 'swap', NOT 'block'. The hero headline is the LCP element and
+ *     this session measured a two-second LCP tax from keeping hero text
+ *     invisible; a 3s font-block window on Slow 4G would re-create exactly
+ *     that. A fallback flash costs less than an invisible headline.
+ *   - Manrope stays for body and UI. Rye at paragraph sizes is unreadable;
+ *     it is a display face and gets display duty only.
  */
+
+const rye = Rye({
+  subsets: ['latin'],
+  // Rye has one weight. This array is complete, not lazy.
+  weight: ['400'],
+  variable: '--font-rye',
+  // swap, not block: the hero headline is the LCP element. See the pairing
+  // note above — an invisible headline is the exact defect this session
+  // spent two seconds of LCP removing.
+  display: 'swap',
+  preload: true,
+});
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -201,7 +225,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang={SITE_LOCALE}
-      className={`${playfair.variable} ${manrope.variable} ${geistMono.variable}`}
+      className={`${rye.variable} ${playfair.variable} ${manrope.variable} ${geistMono.variable}`}
       /* CSS url() never receives basePath, so the cracked-gold texture's path is
          injected here through the same helper every other asset uses. */
       style={{ '--craquelure': `url(${assetPath('/brand/craquelure.png')})` } as React.CSSProperties}
