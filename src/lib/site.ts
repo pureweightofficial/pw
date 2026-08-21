@@ -662,13 +662,36 @@ export function buildSiteJsonLd(): Record<string, unknown>[] {
 
   const local = buildLocalBusinessJsonLd();
 
+  /*
+    ONE ENTITY WITH ONE IDENTIFIER, REFERENCED — not two nodes that happen to
+    share a name string.
+
+    Both nodes described this business by repeating `name`, which leaves a
+    consumer to infer that the Organization in one node and the publisher in
+    the other are the same thing. Usually it guesses right; there is no reason
+    to make it guess. A stable `@id` and a reference to it states the
+    relationship instead, which is the difference between a page that mentions
+    a business and a page that identifies one — and identification is the whole
+    currency of the generative-search surfaces this markup exists for.
+
+    The fragment form (`#organization`) is the schema.org convention for a
+    node that is ABOUT something rather than a document you can fetch. It never
+    resolves to a page, and it must stay stable: changing it later orphans
+    every reference anything has already recorded.
+  */
+  const entityId = `${brand.url.replace(/\/$/, "")}/#organization`;
+  const websiteId = `${brand.url.replace(/\/$/, "")}/#website`;
+
   const entity: Record<string, unknown> = local ?? {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": entityId,
     name: brand.name,
     url: brand.url,
     description: brand.positioning,
   };
+  // LocalBusiness comes from its own builder and needs the same identity.
+  entity["@id"] = entityId;
 
   /*
     The logo ships with the site, so its existence is not in question — but its
@@ -683,10 +706,17 @@ export function buildSiteJsonLd(): Record<string, unknown>[] {
   const website: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": websiteId,
     name: brand.name,
     url: brand.url,
     inLanguage: SITE_LOCALE,
-    publisher: { "@type": local ? "LocalBusiness" : "Organization", name: brand.name },
+    /*
+      A REFERENCE, not a restatement. `{ "@id": … }` says "the publisher is
+      that node, the one defined above" — where `{ name: "Pureweight" }` said
+      "the publisher is some organisation with this name" and left the join to
+      chance.
+    */
+    publisher: { "@id": entityId },
   };
 
   return [entity, website];
